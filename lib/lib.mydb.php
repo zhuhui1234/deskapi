@@ -181,9 +181,6 @@ class MyDb{
         }else{
             return $this->query($sql);
         }
-
-//        return $sql;
-
     }
 
     function update($tab,$where,$arr,$showsql=false){
@@ -217,8 +214,6 @@ class MyDb{
         }else{
             return $this->query($sql);
         }
-
-//        return $sql;
     }
 
     function delete($tab,$where,$showsql=false){

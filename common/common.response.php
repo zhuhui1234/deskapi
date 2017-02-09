@@ -61,5 +61,19 @@ class Response
             return json_encode(($data));
         }
     }
+
+    /**
+     * 错误响应结果
+     * $restCode 错误状态码
+     * $resMessage 错误信息
+     */
+    public function errorMessage($restCode, $resMessage)
+    {
+        $rs['resTime'] = time().'';
+        $rs['data'] = array();
+        $rs['resCode'] = $restCode;
+        $rs['resMsg'] = $resMessage;
+        echo json_encode($rs,JSON_UNESCAPED_UNICODE);
+    }
     
 }

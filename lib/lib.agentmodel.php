@@ -13,7 +13,7 @@ class AgentModel extends Model {
 	private $opr = 'M';
 
 //	function __construct(){}
-	
+
 	/**
 	 * mysqlQuery
 	 * 
@@ -146,6 +146,7 @@ class AgentModel extends Model {
         }
         return $rs;
     }
+
 }
 
 ?>

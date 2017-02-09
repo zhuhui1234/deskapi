@@ -210,38 +210,83 @@ class Request
     //验证TOKEN
     public function validation()
     {
-        if($_GET['m']=='user' AND $_GET['a']=='login'//登录
-            OR $_GET['m']=='user' AND $_GET['a']=='setMobileKey'//短信服务
-            OR $_GET['m']=='user' AND $_GET['a']=='addUser'//用户注册
+        if(
+            ($_GET['m']=='User' AND $_GET['a']=='login') //登录
+            OR ($_GET['m']=='User' AND $_GET['a']=='setMobileKey') //短信服务
+            OR ($_GET['m']=='User' AND $_GET['a']=='addUser') //用户注册
         ){
-            //不作任务处理
+            //不作任何操作
         } else {
-//            //接收POST请求数据
-//            $where = json_decode(file_get_contents('php://input'), true);
-//            //初始返回值
-//            $ret_data = array(
-//                'resTime' => time().'',
-//                'data' => '',
-//                'resCode' => '',
-//                'resMsg' => ''
-//            );
-//            //TOKEN判空
-//            if($where['token']==null){
-//                $ret_data['resCode'] = '000001';
-//                $ret_data['resMsg'] = 'TOKEN不能为空!!!';
-//                echo json_encode($ret_data,JSON_UNESCAPED_UNICODE);
-//                exit;
-//            }
-//            //验证TOKEN
-//            $where_token['token'] = $where['token'];
-//            $ret = Model::instance('token')->isToken($where_token);
-//            if($ret[0]<=0){
-//                $ret_data['resCode'] = '000002';
-//                $ret_data['resMsg'] = '用户过期!!!';
-//                echo json_encode($ret_data,JSON_UNESCAPED_UNICODE);
-//                exit;
-//            }
+            //获取POST请求数据
+            $data = _POST();
+
+            //验证参数-登录账号
+            if($data['TOKEN'] === null OR $data['TOKEN'] === ''){ _ERROR('000001','TOKEN不能为空'); }
+            //验证参数-用户GUID
+            if($data['userID'] === null OR $data['userID'] === ''){ _ERROR('000001','用户ID不能为空'); }
+
+            //验证TOKEN
+            Model::instance('tools')->isToken($data);
         }
+    }
+
+    /**
+     * 接收POST JOSON数据
+     * POST ->
+     * data JSON数组
+     * errorCode 错误状态码
+     * errorMessage 错误信息
+     */
+    public function getPostJson(){
+        //接收POST数据
+        $postVar = file_get_contents('php://input');
+        //数据转义数组
+        $postJson = json_decode($postVar,JSON_UNESCAPED_UNICODE);
+
+        //验证数据类型(必须为JSON数组)
+        if(!is_array($postJson)){
+            exit("非法格式");
+        }
+
+        //返回结果
+        return $postJson;
+    }
+
+    //RAD POST请求方法
+    function _curlRADPost($url, $data = array(), $cookiepath = '/',$timeout=300){
+        $userAgent = 'Mozilla/4.0+(compatible;+MSIE+6.0;+Windows+NT+5.1;+SV1)';
+        $referer = $url;
+        if(!is_array($data) || !$url) return '';
+        $data['userIP']=getIp();
+//        $post = json_encode($data);
+        $post = $data;
+        if(DEBUG){
+            echo $url,'<br>';
+            print_r($post);
+            echo '<br>';
+        }
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);				// 设置访问的url地址
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);        // 设置超时
+        curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);	// 用户访问代理 User-Agent
+        curl_setopt($ch, CURLOPT_REFERER, $referer);		// 设置 referer
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);		// 跟踪301
+        curl_setopt($ch, CURLOPT_POST, 1);					// 指定post数据
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $post);		// 添加变量
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $cookiepath);	// COOKIE的存储路径,返回时保存COOKIE的路径
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);		// 返回结果
+        $content = curl_exec($ch);
+        curl_close($ch);
+        if(DEBUG){
+            pr($content, 1);
+            echo '<br>';
+        }
+
+//    //LOG
+//    write_to_log('POST URL:'. $url, '_ird');
+//    write_to_log('POST VALUE' . json_encode($post), '_ird');
+//    write_to_log('RETURN: '. $content, '_ird');
+        return $content;
     }
 
 }

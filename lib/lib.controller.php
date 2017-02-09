@@ -29,6 +29,7 @@ class Controller
 
         if (!isset($instances[$controller])) {
             $controller = strtolower($controller);
+
             if (file_exists(CONTROLLER_PATH . CONTROLLER . '.' . $controller . '.php')) {
                 include_once CONTROLLER_PATH . CONTROLLER . '.' . $controller . '.php';
             } else {

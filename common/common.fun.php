@@ -829,6 +829,8 @@ function countPage($page_total, $pagesize)
     }
 }
 
+/***********************************************************************JOSON*************************************************************************/
+
 //创建GUID
 function getGUID($namespace = '') {
     static $guid = '';
@@ -853,7 +855,7 @@ function getGUID($namespace = '') {
     return $guid;
 }
 
-//创建GUID
+//上传文件
 function upFile($filebase64 , $type , $path = '' , $name = '') {
     //初始化文件名
     if($name === ''){ $name = substr(md5(rand(100000001,999999999)),0,10).time(); }
@@ -877,12 +879,82 @@ function upFile($filebase64 , $type , $path = '' , $name = '') {
     return $ret;
 }
 
-function makeVCode(int $co=6)
-{
-    $vcodes = '';
-    for ($i = 0; $i < $co; $i++) {
-        $authnum = rand(1, 9);
-        $vcodes .= $authnum;
+//获取POST数据
+function _POST(){
+    //获取POST数据
+    $arr = file_get_contents('php://input');
+    $arr = json_decode($arr, true);
+    return $arr;
+}
+
+//返回正确信息
+function _SUCCESS($resCode = '000000',$resMsg = '处理成功',$data = ''){
+    $arr = array(
+        'resTime' => time().'',
+        'resCode' => $resCode,
+        'resMsg' => $resMsg,
+        'data' => $data,
+    );
+
+    //写日志
+    Model::instance('tools')->logs($resCode,$resMsg,$data);
+
+    echo json_encode($arr,JSON_UNESCAPED_UNICODE);
+    die;
+}
+
+//返回错误信息
+function _ERROR($resCode = '999999',$resMsg = '处理失败',$data = ''){
+    $arr = array(
+        'resTime' => time().'',
+        'resCode' => $resCode,
+        'resMsg' => $resMsg,
+        'data' => $data,
+    );
+
+    //写日志
+    Model::instance('tools')->logs($resCode,$resMsg,$data);
+
+    echo json_encode($arr,JSON_UNESCAPED_UNICODE);
+    die;
+}
+
+//导航层级化-无限级
+function _findChildren($list, $p_id, $cleaningList=false){
+    $r = array();
+    foreach($list as $item){
+        if($item['sid'] == $p_id) {
+            $length = count($r);
+            //格式化&过滤元素
+            if($cleaningList == false){
+                $Citem = $item;
+            } else {
+                foreach($cleaningList as $a=>$v){
+                    $Citem[$a] = $item[$v];
+                }
+            }
+            $r[$length] = $Citem;
+
+            if($t = _findChildren($list, $item['id'], $cleaningList) ){
+                $r[$length]['lowerTree'] = $t;
+            }
+        }
     }
-    return $vcodes;
+    return $r;
+}
+
+//
+function fnEncrypt($sValue, $sSecretKey)
+{
+    return rtrim(
+        base64_encode(
+            mcrypt_encrypt(
+                MCRYPT_RIJNDAEL_128,
+                $sSecretKey, $sValue,
+                MCRYPT_MODE_CBC,
+                "1234567812345678"
+            )
+        )
+        , "\0"
+    );
 }

@@ -25,6 +25,8 @@
     define('VIEW_PATH', ROOT_PATH . VIEW . DS);
     //密码key
     define('PWD_KEY','F3CA98CC222E4507ADBB955A60EEC6E1C8F9453A3E4B45EE814F98646809FC1D');
+    //IRD产品整合接口
+    define('IRD_SERVER_URL', 'http://sys.itracker.cn/api/WebForm1.aspx');
     //******************** 邮件配置信息 ********************************
     define('EMAIL_SMTPSERVER', 'smtp.263.net');//SMTP服务器
     define('EMAIL_SMTPSERVERPORT', '25');//SMTP服务器端口
@@ -33,7 +35,7 @@
     //******************************************************************
     //********************** 浪池短信配置信息 **************************
     define('SMS_SERVER_URL', 'http://www.lanz.net.cn/LANZGateway/DirectSendSMSs.asp');
-    define('SMS_SERVER_IP', '219.136.252.188');
+    define('SMS_SERVER_IP', 'www.lanz.net.cn');
     define('SMS_USER_ID', '813860');
     define('SMS_ACCOUNT', 'data5');
     define('SMS_PWD', '82D05B779D9301FBB9D3BB1D46C6181F29DC0323');
@@ -47,12 +49,12 @@
     define('WEBSITE_SOURCE_URL', WEBSITE_URL . 'public');
     define('WEBSITE_TITLE', '艾瑞iClick');
     define('RECEIVE_PATH', ROOT_PATH . '/userFiles/'); //接受上传目录
-    define('USER_PIC', 'http://10.10.21.163/iclick-api/userFiles/'); //文件查看路径
-    define('API_URL','http://ifocus.iclick.com.cn:8888/services/'); //后台同步接口
-    define('API_KEY','56f57434b7d36a5d4f0931b9978f5f47'); //后台同步KEY
+//    define('USER_PIC', 'http://10.10.21.163/iclick-api/userFiles/'); //文件查看路径
+//    define('API_URL','http://ifocus.iclick.com.cn:8888/services/'); //后台同步接口
+//    define('API_KEY','56f57434b7d36a5d4f0931b9978f5f47'); //后台同步KEY
     //导出报表配置
     //define('EXPORT_PIC','http://203.156.255.148:81/chart.php');
-    define('EXPORT_PIC', 'http://180.169.19.166/graph_api/chart.php');
+//    define('EXPORT_PIC', 'http://180.169.19.166/graph_api/chart.php');
     //页面条数
     define("__PAGENUM__", 10);
     //session 前缀
@@ -79,7 +81,6 @@
     if (DEBUG) {
         ini_set('display_errors', 1);
         error_reporting(E_ALL ^ E_NOTICE);
-
     } else {
         error_reporting(0);
     }

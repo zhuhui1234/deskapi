@@ -29,11 +29,27 @@ class MysqlRoutRule implements IMysqlRoutRule{
 
     final function getRout(){
         $this->routArr = array(
+            'M'=>array(
+                '0'=>array(
+                    'host'=>'180.169.19.208',
+                    'user'=>'idata_admin',
+                    'pass'=>'1qaz2wsx',
+                    'db'=>'idatadb'
+                )
+            ),
+            'S'=>array(
+                '0'=>array(
+                    'host'=>'180.169.19.208',
+                    'user'=>'idata_admin',
+                    'pass'=>'1qaz2wsx',
+                    'db'=>'idatadb'
+                )
+            ),
 //            'M'=>array(
 //                '0'=>array(
 //                    'host'=>'127.0.0.1',
 //                    'user'=>'root',
-//                    'pass'=>'',
+//                    'pass'=>'weiwei',
 //                    'db'=>'idatadb'
 //                )
 //            ),
@@ -41,26 +57,10 @@ class MysqlRoutRule implements IMysqlRoutRule{
 //                '0'=>array(
 //                    'host'=>'127.0.0.1',
 //                    'user'=>'root',
-//                    'pass'=>'',
+//                    'pass'=>'weiwei',
 //                    'db'=>'idatadb'
 //                )
 //            ),
-            'M'=>array(
-                '0'=>array(
-                    'host'=>'127.0.0.1',
-                    'user'=>'root',
-                    'pass'=>'weiwei',
-                    'db'=>'idatadb'
-                )
-            ),
-            'S'=>array(
-                '0'=>array(
-                    'host'=>'127.0.0.1',
-                    'user'=>'root',
-                    'pass'=>'weiwei',
-                    'db'=>'idatadb'
-                )
-            ),
             //redis主从
             'RM'=>array(
                 '0'=>array(

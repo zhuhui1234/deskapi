@@ -41,9 +41,9 @@ class UserModel extends AgentModel
                 if($ret_addMUser != '1'){ _ERROR('000002','登录失败,创建游客失败'); }
             }
 
-            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_head headimg,dba.u_product_key productkey,dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token FROM idt_user dba LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) WHERE dba.u_mobile='{$data['Account']}' AND dbb.mik_key='{$data['LoginKey']}' AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$uptimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5";
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.u_head headimg,dba.u_product_key productkey,dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,dba.u_state u_state FROM idt_user dba LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) WHERE dba.u_mobile='{$data['Account']}' AND dbb.mik_key='{$data['LoginKey']}' AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$uptimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5";
         } else if ($data['LoginType'] === 'weixin'){
-            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token FROM idt_user dba LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) WHERE dba.u_wxopid='{$data['Account']}' AND dba.u_wxunid='{$data['LoginKey']}'";
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,dba.u_state u_state FROM idt_user dba LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) WHERE dba.u_wxopid='{$data['Account']}' AND dba.u_wxunid='{$data['LoginKey']}'";
         } else {
             //登录失败,参数错误
             _ERROR('000001','未知登录类型');
@@ -51,6 +51,9 @@ class UserModel extends AgentModel
 
         //登录
         $ret = $this->mysqlQuery($sql, "all");
+
+        //验证冰结用户
+        if($ret[0]['u_state']==1){ _ERROR('000002','登录失败,该用户已冰结'); }
 
         //验证登录&USER GUID不为空
         if(count($ret) > 0 AND ($ret[0]['userid']!=null OR $ret[0]['userid']!="")){
@@ -61,6 +64,14 @@ class UserModel extends AgentModel
 
             //验证登录状态
             if($ret_upToken == '1'){
+                //更新微信名称
+                if($data['LoginType'] === 'weixin'){
+                    $where_upwxName['u_wxname'] = urlencode($data['wxName']);//微信名称
+                    $id_upwxName = " u_wxopid='".$data['Account']."' AND u_wxunid='".$data['LoginKey']."'";//微信帐号
+                    $ret_upwxName = $this->mysqlEdit('idt_user',$where_upwxName,$id_upwxName);
+                    if($ret_upwxName != '1'){ _ERROR('000002','登录失败,更新微信名称失败'); }
+                }
+
                 //更新验证码状态
                 if($data['LoginType'] === 'mobile'){
                     $where_upResCode['mik_state'] = 1; //验证码状态
@@ -69,11 +80,19 @@ class UserModel extends AgentModel
                     if($ret_upResCode != '1'){ _ERROR('000002','登录失败,更新验证码状态失败'); }
                 }
 
+                //产品权限
+                if($ret[0]['productkey'] == 0 OR $ret[0]['productkey'] == null OR $ret[0]['productkey'] == ""){
+                    $productKey = 0;
+                } else {
+                    $productKey = 1;
+                }
                 //返回用户信息
                 $rs['headImg'] = $ret[0]['headimg']; //头像
                 $rs['mobile'] = $ret[0]['mobile']; //用户手机
+                $rs['companyID'] = $ret[0]['cpy_id']; //公司ID
+                $rs['companyName'] = $ret[0]['cpy_cname']; //公司名称
                 $rs['permissions'] = $ret[0]['permissions']; //用户身份 0游客 1企业用户 2企业管理员
-                $rs['productKey'] = $ret[0]['productkey']; //产品Key
+                $rs['productKey'] = $productKey; //产品权限
                 $rs['token'] = $upToken; //用户token
                 $rs['uname'] = $ret[0]['uname']; //用户姓名
                 $rs['userID'] = $ret[0]['userid']; //用户GUID
@@ -112,6 +131,7 @@ class UserModel extends AgentModel
 
         if($ret_mnum[0]['mobile_num'] > 0){
             //如果手机已存在，更新微信绑定
+            $where_editwx['u_wxname'] = $data['wxName'];//微信名称
             $where_editwx['u_wxopid'] = $data['wxOpenid'];//微信Openid
             $where_editwx['u_wxunid'] = $data['wxUnionid'];//微信Unionid
             $where_editwx['u_edate'] = $uptimes;//最后更新时间
@@ -121,6 +141,7 @@ class UserModel extends AgentModel
             //创建用户
             $where_addWMuser['u_id'] = getGUID();
             $where_addWMuser['u_mobile'] = $data['loginMobile'];//手机号码
+            $where_addWMuser['u_wxname'] = $data['wxName'];//微信名称
             $where_addWMuser['u_wxopid'] = $data['wxOpenid'];//微信Openid
             $where_addWMuser['u_wxunid'] = $data['wxUnionid'];//微信Unionid
             $where_addWMuser['u_permissions'] = 0;//用户身份(0普通用户 1公司用户)
@@ -145,14 +166,25 @@ class UserModel extends AgentModel
             if($ret_upCodeState != '1'){ _ERROR('000002','登录失败,更新验证码状态出错'); }
 
             //获取用户
-            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token FROM idt_user dba LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) WHERE u_mobile='{$data['loginMobile']}'";
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,dba.u_state u_state FROM idt_user dba LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) WHERE u_mobile='{$data['loginMobile']}'";
             $ret = $this->mysqlQuery($sql, "all");
 
+            //验证冰结用户
+            if($ret[0]['u_state']==1){ _ERROR('000002','登录失败,该用户已冰结'); }
+
+            //产品权限
+            if($ret[0]['productkey'] == 0 OR $ret[0]['productkey'] == null OR $ret[0]['productkey'] == ""){
+                $productKey = 0;
+            } else {
+                $productKey = 1;
+            }
             //返回用户信息
             $rs['headImg'] = $ret[0]['headimg']; //头像
             $rs['mobile'] = $ret[0]['mobile']; //用户手机
+            $rs['companyID'] = $ret[0]['cpy_id']; //公司ID
+            $rs['companyName'] = $ret[0]['cpy_cname']; //公司名称
             $rs['permissions'] = $ret[0]['permissions']; //用户身份 0游客 1企业用户 2企业管理员
-            $rs['productKey'] = $ret[0]['productkey']; //产品Key
+            $rs['productKey'] = $productKey; //产品权限
             $rs['token'] = $upToken; //用户token
             $rs['uname'] = $ret[0]['uname']; //用户姓名
             $rs['userID'] = $ret[0]['userid']; //用户GUID
@@ -212,33 +244,32 @@ class UserModel extends AgentModel
     //绑定产品KEY
     public function setProductKey($data)
     {
+        //验证IRD账号是否正确
+        $where_irdKey['mail'] = $data['account'];
+        $where_irdKey['pwd'] = $data['password'];
+        $ret_irdKey = $this->request()->_curlRADPost(IRD_SERVER_URL, ['v' => fnEncrypt(json_encode($where_irdKey), KEY)]);
+        $ret_irdKey = json_decode($ret_irdKey,JSON_UNESCAPED_UNICODE);
+        if($ret_irdKey['iUserID'] == '-1'){ _ERROR('000002','绑定失败,账号密码不正确或用户不存在'); }
+
+        //查询用户是否已绑定其它账号
+        $sql_keyNum = "SELECT COUNT(1) keyNum FROM idt_user WHERE u_product_key='{$ret_irdKey['iUserID']}'";
+        $ret_keyNum = $this->mysqlQuery($sql_keyNum, "row");
+        //绑定失败,该产品KEY已绑定其它账号
+        if($ret_keyNum[0] > 0){ _ERROR('000002','绑定失败,该用户已绑定其它账号'); };
+
         //查询产品Key
         $sql_productkey = "SELECT u_product_key FROM idt_user WHERE u_id='{$data['userID']}'";
         $ret_productkey = $this->mysqlQuery($sql_productkey, "all");
+        if($ret_productkey[0]['u_product_key'] != "" OR $ret_productkey[0]['u_product_key'] != null){ _ERROR('000002','绑定失败,该产品KEY已绑定其它账号'); }
 
-        //查询产品Key是否已绑定其它账号
-        $sql_keyNum = "SELECT COUNT(1) keyNum FROM idt_user WHERE u_product_key='{$data['productKey']}'";
-        $ret_keyNum = $this->mysqlQuery($sql_keyNum, "row");
-
-        //产品Key为空时才执行绑定操作
-        if($ret_productkey[0]['u_product_key'] == "" OR $ret_productkey[0]['u_product_key'] == null){
-            if($ret_keyNum[0] > 0){
-                //绑定失败,该产品KEY已绑定其它账号
-                _ERROR('000002','绑定失败,该产品KEY已绑定其它账号');
-            } else {
-                //绑定成功,更新产品KEY
-                $where['u_product_key'] = $data['productKey']; //产品Key
-                $productkey = " u_id='".$data['userID']."'";//用户GUID
-                $ret_productkey = $this->mysqlEdit('idt_user',$where,$productkey);
-                if($ret_productkey == 1){
-                    _SUCCESS('000000','绑定成功');
-                } else {
-                    _ERROR('000002','绑定失败');
-                }
-            }
+        //绑定成功,更新产品KEY
+        $where['u_product_key'] = $ret_irdKey['iUserID']; //产品Key
+        $productkey = " u_id='".$data['userID']."'";//用户GUID
+        $ret_productkey = $this->mysqlEdit('idt_user',$where,$productkey);
+        if($ret_productkey == 1){
+            _SUCCESS('000000','绑定成功');
         } else {
-            //绑定失败,该账号已绑定产品Key
-            _ERROR('000002','绑定失败,该账号已绑定产品KEY');
+            _ERROR('000002','绑定失败');
         }
     }
 
@@ -252,7 +283,7 @@ class UserModel extends AgentModel
         //返回用户信息
         $rs['company'] = $ret[0]['cpy_cname']; //公司
         $rs['companyEmail'] = $ret[0]['u_mail']; //公司邮箱
-        $rs['headImg'] = $ret[0]['u_head']; //头像
+        $rs['headImg'] = "upload/head/".$ret[0]['u_head']; //头像
         $rs['mobile'] = $ret[0]['u_mobile']; //手机
         $rs['position'] = $ret[0]['u_position']; //职位
         $rs['uname'] = $ret[0]['u_name']; //姓名
@@ -262,9 +293,24 @@ class UserModel extends AgentModel
     //修改用户资料
     public function editUserInfo($data)
     {
-        //修改用户资料
-        $where['u_position'] = $data['position']; //职位
-        $where['u_name'] = $data['uname']; //姓名
+        //修改用户姓名
+        if($data['uname'] !== null){ $where['u_name'] = $data['uname']; } //处理NULL
+        if($data['uname'] === ""){ $where['u_name'] = " "; } //处理空
+        //修改用户职位
+        if($data['position'] !== null){ $where['u_position'] = $data['position']; } //处理NULL
+        if($data['position'] === ""){ $where['u_position'] = " "; } //处理空
+        //修改用户头像
+        if($data['headImg'] !== null){ //处理NULL
+            //图片存储
+            $imgName = $data['userID'].'.png';//头像名称
+            $imgPath = 'upload/head/'.$imgName;//头像路径
+            $imgVal = base64_decode($data['headImg']);//头像格式化
+            file_put_contents($imgPath, $imgVal);//返回的是字节数
+            //保存头像
+            $where['u_head'] = $imgName; //用户头像
+        }
+        if($data['headImg'] === ""){ $where['u_head'] = "head.png"; } //处理空
+        //修改用户
         $id = " u_id='".$data['userID']."'";//用户GUID
         $ret = $this->mysqlEdit('idt_user',$where,$id);
 
@@ -276,221 +322,102 @@ class UserModel extends AgentModel
         }
     }
 
+    //冰结用户
+    public function iceUser($data)
+    {
+        //当前时间
+        $upTimes = date("Y-m-d H:i:s");
 
+        //解冻用户
+        $where_iceUser['u_state'] = 1; //用户状态(0正常 1冰结)
+        $where_iceUser['u_edate'] = $upTimes; //最后登录时间
+        $id_iceUser = " u_id='".$data['uid']."'";//用户GUID
+        $ret = $this->mysqlEdit('idt_user',$where_iceUser,$id_iceUser);
 
+        //验证并返回响应结果
+        if($ret == 1){
+            _SUCCESS('000000','冻结成功');
+        } else {
+            _ERROR('000002','冻结失败');
+        }
+    }
 
+    //解冰用户
+    public function thawUser($data)
+    {
+        //当前时间
+        $upTimes = date("Y-m-d H:i:s");
 
+        //解冻用户
+        $where_thawUser['u_state'] = 0; //用户状态(0正常 1冰结)
+        $where_thawUser['u_edate'] = $upTimes; //最后登录时间
+        $id_thawUser = " u_id='".$data['uid']."'";//用户GUID
+        $ret = $this->mysqlEdit('idt_user',$where_thawUser,$id_thawUser);
 
+        //验证并返回响应结果
+        if($ret == 1){
+            _SUCCESS('000000','解冻成功');
+        } else {
+            _ERROR('000002','解冻失败');
+        }
+    }
 
+    //获取用户List
+    public function userList($data)
+    {
+        //查询初始化条件
+        $data['orderByColumn'] == null ? $orderByColumn = 'permissions' : $orderByColumn = $data['orderByColumn']; //排序字段
+        $data['orderByType'] == null ? $orderByType = 'DESC' : $orderByType = $data['orderByType']; //排序方式
+        $data['pageSize'] == null ? $pageSize = '10' : $pageSize = $data['pageSize']; //查询数据
+        $data['pageNo'] == null ? $pageNo = '0' : $pageNo = ($data['pageNo'] - 1) * $pageSize; //查询页数
+        $data['keyword'] == null ? $keyword = '' : $keyword = " AND (dba.u_mobile LIKE '%" . $data['keyword'] . "%' OR dbb.cpy_cname LIKE '%" . $data['keyword'] . "%' OR dba.u_name LIKE '%" . $data['keyword'] . "%')"; //查询条件
 
+        //获取当前用户所属公司ID
+        $sql_companyID = "SELECT cpy_id FROM idt_user WHERE 1=1 AND u_id='{$data['userID']}'";
+        $ret_companyID = $this->mysqlQuery($sql_companyID, "all");
+        if($ret_companyID[0]['cpy_id'] == 0 OR $ret_companyID[0]['cpy_id'] == null OR $ret_companyID[0]['cpy_id'] == ""){ _ERROR('000002','查询失败,非法用户'); }
 
+        //执行查询
+        $sql = "SELECT dba.u_id,dba.u_head,dba.u_mobile mobile,dba.u_mail,dba.u_name,dba.u_permissions permissions,dba.u_state,dba.u_edate logindate ".
+               "FROM idt_user dba ".
+               "LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id AND dba.cpy_id={$ret_companyID[0]['cpy_id']}) ".
+               "WHERE 1=1 ".
+               "AND dba.u_state=0 ".
+               "AND dbb.cpy_state=0 ".
+               "AND (dba.u_permissions=1 OR dba.u_permissions=2) ".
+               "ORDER BY {$orderByColumn} {$orderByType} ".
+               "LIMIT {$pageNo},{$pageSize}";
+        $ret = $this->mysqlQuery($sql, "all");
 
+        //执行总数
+        $sql_count = "SELECT COUNT(1) count_num ".
+            "FROM idt_user dba ".
+            "LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id AND dba.cpy_id={$ret_companyID[0]['cpy_id']}) ".
+            "WHERE 1=1 ".
+            "AND dba.u_state=0 ".
+            "AND dbb.cpy_state=0 ".
+            "AND (dba.u_permissions=1 OR dba.u_permissions=2) ";
+        $ret_count = $this->mysqlQuery($sql_count, "all");
 
+        //返回结果
+        $rs = array();
+        //返回参数-执行结果
+        foreach($ret as $a=>$v){
+            $rs[$a]['userID'] = $v['u_id']; //用户GUID
+            $rs[$a]['head'] = $v['u_head']; //头像
+            $rs[$a]['mobile'] = $v['mobile']; //手机
+            $rs[$a]['mail'] = $v['u_mail']; //邮箱
+            $rs[$a]['name'] = $v['u_name']; //姓名
+            $rs[$a]['permissions'] = (int)$v['permissions']; //用户身份
+            $rs[$a]['state'] = (int)$v['u_state']; //用户状态
+            $rs[$a]['loginDate'] = $v['logindate']; //最后登录时间
+        }
 
+        //返回参数-执行总数
+        $rs['totalSize'] = $ret_count[0]['count_num'];
 
-
-//    //用户编辑
-//    public function setupUserinfo($where)
-//    {
-//        //用户参数
-//        $uptimes = date("Y-m-d H:i:s");//new date
-//        $upuserinfo_where['u_head'] = $where['u_head'];//头像
-//        $upuserinfo_where['u_name'] = $where['u_name'];//姓名
-//        $upuserinfo_where['u_department'] = $where['u_department'];//部门
-//        $upuserinfo_where['u_position'] = $where['u_position'];//职位
-//        $upuserinfo_where['u_mobile'] = $where['u_mobile'];//联系电话(移动)
-//        $upuserinfo_where['u_edate'] = $uptimes;//最后更新时间
-//        $id = " u_account='".$where['u_account']."'";//用户帐号
-//        $ret = $this->mysqlEdit('ivw_user',$upuserinfo_where,$id);
-//
-//        return $ret;
-//    }
-//
-//    //用户注销
-//    public function setCancellation($where)
-//    {
-//        //用户注销
-//        $tokeyData['u_token'] = md5(rand(1000000001,9999999999));
-//        $id = " u_account='".$where['u_account']."'";//用户帐号
-//        $ret = $this->mysqlEdit('ivw_user',$tokeyData,$id);
-//
-//        return $ret;
-//    }
-//
-//    //微信登录
-//    public function wxlogin($where)
-//    {
-//        //更新TOKEN
-//        $tokeyData['u_token'] = md5(rand(1000000001,9999999999));
-//        $tokeyId = " u_wxopid='{$where['loginOpenid']}' AND u_wxunid='{$where['loginUnionid']}'";
-//        $this->mysqlEdit('ivw_user',$tokeyData,$tokeyId);
-//        //查询用户信息(包括最新TOKEN)
-//        $sql = "SELECT u_id,u_account,u_head,u_name,u_department,u_position,u_mobile,u_token,u_cdate,u_edate FROM ivw_user WHERE 1=1 AND".$tokeyId;
-//        $ret = $this->mysqlQuery($sql, "all");
-//        return $ret;
-//    }
-//
-//    //微信绑定
-//    public function bindingWeixin($where)
-//    {
-//        //微信绑定
-//        $weixinData['u_wxopid'] = $where['u_wxopid'];
-//        $weixinData['u_wxunid'] = $where['u_wxunid'];
-//        $tokeyId = " u_account='{$where['u_account']}'";
-//        $ret = $this->mysqlEdit('ivw_user',$weixinData,$tokeyId);
-//
-//        return $ret;
-//    }
-//
-//    //验证微信是否已绑定其他账号
-//    public function ckweixin($where)
-//    {
-//        //验证微信是否已绑定其他账号
-//        $sql = "SELECT COUNT(*) FROM ivw_user WHERE u_wxopid='{$where['u_wxopid']}' AND u_account NOT IN ('{$where['u_account']}')";
-//        $ret = $this->mysqlQuery($sql, "row");
-//        return $ret;
-//    }
-//
-//    //验证邮件是否可注册
-//    public function ckcompmail($mailsuffix)
-//    {
-//        //查询用户信息(包括最新TOKEN)
-//        $sql = "SELECT COUNT(1) FROM ivw_company WHERE cpy_mail='{$mailsuffix}' AND cpy_state='0'";
-//        $ret = $this->mysqlQuery($sql, "row");
-//        return $ret;
-//    }
-//
-//    //创建邮件服务KEY
-//    public function setmailkey($mailkey_where)
-//    {
-//        //查询用户信息(包括最新TOKEN)
-//        $uptimes = date("Y-m-d H:i:s");//new date
-//        $mailkey_where['mlk_state'] = "0";//验证状态(0.进行中 1.正在处理 2.处理完成)
-//        $mailkey_where['mlk_udate'] = $uptimes;//创建时间
-//        $mailkey_where['mlk_edate'] = $uptimes;//最后更新时间
-//        $ret = $this->mysqlInsert('ivw_mailkey',$mailkey_where);
-//
-//        return $ret;
-//    }
-//
-//    //创建邮件服务KEY
-//    public function setUserinfo($userinfo_where)
-//    {
-//        //用户参数
-//        $uptimes = date("Y-m-d H:i:s");//new date
-//        $where['u_id'] = getGUID();//用户ID
-//        $where['u_account'] = $userinfo_where['u_account'];//用户帐号
-//        $where['u_password'] = $userinfo_where['u_password'];//用户密码
-//        $where['u_head'] = $userinfo_where['u_head'];//头像
-//        $where['u_name'] = $userinfo_where['u_name'];//姓名
-//        $where['u_department'] = $userinfo_where['u_department'];//部门
-//        $where['u_position'] = $userinfo_where['u_position'];//职位
-//        $where['u_mobile'] = $userinfo_where['u_mobile'];//联系电话(移动)
-//        $where['u_token'] = md5(rand(1000000001,9999999999));//用户token
-//        $where['u_cdate'] = $uptimes;//创建时间
-//        $where['u_edate'] = $uptimes;//最后更新时间
-//        $ret = $this->mysqlInsert('ivw_user',$where);
-//
-//        return $ret;
-//    }
-//
-//    //验证邮件KEY
-//    public function ckmailkey($where)
-//    {
-//        //验证邮件mailkey(包括最新mailkey)
-//        $uptimes = date("Y-m-d H:i:s");//new date
-//        $sql = "SELECT COUNT(*) FROM ivw_mailkey WHERE mlk_mail='{$where['mailname']}' AND mlk_key='{$where['mailkey']}' AND mlk_type='{$where['mailtype']}' AND ROUND((UNIX_TIMESTAMP('{$uptimes}')-UNIX_TIMESTAMP(mlk_edate))/60)<=30 ORDER BY mlk_edate DESC LIMIT 1";
-//        $retcount = $this->mysqlQuery($sql, "row");
-//        return $retcount;
-//     }
-//
-//    //验证邮件是否已注册
-//    public function ckmailcount($where)
-//    {
-//        //验证邮件mailkey(包括最新mailkey)
-//        $sql = "SELECT COUNT(*) FROM ivw_user WHERE u_account='{$where['mailname']}'";
-//        $retcount = $this->mysqlQuery($sql, "row");
-//        return $retcount;
-//    }
-//
-//    //重置密码
-//    public function resetPassword($pwdinfo_where)
-//    {
-//        //用户参数
-//        $uptimes = date("Y-m-d H:i:s");//new date
-//        $where['u_password'] = $pwdinfo_where['u_password'];//用户密码
-//        $where['u_token'] = md5(rand(1000000001,9999999999));//用户token
-//        $where['u_edate'] = $uptimes;//最后更新时间
-//        $id = " u_account='".$pwdinfo_where['u_account']."'";//用户帐号
-//        $ret = $this->mysqlEdit('ivw_user',$where,$id);
-//
-//        return $ret;
-//    }
-//
-//    //获取用户详情
-//    public function getUserinfo($where)
-//    {
-//        //获取用户详情
-//        $sql = "SELECT u_id,u_account,u_head,u_name,u_department,u_position,u_mobile,u_token,u_cdate,u_edate FROM ivw_user WHERE u_account='{$where['u_account']}'";
-//        $retcount = $this->mysqlQuery($sql, "all");
-//        return $retcount;
-//    }
-//
-//    //获取用户列表
-//    public function getUserinfoList($where)
-//    {
-//        //查询初始化条件
-//        $where['orderByColumn'] == null ? $orderByColumn = 'u_cdate' : $orderByColumn = $where['orderByColumn']; //排序字段
-//        $where['orderByType'] == null ? $orderByType = 'asc' : $orderByType = $where['orderByType']; //排序方式
-//        $where['pageSize'] == null ? $pageSize = '10' : $pageSize = $where['pageSize']; //查询数据
-//        $where['pageNo'] == null ? $pageNo = '0' : $pageNo = ($where['pageNo'] - 1) * $pageSize; //查询页数
-//        $where['keyword'] == null ? $keyword = '' : $keyword = " AND u_account LIKE '%" . $where['keyword'] . "%'"; //查询条件
-//        $mailsuffix = strstr($where['u_account'], '@');//截取邮箱后缀
-//
-//        //查询用户LIST
-//        $sql = "SELECT u_id,u_account,u_head,u_name,u_department,u_position,u_mobile,u_token,u_state,u_cdate,u_edate FROM ivw_user WHERE 1=1 AND u_account LIKE '%{$mailsuffix}' {$keyword} order by {$orderByColumn} {$orderByType} limit {$pageNo},{$pageSize}";
-//        $ret['data'] = $this->mysqlQuery($sql, "all");
-//        //查询总条数
-//        $sql = "SELECT COUNT(*) FROM ivw_user WHERE 1=1 AND u_account LIKE '%{$mailsuffix}' {$keyword}";
-//        $ret['size'] = $this->mysqlQuery($sql, "row");
-//
-//        return $ret;
-//    }
-//
-//    //冰结用户
-//    public function setState($where)
-//    {
-//        //冰结操作
-//        $setstate_where['u_state'] = $where['operation'];
-//        $id = " u_account='".$where['u_account']."'";//用户帐号
-//        $ret = $this->mysqlEdit('ivw_user',$setstate_where,$id);
-//
-//        return $ret;
-//    }
-//
-//    //权限列表
-//    public function getPermissionsList($where)
-//    {
-//        //查询初始化条件
-//        $where['orderByColumn'] == null ? $orderByColumn = 'u_cdate' : $orderByColumn = $where['orderByColumn']; //排序字段
-//        $where['orderByType'] == null ? $orderByType = 'asc' : $orderByType = $where['orderByType']; //排序方式
-//        $where['pageSize'] == null ? $pageSize = '10' : $pageSize = $where['pageSize']; //查询数据
-//        $where['pageNo'] == null ? $pageNo = '0' : $pageNo = ($where['pageNo'] - 1) * $pageSize; //查询页数
-//        $where['keyword'] == null ? $keyword = '' : $keyword = " AND db1.u_account LIKE '%" . $where['keyword'] . "%'"; //查询条件
-//
-//        //获取公司ID
-//        $sql_cuid = "SELECT u_id,cpy_id FROM ivw_user WHERE 1=1 AND u_account='".$where['u_account']."'";
-//        $ret_cuid = $this->mysqlQuery($sql_cuid, "all");
-//
-//        //查询权限LIST
-//        $sql_data = "SELECT {$where['cfg_id']} cfg_id, db1.u_account u_account, IF(db2.adt_state != '',db2.adt_state,0) adt_state, db1.u_cdate u_cdate FROM ivw_user db1 LEFT JOIN (SELECT u_id,adt_state FROM ivw_audit WHERE cfg_id={$where['cfg_id']}) db2 ON (db1.u_id = db2.u_id) WHERE 1=1{$keyword} AND db1.cpy_id={$ret_cuid[0]['cpy_id']} order by {$orderByColumn} {$orderByType} limit {$pageNo},{$pageSize}";
-//        $ret['data'] = $this->mysqlQuery($sql_data, "all");
-//        //查询总条数
-//        $sql_size = "SELECT COUNT(1) FROM ivw_user db1 LEFT JOIN (SELECT u_id,adt_state FROM ivw_audit WHERE cfg_id={$where['cfg_id']}) db2 ON (db1.u_id = db2.u_id) WHERE 1=1{$keyword} AND db1.cpy_id={$ret_cuid[0]['cpy_id']}";
-//        $ret['size'] = $this->mysqlQuery($sql_size, "row");
-//
-////        return $ret;
-//        return $sql_data;
-//    }
+        //查询成功,返回响应结果
+        _SUCCESS('000000','查询成功',$rs);
+    }
 
 }
