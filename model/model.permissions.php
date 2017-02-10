@@ -108,182 +108,193 @@ class PermissionsModel extends AgentModel
                 if($v['menuName'] == '艾瑞睿见'){
                     foreach($v['lowerTree'] as $a2=>$v2){
                         foreach($v2['lowerTree'] as $a3=>$v3){
-                            if($v3['menuEName'] == 'iUserTracker'){
-                                if($ret_irdKey_format['iut']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iut']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'iAdTracker'){
-                                if($ret_irdKey_format['iadt']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iadt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'iVideoTracker'){
-                                if($ret_irdKey_format['ivt']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ivt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'mUserTracker'){
-                                if($ret_irdKey_format['mut']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mut']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'iMediaMatix'){
-                                if($ret_irdKey_format['imm']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['imm']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'madTracker'){
-                                if($ret_irdKey_format['madt']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['madt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'iECTracker'){
-                                if($ret_irdKey_format['iect']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iect']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'imBlogTracker'){
-                                if($ret_irdKey_format['imbt']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['imbt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'TargetPlus'){
-                                if($ret_irdKey_format['tgp']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['tgp']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'iUserTracker-en'){
-                                if($ret_irdKey_format['iut-en']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iut-en']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'mUserTracker-en'){
-                                if($ret_irdKey_format['mut-en']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mut-en']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'loyaltyPlus'){
-                                if($ret_irdKey_format['lps']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['lps']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'EcommercePlus'){
-                                if($ret_irdKey_format['ecp']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ecp']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'iUserServey'){
-                                if($ret_irdKey_format['ius']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ius']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'EcommercePlus-en'){
-                                if($ret_irdKey_format['ecp-en']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ecp-en']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'iMediaMatix-en'){
-                                if($ret_irdKey_format['imm-en']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['imm-en']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'mGameTracker'){
-                                if($ret_irdKey_format['mgt']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mgt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'iAdMatrix'){
-                                if($ret_irdKey_format['iadm']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iadm']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'mStoreTracker'){
-                                if($ret_irdKey_format['mst']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mst']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                } else {
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
-                                }
-                            } else if($v3['menuEName'] == 'ECTracker'){
-                                if($ret_irdKey_format['ect']){
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ect']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                            //过滤老产品
+                            if($v3['versionType'] === "2"){
+                                if($v3['menuEName'] == 'iUserTracker'){
+                                    if($ret_irdKey_format['iut']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iut']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'iAdTracker'){
+                                    if($ret_irdKey_format['iadt']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iadt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'iVideoTracker'){
+                                    if($ret_irdKey_format['ivt']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ivt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'mUserTracker'){
+                                    if($ret_irdKey_format['mut']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mut']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'iMediaMatix'){
+                                    if($ret_irdKey_format['imm']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['imm']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'madTracker'){
+                                    if($ret_irdKey_format['madt']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['madt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'iECTracker'){
+                                    if($ret_irdKey_format['iect']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iect']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'imBlogTracker'){
+                                    if($ret_irdKey_format['imbt']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['imbt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'TargetPlus'){
+                                    if($ret_irdKey_format['tgp']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['tgp']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'iUserTracker-en'){
+                                    if($ret_irdKey_format['iut-en']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iut-en']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'mUserTracker-en'){
+                                    if($ret_irdKey_format['mut-en']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mut-en']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'loyaltyPlus'){
+                                    if($ret_irdKey_format['lps']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['lps']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'EcommercePlus'){
+                                    if($ret_irdKey_format['ecp']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ecp']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'iUserServey'){
+                                    if($ret_irdKey_format['ius']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ius']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'EcommercePlus-en'){
+                                    if($ret_irdKey_format['ecp-en']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ecp-en']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'iMediaMatix-en'){
+                                    if($ret_irdKey_format['imm-en']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['imm-en']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'mGameTracker'){
+                                    if($ret_irdKey_format['mgt']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mgt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'iAdMatrix'){
+                                    if($ret_irdKey_format['iadm']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iadm']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'mStoreTracker'){
+                                    if($ret_irdKey_format['mst']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mst']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
+                                } else if($v3['menuEName'] == 'ECTracker'){
+                                    if($ret_irdKey_format['ect']){
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ect']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                    } else {
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                    }
                                 } else {
                                     $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                     $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
                                 }
                             } else {
-                                $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                                $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                                $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
                             }
                         }
                     }
                 }
             }
         } else {
-            //追加产品权限
+            //追加无绑定产品权限
             foreach($rs['dataList'] as $a=>$v){
                 if($v['menuName'] == '艾瑞睿见'){
                     foreach($v['lowerTree'] as $a2=>$v2){
                         foreach($v2['lowerTree'] as $a3=>$v3){
-                            $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
-                            $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                            //过滤老产品
+                            if($v3['versionType'] !== "2"){
+                                $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $v3['curl'];
+                            } else {
+                                $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
+                            }
                         }
                     }
                 }
