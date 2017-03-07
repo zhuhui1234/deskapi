@@ -59,4 +59,15 @@ class PermissionsController extends Controller
         //获取首页菜单导航,并返回响应结果
         $this->model->getHomeMenu($data);
     }
+
+    /**
+     * 根据token，以及产品验证用户是否可以使用改产品
+     * http://iutmain.itracker.cn/NLogin.aspx?guid=8fc6ed3b-8ce5-40a2-b0b5-5281cec92a01&irv_callback=http://10.10.21.163/iResearchDataWeb/?m=irdata&a=classicSys&ppname=PC%E7%AB%AF%E7%94%A8%E6%88%B7%E8%A1%8C%E4%B8%BA%E7%9B%91%E6%B5%8B&backType=1
+     */
+    public function checkUserProPer(){
+        $data = json_decode(file_get_contents('php://input'), true);
+        if($data['token'] === null OR $data['token'] === ''){ _ERROR('000001','TOKEN不能为空'); }
+        if($data['productID'] === null OR $data['productID'] === ''){ _ERROR('000001','产品ID不能为空'); }
+        $this->model->checkUserProPer($data);
+    }
 }

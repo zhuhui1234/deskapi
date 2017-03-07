@@ -98,7 +98,7 @@ class MyDb{
             $exec_time = $end_time - $start_time;
             if (defined('DEBUG') && DEBUG == true){
                 $this->doLog($querysql, $exec_time, $this->db_errors > 0 ? $this->db_error('db wrong') : '');
-                debug_info($this->log);
+//                debug_info($this->log);
 
             }
 

@@ -214,12 +214,12 @@ class Request
             ($_GET['m']=='User' AND $_GET['a']=='login') //登录
             OR ($_GET['m']=='User' AND $_GET['a']=='setMobileKey') //短信服务
             OR ($_GET['m']=='User' AND $_GET['a']=='addUser') //用户注册
+            OR ($_GET['m']=='permissions' AND $_GET['a']=='checkUserProPer') //验证用户权限
         ){
             //不作任何操作
         } else {
             //获取POST请求数据
             $data = _POST();
-
             //验证参数-登录账号
             if($data['TOKEN'] === null OR $data['TOKEN'] === ''){ _ERROR('000001','TOKEN不能为空'); }
             //验证参数-用户GUID

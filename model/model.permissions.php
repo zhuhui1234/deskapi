@@ -304,4 +304,11 @@ class PermissionsModel extends AgentModel
         //返回响应结果
         _SUCCESS('000000','查询成功',$rs);
     }
+    public function checkUserProPer($data){
+        $rs = Model::instance("user")->_getUserInfoByToken($data);
+        if($rs['uid']==null or $rs['uid']==''){
+            _SUCCESS('000001','TOKEN验证失败');
+        }
+        _SUCCESS('000000','验证成功',$rs);
+    }
 }

@@ -914,7 +914,6 @@ function _ERROR($resCode = '999999',$resMsg = '处理失败',$data = ''){
 
     //写日志
     Model::instance('tools')->logs($resCode,$resMsg,$data);
-
     echo json_encode($arr,JSON_UNESCAPED_UNICODE);
     die;
 }

@@ -290,6 +290,19 @@ class UserModel extends AgentModel
         _SUCCESS('000000','获取成功',$rs);
     }
 
+    public function _getUserInfoByToken($data){
+        $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,dba.u_mobile,dba.u_position,dba.u_name,dba.u_id FROM idt_user dba LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) WHERE dba.u_token='{$data['token']}'";
+        $ret = $this->mysqlQuery($sql, "all");
+        //返回用户信息
+        $rs['company'] = $ret[0]['cpy_cname']; //公司
+        $rs['companyEmail'] = $ret[0]['u_mail']; //公司邮箱
+        $rs['headImg'] = "upload/head/".$ret[0]['u_head']; //头像
+        $rs['mobile'] = $ret[0]['u_mobile']; //手机
+        $rs['position'] = $ret[0]['u_position']; //职位
+        $rs['uname'] = $ret[0]['u_name']; //姓名
+        $rs['uid'] = $ret[0]['u_id']; //姓名
+        return $rs;
+    }
     //修改用户资料
     public function editUserInfo($data)
     {
