@@ -58,6 +58,7 @@ function playTime($w = 'week')
     }
     return $date;
 }
+
 function removeM($ret)
 {
     foreach ($ret['content'][0] as $k => $v) {
@@ -148,6 +149,7 @@ function removeM($ret)
     }
     return $ret;
 }
+
 function remove($ret, $top)
 {
     foreach ($ret['list']['content'][0] as $k => $v) {
@@ -190,7 +192,9 @@ function remove($ret, $top)
 
     }
     return $list;
-};
+}
+
+;
 
 //截取中文字符
 function cnSubStr($string, $sublen, $tip = '')
@@ -231,17 +235,21 @@ function getHttpHost()
 {
     return "http://" . (isset($_SERVER['HTTP_X_FORWARDED_HOST']) ? $_SERVER['HTTP_X_FORWARDED_HOST'] : (isset($_SERVER['']) ? $_SERVER['HTTP_HOST'] : ''));
 }
+
 //跳转
 function redirect($uri = '/', $method = 'location', $http_response_code = 302)
 {
     switch ($method) {
-        case 'refresh':header("Refresh:0;url=" . $uri);
+        case 'refresh':
+            header("Refresh:0;url=" . $uri);
             break;
-        default:header("Location: " . $uri, true, $http_response_code);
+        default:
+            header("Location: " . $uri, true, $http_response_code);
             break;
     }
     exit;
 }
+
 //容量转换
 function tosize($bytes)
 {
@@ -264,6 +272,7 @@ function tosize($bytes)
     }
     return $return . " " . $suffix; //返回合适的文件大小和单位
 }
+
 //判断是否irsearch域名
 function isIreDomain($url)
 {
@@ -302,6 +311,7 @@ function isCli()
 {
     return PHP_SAPI == 'cli' && empty($_SERVER['REMOTE_ADDR']);
 }
+
 //测试打印
 function p($info, $exit = true, $ret = false)
 {
@@ -355,11 +365,13 @@ function trimSpace($s)
     $s = mb_ereg_replace('(　| )+$', '', $s);
     return $s;
 }
+
 //判断是否url
 function isUrl($url)
 {
     return preg_match('/^(http|https):\/\/(([A-Z0-9][A-Z0-9_-]*)(\.[A-Z0-9][A-Z0-9_-]*)+)/i', $url);
 }
+
 //得到来路ip函数
 function getIp($type = '')
 {
@@ -382,7 +394,7 @@ function getIp($type = '')
         }
     }
     if ($type == 'int') {
-        return (float) bindec(decbin(ip2long($realip)));
+        return (float)bindec(decbin(ip2long($realip)));
     }
 
     return $realip;
@@ -412,6 +424,7 @@ function mkdirs($dir, $mode = 0777)
 
     return @mkdir($dir, $mode);
 }
+
 function zipfile($file = "", $type = "php")
 {
     $tmpfile = $data = "";
@@ -474,7 +487,7 @@ function funStrRehtml($str)
 //脚本输出
 function script($s)
 {
-    echo ("
+    echo("
     <SCRIPT LANGUAGE=\"JavaScript\">
     $s
     </SCRIPT>
@@ -571,17 +584,21 @@ function funChkFiles($files)
 function funSetMkdir($file)
 {
     //if(!@is_dir($file)&&!@mkdir($file))@mkdir($file,0777);
-    if (@is_dir($file) || @mkdir($file, 0777)) {return true;}
-    ;
-    if (funSetMkdir(dirname($file), 0777)) {return @mkdir($file, 0777);}
-    ;
+    if (@is_dir($file) || @mkdir($file, 0777)) {
+        return true;
+    };
+    if (funSetMkdir(dirname($file), 0777)) {
+        return @mkdir($file, 0777);
+    };
 }
-function template_ini($tpl,$title='',$meta_key='',$meta_des='') {
 
-    if($title==''){
-        $title= WEBSITE_TITLE;
-    }else{
-        $title.=' - '.WEBSITE_TITLE;
+function template_ini($tpl, $title = '', $meta_key = '', $meta_des = '')
+{
+
+    if ($title == '') {
+        $title = WEBSITE_TITLE;
+    } else {
+        $title .= ' - ' . WEBSITE_TITLE;
     }
 //
 //    require_once(ROOT_PATH . CONTROLLER .DS .CONTROLLER . '.menu.php');
@@ -591,8 +608,9 @@ function template_ini($tpl,$title='',$meta_key='',$meta_des='') {
     //所有模板均调用以下接口去获取该用户是否管理员??并该接口直接读取sqlserver,造成页面并发速度慢.
 //    $admin = Model::instance('apply')->adminApply(array('apply_adminid'=>$_session->get( 'uid' )));
 //    echo Session::instance()->get('admin_auth');
-    $tpl->assign(array('AUTH'=>Session::instance()->get('admin_auth'), 'USER_NAME'=>$_session->get( 'user_name' ),'PAGE_TITLE'=>$title,'META_KEY'=>$meta_key,'META_DES'=>$meta_des,'WEBSITE_URL'=>WEBSITE_URL,'WEBSITE_SOURCE_URL'=>WEBSITE_SOURCE_URL,'EXPORT_PIC'=>EXPORT_PIC));
+    $tpl->assign(array('AUTH' => Session::instance()->get('admin_auth'), 'USER_NAME' => $_session->get('user_name'), 'PAGE_TITLE' => $title, 'META_KEY' => $meta_key, 'META_DES' => $meta_des, 'WEBSITE_URL' => WEBSITE_URL, 'WEBSITE_SOURCE_URL' => WEBSITE_SOURCE_URL, 'EXPORT_PIC' => EXPORT_PIC));
 }
+
 //模板初始化
 function templateIni($tpl, $title = '', $meta_key = '', $meta_des = '')
 {
@@ -612,6 +630,7 @@ function templateIni($tpl, $title = '', $meta_key = '', $meta_des = '')
     //    echo Session::instance()->get('admin_auth');
     $tpl->assign(array('AUTH' => Session::instance()->get('admin_auth'), 'USER_NAME' => $_session->get('user_name'), 'PAGE_TITLE' => $title, 'META_KEY' => $meta_key, 'META_DES' => $meta_des, 'WEBSITE_URL' => WEBSITE_URL, 'WEBSITE_SOURCE_URL' => WEBSITE_SOURCE_URL, 'EXPORT_PIC' => EXPORT_PIC));
 }
+
 function iArrayColumn($input, $columnKey, $indexKey = null)
 {
     if (!function_exists('array_column')) {
@@ -619,7 +638,7 @@ function iArrayColumn($input, $columnKey, $indexKey = null)
         $indexKeyIsNull = (is_null($indexKey)) ? true : false;
         $indexKeyIsNumber = (is_numeric($indexKey)) ? true : false;
         $result = array();
-        foreach ((array) $input as $key => $row) {
+        foreach ((array)$input as $key => $row) {
 //            if($columnKeyIsNumber){
             //                echo "111--";
             //                $tmp= array_slice($row, $columnKey, 1);
@@ -645,6 +664,7 @@ function iArrayColumn($input, $columnKey, $indexKey = null)
         return array_column($input, $columnKey, $indexKey);
     }
 }
+
 //二维数组
 function arrayToNumber($array)
 {
@@ -659,6 +679,7 @@ function arrayToNumber($array)
     }
     return $array;
 }
+
 ////一纬数组
 //function arrayToNumberOne($array)
 //{
@@ -698,11 +719,14 @@ function uploadFiles($file, $editor = 0)
     $filesize = 1024 * 1024 * 100;
     if ($size > $filesize) {
         //              echo "<script>alert('退出成功!');location.href='".$_SERVER["HTTP_REFERER"]."';</script>";
-        echo "<script>alert('文件过大!');history.go(-1)</script>";exit;
+        echo "<script>alert('文件过大!');history.go(-1)</script>";
+        exit;
     } else if (!in_array($tpname, $types)) {
-        echo "<script>alert('文件类型不符合!');history.go(-1)</script>";exit;
+        echo "<script>alert('文件类型不符合!');history.go(-1)</script>";
+        exit;
     } else if (!move_uploaded_file($tmp_name, $tmp_url)) {
-        echo "<script>alert('移动文件失败!');history.go(-1)</script>";exit;
+        echo "<script>alert('移动文件失败!');history.go(-1)</script>";
+        exit;
     } else {
         if ($editor == 1) {
             echo "<script>window.parent.InsertHTML('<div><img src=\"public/upload/" . $name . "\" border=\"0\" width=\"400\" height=\"300\"></div>');</script>";
@@ -714,20 +738,22 @@ function uploadFiles($file, $editor = 0)
     }
 
 }
-function i_array_column($input, $columnKey, $indexKey=null){
-    if(!function_exists('array_column')){
-        $columnKeyIsNumber  = (is_numeric($columnKey))?true:false;
-        $indexKeyIsNull            = (is_null($indexKey))?true :false;
-        $indexKeyIsNumber     = (is_numeric($indexKey))?true:false;
-        $result                         = array();
-        foreach((array)$input as $key=>$row){
+
+function i_array_column($input, $columnKey, $indexKey = null)
+{
+    if (!function_exists('array_column')) {
+        $columnKeyIsNumber = (is_numeric($columnKey)) ? true : false;
+        $indexKeyIsNull = (is_null($indexKey)) ? true : false;
+        $indexKeyIsNumber = (is_numeric($indexKey)) ? true : false;
+        $result = array();
+        foreach ((array)$input as $key => $row) {
 //            if($columnKeyIsNumber){
 //                echo "111--";
 //                $tmp= array_slice($row, $columnKey, 1);
 //                $tmp= (is_array($tmp) && !empty($tmp))?current($tmp):null;
 //            }else{
 //                echo "222--";
-            $tmp= isset($row[$columnKey])?$row[$columnKey]:null;
+            $tmp = isset($row[$columnKey]) ? $row[$columnKey] : null;
 //            }
 
 //            if(!$indexKeyIsNull){
@@ -742,10 +768,11 @@ function i_array_column($input, $columnKey, $indexKey=null){
             $result[$key] = $tmp;
         }
         return $result;
-    }else{
+    } else {
         return array_column($input, $columnKey, $indexKey);
     }
 }
+
 /**
  * 权限认证
  */
@@ -756,7 +783,7 @@ function signAuth()
     $now = $headers['now'];
     $method = $_GET['a'];
     $csign = md5(KEY . $method . $now);
-    if($_GET['a']=='userRecoverResult'){//此类方法不使用签名认证
+    if ($_GET['a'] == 'userRecoverResult') {//此类方法不使用签名认证
         return true;
     }
     if ($sign != $csign) {
@@ -769,20 +796,27 @@ function signAuth()
         die;
     }
 }
+
 /**
  * 网页抓取图片另存为
- * @param $url
+ *
+ * @param        $url
  * @param string $filename
+ *
  * @return bool|string
  */
 function GrabImage($url, $filename = "")
 {
 //$url 为空则返回 false;
-    if ($url == "") {return false;}
+    if ($url == "") {
+        return false;
+    }
     //$ext = strrchr($url, ".");//得到图片的扩展名
     //if($ext != ".gif" && $ext != ".jpg" && $ext != ".bmp"){echo "格式不支持！";return false;}
     $ext = ".jpg";
-    if ($filename == "") {$filename = time() . "$ext";} //以时间戳另起名
+    if ($filename == "") {
+        $filename = time() . "$ext";
+    } //以时间戳另起名
     //开始捕捉
     ob_start();
     readfile($url);
@@ -796,23 +830,31 @@ function GrabImage($url, $filename = "")
 }
 
 /**
-     * @param $str
-     * @param $path
-     */
-    function write_to_log($str) {
-	$str=$str.PHP_EOL;
-        $time =time();
-        $log_file = date('Y-m-d-H',$time).'.log';
-        if ($fd = fopen ( "./log/".$log_file, "a" )) {
-            fwrite($fd, date('Y-m-d H:i:s',$time).' --> ['.getIp().']'.$str);
-            fclose ( $fd );
+ * write log
+ *
+ * @param $str
+ * @param $path
+ */
+function write_to_log($str, $pre = '')
+{
+    if (DEBUG_LOG) {
+        $str = $str . PHP_EOL;
+        $time = time();
+        $log_file = 'idata_' . date('Y-m-d', $time) . $pre . '.log';
+        if ($fd = fopen(LOG_PATH . $log_file, "a")) {
+            fwrite($fd, date('Y-m-d H:i:s', $time) . '  ' . getIp() . ': ' . $str);
+            fclose($fd);
         }
         unset($str);
     }
- /**
+}
+
+/**
  * [countPage description]
+ *
  * @param  [type] $page_total [description]
  * @param  [type] $pagesize   [description]
+ *
  * @return [type]             [description]
  */
 function countPage($page_total, $pagesize)
@@ -822,9 +864,9 @@ function countPage($page_total, $pagesize)
         return 1;
     } else {
         if (($page_total % $pagesize) > 0) {
-            return (int) $p + 1;
+            return (int)$p + 1;
         } else {
-            return (int) $p;
+            return (int)$p;
         }
     }
 }
@@ -832,7 +874,8 @@ function countPage($page_total, $pagesize)
 /***********************************************************************JOSON*************************************************************************/
 
 //创建GUID
-function getGUID($namespace = '') {
+function getGUID($namespace = '')
+{
     static $guid = '';
     $uid = uniqid("", true);
     $data = $namespace;
@@ -843,33 +886,42 @@ function getGUID($namespace = '') {
     $data .= $_SERVER['REMOTE_ADDR'];
     $data .= $_SERVER['REMOTE_PORT'];
     $hash = strtoupper(hash('ripemd128', $uid . $guid . md5($data)));
-    $guid = substr($hash,  0,  8) .
+    $guid = substr($hash, 0, 8) .
         '-' .
-        substr($hash,  8,  4) .
+        substr($hash, 8, 4) .
         '-' .
-        substr($hash, 12,  4) .
+        substr($hash, 12, 4) .
         '-' .
-        substr($hash, 16,  4) .
+        substr($hash, 16, 4) .
         '-' .
         substr($hash, 20, 12);
     return $guid;
 }
 
 //上传文件
-function upFile($filebase64 , $type , $path = '' , $name = '') {
+function upFile($filebase64, $type, $path = '', $name = '')
+{
     //初始化文件名
-    if($name === ''){ $name = substr(md5(rand(100000001,999999999)),0,10).time(); }
+    if ($name === '') {
+        $name = substr(md5(rand(100000001, 999999999)), 0, 10) . time();
+    }
     //文件不能为空
-    if($filebase64 === ''){ return "文件不能为空"; exit(); }
+    if ($filebase64 === '') {
+        return "文件不能为空";
+        exit();
+    }
     //文件类型不能为空
-    if($type === ''){ return "文件类型不能为空"; exit(); }
+    if ($type === '') {
+        return "文件类型不能为空";
+        exit();
+    }
 
     //设置全路径
     $filepath = "/upload/{$path}{$name}.{$type}";
     //打开文件准备写入
-    $file = fopen(".".$filepath,"w");
+    $file = fopen("." . $filepath, "w");
     //写入
-    $retfile = fwrite($file,base64_decode($filebase64));
+    $retfile = fwrite($file, base64_decode($filebase64));
     //关闭
     fclose($file);
 
@@ -880,7 +932,8 @@ function upFile($filebase64 , $type , $path = '' , $name = '') {
 }
 
 //获取POST数据
-function _POST(){
+function _POST()
+{
     //获取POST数据
     $arr = file_get_contents('php://input');
     $arr = json_decode($arr, true);
@@ -888,53 +941,56 @@ function _POST(){
 }
 
 //返回正确信息
-function _SUCCESS($resCode = '000000',$resMsg = '处理成功',$data = ''){
+function _SUCCESS($resCode = '000000', $resMsg = '处理成功', $data = '')
+{
     $arr = array(
-        'resTime' => time().'',
+        'resTime' => time() . '',
         'resCode' => $resCode,
         'resMsg' => $resMsg,
         'data' => $data,
     );
 
     //写日志
-    Model::instance('tools')->logs($resCode,$resMsg,$data);
+    Model::instance('tools')->logs($resCode, $resMsg, $data);
 
-    echo json_encode($arr,JSON_UNESCAPED_UNICODE);
+    echo json_encode($arr, JSON_UNESCAPED_UNICODE);
     die;
 }
 
 //返回错误信息
-function _ERROR($resCode = '999999',$resMsg = '处理失败',$data = ''){
+function _ERROR($resCode = '999999', $resMsg = '处理失败', $data = '')
+{
     $arr = array(
-        'resTime' => time().'',
+        'resTime' => time() . '',
         'resCode' => $resCode,
         'resMsg' => $resMsg,
         'data' => $data,
     );
 
     //写日志
-    Model::instance('tools')->logs($resCode,$resMsg,$data);
-    echo json_encode($arr,JSON_UNESCAPED_UNICODE);
+    Model::instance('tools')->logs($resCode, $resMsg, $data);
+    echo json_encode($arr, JSON_UNESCAPED_UNICODE);
     die;
 }
 
 //导航层级化-无限级
-function _findChildren($list, $p_id, $cleaningList=false){
+function _findChildren($list, $p_id, $cleaningList = false)
+{
     $r = array();
-    foreach($list as $item){
-        if($item['sid'] == $p_id) {
+    foreach ($list as $item) {
+        if ($item['sid'] == $p_id) {
             $length = count($r);
             //格式化&过滤元素
-            if($cleaningList == false){
+            if ($cleaningList == false) {
                 $Citem = $item;
             } else {
-                foreach($cleaningList as $a=>$v){
+                foreach ($cleaningList as $a => $v) {
                     $Citem[$a] = $item[$v];
                 }
             }
             $r[$length] = $Citem;
 
-            if($t = _findChildren($list, $item['id'], $cleaningList) ){
+            if ($t = _findChildren($list, $item['id'], $cleaningList)) {
                 $r[$length]['lowerTree'] = $t;
             }
         }

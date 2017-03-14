@@ -35,7 +35,8 @@ class AgentModel extends Model {
 		$this->flag_spl_rw == true && $this->opr = "R";
 		
 		$res = $this->mydb($db, $this->opr)->query($sql,$type);
-
+		write_to_log(' SQL '.$sql,'_sql');
+		write_to_log(' RET '.json_encode($res), '_sql');
 		$this->data_unset();
 
 		return $res;
