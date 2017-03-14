@@ -10,7 +10,7 @@
  */
 class PermissionsModel extends AgentModel
 {
-    public function __consturct()
+    public function __construct()
     {
 
     }
