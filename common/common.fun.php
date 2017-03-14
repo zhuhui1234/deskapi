@@ -936,6 +936,7 @@ function _POST()
 {
     //获取POST数据
     $arr = file_get_contents('php://input');
+    write_to_log(' RECEIVE POST ' . $arr, '_conapi');
     $arr = json_decode($arr, true);
     return $arr;
 }
@@ -952,8 +953,9 @@ function _SUCCESS($resCode = '000000', $resMsg = '处理成功', $data = '')
 
     //写日志
     Model::instance('tools')->logs($resCode, $resMsg, $data);
-
-    echo json_encode($arr, JSON_UNESCAPED_UNICODE);
+    $ret = json_encode($arr, JSON_UNESCAPED_UNICODE);
+    write_to_log(' RESPONSE SUCCESS ' . $ret, '_conapi');
+    echo $ret;
     die;
 }
 
@@ -969,7 +971,9 @@ function _ERROR($resCode = '999999', $resMsg = '处理失败', $data = '')
 
     //写日志
     Model::instance('tools')->logs($resCode, $resMsg, $data);
-    echo json_encode($arr, JSON_UNESCAPED_UNICODE);
+    $ret = json_encode($arr, JSON_UNESCAPED_UNICODE);
+    write_to_log(' RESPONSE ERROR' . $ret, '_conapi');
+    echo $ret;
     die;
 }
 
