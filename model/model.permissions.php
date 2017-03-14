@@ -102,7 +102,9 @@ class PermissionsModel extends AgentModel
             foreach($ret_irdKey['pplist'] as $a_format=>$v_format){
                 $ret_irdKey_format[$v_format['ppname']] = $v_format;
             }
-
+            if($_GET['debug']==1){
+                print_r($rs);
+            }
             //追加产品权限
             foreach($rs['dataList'] as $a=>$v){
                 if($v['menuName'] == '艾瑞睿见'){
@@ -121,7 +123,8 @@ class PermissionsModel extends AgentModel
                                 } else if($v3['menuEName'] == 'iAdTracker'){
                                     if($ret_irdKey_format['iadt']){
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iadt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+//                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iadt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://iadt.itracker.cn/ws_login.aspx?ProductSelection=ProductSelection&guid=".$ret_irdKey['iRGuid'];
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -129,7 +132,8 @@ class PermissionsModel extends AgentModel
                                 } else if($v3['menuEName'] == 'iVideoTracker'){
                                     if($ret_irdKey_format['ivt']){
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ivt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+//                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ivt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://ivt.itracker.cn/?guid=".$ret_irdKey['iRGuid'];
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -137,7 +141,8 @@ class PermissionsModel extends AgentModel
                                 } else if($v3['menuEName'] == 'mUserTracker'){
                                     if($ret_irdKey_format['mut']){
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mut']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+//                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mut']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://mut-test.chinacloudsites.cn/LLogin.aspx?guid=".$ret_irdKey['iRGuid'];
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -150,18 +155,19 @@ class PermissionsModel extends AgentModel
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
                                     }
-                                } else if($v3['menuEName'] == 'madTracker'){
+                                } else if($v3['menuEName'] == 'mAdTracker'){
                                     if($ret_irdKey_format['madt']){
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['madt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+//                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['madt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://iadt-alpha.chinacloudsites.cn/ws_login.aspx?ProductSelection=ProductSelection&guid=".$ret_irdKey['iRGuid'];
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
                                     }
-                                } else if($v3['menuEName'] == 'iECTracker'){
-                                    if($ret_irdKey_format['iect']){
+                                } else if($v3['menuEName'] == 'iEcTracker'){
+                                    if($ret_irdKey_format['ect']){
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iect']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ect']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
