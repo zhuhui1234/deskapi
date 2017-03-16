@@ -94,7 +94,7 @@ class Request
     }
 
 
-    public function request($index = '', $default = null)
+    public function __construct($index = '', $default = null)
     {
         $this->_filter($_GET);
         $this->_filter($_POST);
