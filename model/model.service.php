@@ -80,4 +80,19 @@ class ServiceModel extends AgentModel
         }
     }
 
+    /**
+     * check state
+     * @param $d
+     *
+     * @return bool
+     */
+    public function checkState($d)
+    {
+        if ($d !== null OR isset($d)) {
+            return $d != 0;
+        }else {
+            return false;
+        }
+    }
+
 }
