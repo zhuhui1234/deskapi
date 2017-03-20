@@ -27,6 +27,27 @@ function debugInfo($info = array())
 
 }
 
+//调试信息
+function debug_info($info = array())
+{
+    global $i;
+    $i++;
+    foreach ($info as $v) {
+        $v['trace'] = array_reverse($v['trace']);
+        echo '第 ', $i, ' 次数据操作', '<br>';
+        echo 'MYSQL连接时间：', $v['connect_time'], '<br>';
+        echo '执行SQL：', $v['sql'], '<br>';
+        echo 'SQL执行时间：', $v['execute_time'], '<br>';
+        echo 'SQL错误：', $v['error'], '<br>';
+        echo '代码跟踪：访问了', '<br>';
+        echo '控制器:', $v['trace'][1]['file'], ',第 ', $v['trace'][1]['line'], ' 行, ', $v['trace'][1]['func'], '()', ' 方法', '<br>';
+        echo '模型层:', $v['trace'][2]['file'], '第 ', $v['trace'][2]['line'], ' 行, ', $v['trace'][2]['func'], '()', ' 方法', '<br>';
+        echo '代理层:', $v['trace'][3]['file'], '第 ', $v['trace'][3]['line'], ' 行, ', $v['trace'][3]['func'], '()', ' 方法', '<br><br>';
+
+    }
+
+}
+
 function l($txt = '{}')
 {
     $new_log = ROOT_PATH . 'log/' . date('Ymd') . '/log_new/' . date('G') . '/';
@@ -886,7 +907,7 @@ function getGUID($namespace = '')
     $data .= $_SERVER['REMOTE_ADDR'];
     $data .= $_SERVER['REMOTE_PORT'];
     $hash = strtoupper(hash('ripemd128', $uid . $guid . md5($data)));
-    $guid = substr($hash, 0, 8) .
+    return substr($hash, 0, 8) .
         '-' .
         substr($hash, 8, 4) .
         '-' .
@@ -895,7 +916,7 @@ function getGUID($namespace = '')
         substr($hash, 16, 4) .
         '-' .
         substr($hash, 20, 12);
-    return $guid;
+//    return $guid;
 }
 
 //上传文件
