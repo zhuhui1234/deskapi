@@ -75,10 +75,11 @@ class PermissionsModel extends AgentModel
      */
     public function getHomeMenu($data)
     {
-        write_to_log('debug: ' . json_encode($data), '_debug');
-//        write_to_log()
-//        var_dump($data);
-//        var_dump($this->userModel->checkUserRole($data['userID']));
+
+        $cptID = $this->userModel->getUserOfCompany($data['userID']);
+        $cptID = $cptID[0]['cpy_id'];
+
+
         if ((int)$this->userModel->checkUserRole($data['userID']) > 0) {
             //no guest
             $ret = $this->__getOfficialMenuSQL($data);
@@ -109,7 +110,8 @@ class PermissionsModel extends AgentModel
 
 //        pr($ret);
         $rs['dataList'] = _findChildren($ret, 0, $cleaningList);
-
+//        pr($rs['dataList']);
+//        exit();
 
         $ret_irdID = $this->__getBindingIRD($data);
 
@@ -117,6 +119,9 @@ class PermissionsModel extends AgentModel
         $ret_irdKey_format = array();
         //验证产品ID
         if ($ret_irdID[0]['u_product_key'] != null AND $ret_irdID[0]['u_product_key'] != "") {
+
+            //绑定的老产品
+
             //获取IRD权限LIST
             $where_irdKey['iUserID'] = $ret_irdID[0]['u_product_key'];
             $ret_irdKey = $this->request()->_curlRADPost(IRD_SERVER_URL, ['v' => fnEncrypt(json_encode($where_irdKey), KEY)]);
@@ -305,7 +310,12 @@ class PermissionsModel extends AgentModel
                             } else {
 //                                $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
 //                                var_dump($rs['dataList'][$a]['lowerTree'][$a2]['lowerTree']);
-                                $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['pState'] == null ? 0 : $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['pState'];
+                                if ($this->__verifyLicense($cptID, $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['menuID'])) {
+                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] =
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['pState'] == null ? 0 : $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['pState'];
+                                } else {
+                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                }
                                 unset($rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['pState']);
                             }
                         }
@@ -320,9 +330,18 @@ class PermissionsModel extends AgentModel
                         foreach ($v2['lowerTree'] as $a3 => $v3) {
                             //过滤老产品
                             if ($v3['versionType'] !== "2") {
-                                $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $v3['curl'];
+                                if ($this->__verifyLicense($cptID, $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['menuID'])) {
+//                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
+                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] =
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['pState'] == null ? 0 : $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['pState'];
+                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $v3['curl'];
+                                } else {
+                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
+                                    $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = '';
+                                }
+
                             } else {
+
                                 $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                 $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
                             }
@@ -444,8 +463,8 @@ class PermissionsModel extends AgentModel
             return false;
         } else {
             if ($ret[0]['start_date'] < $now AND $ret[0]['end_date'] > $now) {
-                $countLicense = $this->__countLicense($cpy_id, $pdt_id);
-                return $countLicense <= $ret[0]['pnum_number'];
+
+                return $this->__countLicense($cpy_id, $pdt_id) <= $ret[0]['pnum_number'];
             } else {
                 return false;
             }
@@ -466,7 +485,7 @@ class PermissionsModel extends AgentModel
         $sql = "SELECT COUNT(*) co FROM idt_permissions WHERE cpy_id='{$cpy_id}' AND pdt_id='{$pdt_id}' 
                 AND prs_state=0 ";
         $ret = $this->mysqlQuery($sql, 'all');
-
+        write_to_log('debug ' . json_encode($ret), '_debug');
         if (count($ret) <= 0) {
             return 0;
         } else {
