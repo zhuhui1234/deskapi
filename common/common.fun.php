@@ -989,7 +989,10 @@ function _ERROR($resCode = '999999', $resMsg = '处理失败', $data = '')
         'resMsg' => $resMsg,
         'data' => $data,
     );
+    if (!DEBUG) {
+        @ob_clean();
 
+    }
     //写日志
     Model::instance('tools')->logs($resCode, $resMsg, $data);
     $ret = json_encode($arr, JSON_UNESCAPED_UNICODE);
