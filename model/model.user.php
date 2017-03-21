@@ -506,12 +506,47 @@ class UserModel extends AgentModel
         return $this->__checkUserState($u_id);
     }
 
+    /**
+     * get user's company id
+     * @param $u_id
+     *
+     * @return array|string
+     */
+    public function getUserOfCompany($u_id)
+    {
+        return $this->__getUserOfCompany($u_id);
+    }
+
+    /**
+     * check company status
+     *
+     * @param $cpy_id
+     *
+     * @return bool
+     */
+    public function checkCompanyState($cpy_id)
+    {
+        return $this->__checkState($this->__checkCompanyState($cpy_id));
+    }
 
     ######################################################################################
     ##################################                     ###############################
     #################################   PRIVATE METHODS   ################################
     ################################                     #################################
     ######################################################################################
+
+    /**
+     * check company state
+     *
+     * @param $cpy_id
+     *
+     * @return array|string
+     */
+    private function __checkCompanyState($cpy_id)
+    {
+        $sql = "SELECT cpy_state FROM idt_company WHERE 1=1 AND cpy_id='{$cpy_id}'";
+        return $this->mysqlQuery($sql, 'all');
+    }
 
     /**
      * check user role sql
@@ -550,7 +585,7 @@ class UserModel extends AgentModel
      */
     private function __getUserOfCompany($u_id)
     {
-        $sql = "SELECT cyp_id FROM idt_user WHERE u_id='{$u_id}'";
+        $sql = "SELECT cpy_id FROM idt_user WHERE u_id='{$u_id}'";
         return $this->mysqlQuery($sql, 'all');
     }
 
