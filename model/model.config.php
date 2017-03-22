@@ -2,6 +2,7 @@
 /**
  * Created by iResearch
  * User: JOSON
+ * modify: Hi Yen Wong
  * Date: 16-08-23
  * Time: 下午16:26
  * Email:joson@iresearch.com.cn
@@ -10,7 +11,6 @@
  */
 class ConfigModel extends AgentModel
 {
-
     public function __consturct()
     {
 
@@ -37,8 +37,8 @@ class ConfigModel extends AgentModel
     {
         //用户参数
         $uptimes = date("Y-m-d H:i:s");//new date
-        $sql = "SELECT u_id,cpy_id FROM ivw_user WHERE 1=1 AND u_account='".$where['u_account']."'";
-        $ret_cuid = $this->mysqlQuery($sql, "all");
+//        $sql = "SELECT u_id,cpy_id FROM ivw_user WHERE 1=1 AND u_account='".$where['u_account']."'";
+        $ret_cuid = $this->__getUIDAndCPID($where);
 
         //查询申请记录
         $sql_count = "SELECT COUNT(1) FROM ivw_audit WHERE 1=1 AND u_id='{$ret_cuid[0]['u_id']}' AND cpy_id='{$ret_cuid[0]['cpy_id']}' AND cfg_id='{$where['cfg_id']}'";
@@ -120,4 +120,23 @@ class ConfigModel extends AgentModel
         return $ret;
     }
 
+
+    ######################################################################################
+    ##################################                     ###############################
+    #################################   PRIVATE METHODS   ################################
+    ################################                     #################################
+    ######################################################################################
+
+    /**
+     * get user id and company id
+     *
+     * @param $where
+     *
+     * @return array|string
+     */
+    private function __getUIDAndCompanyID($where)
+    {
+        $sql = "SELECT u_id,cpy_id FROM idt_user WHERE 1=1 AND u_id='".$where['userID']."'";
+        return $this->mysqlQuery($sql, "all");
+    }
 }

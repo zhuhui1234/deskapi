@@ -13,9 +13,10 @@ class PermissionsModel extends AgentModel
 {
     private $userModel;
 
-    function __construct()
+    function __construct($classname)
     {
         $this->userModel = Model::instance('User');
+        parent::__construct($classname);
     }
 
     //获取菜单导航
@@ -23,11 +24,9 @@ class PermissionsModel extends AgentModel
     public function getMenuList()
     {
         //获取菜单导航&报表GUID
-        $sql = "SELECT dba.meu_id id,dba.meu_name,dba.meu_describe,dba.meu_type,dba.meu_sid sid,dbb.cfg_guid " .
-            "FROM idt_menu dba " .
-            "LEFT JOIN idt_config dbb ON (dba.meu_id=dbb.meu_id) " .
-            "WHERE dba.meu_state=0 " .
-            "ORDER BY dba.meu_id";
+        $sql = "SELECT dba.meu_id id,dba.meu_name,dba.meu_describe,dba.meu_type,dba.meu_sid sid,dbb.cfg_guid FROM idt_menu dba 
+                LEFT JOIN idt_config dbb ON (dba.meu_id=dbb.meu_id) 
+                ORDER BY dba.meu_id";
         $ret = $this->mysqlQuery($sql, "all");
 
         //格式化菜单数组
@@ -65,7 +64,11 @@ class PermissionsModel extends AgentModel
         }
 
         //返回响应结果
-        _SUCCESS('000000', '查询成功', $rs);
+        if (isset($rs)) {
+            _SUCCESS('000000', '查询成功', $rs);
+        } else {
+            _ERROR('000001', '查询异常');
+        }
     }
 
     /**
@@ -401,8 +404,6 @@ class PermissionsModel extends AgentModel
 
     /**
      * guest menu
-     *
-     * @param $data
      *
      * @return array|string
      */
