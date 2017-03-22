@@ -92,7 +92,9 @@ class AgentModel extends Model {
 	 * @DataTime : 2013-11-15 16:15
 	 */
 	protected function mysqlEdit($tab, $arr = array(), $where ,$db = '' ,$showsql=false){
-
+		if (DEBUG){
+			$showsql = true;
+		}
 		$res = $this->mydb($db, $this->opr)->update($tab,$where,$arr,$showsql);
 
 		$this->data_unset();
