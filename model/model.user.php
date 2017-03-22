@@ -191,7 +191,7 @@ class UserModel extends AgentModel
 
         if ($ret_mnum[0]['mobile_num'] > 0) {
             //如果手机已存在，更新微信绑定
-            $where_editwx['u_wxname'] = $data['wxName'];//微信名称
+            $where_editwx['u_wxname'] = urlencode($data['wxName']);//微信名称
             $where_editwx['u_wxopid'] = $data['wxOpenid'];//微信Openid
             $where_editwx['u_wxunid'] = $data['wxUnionid'];//微信Unionid
             $where_editwx['u_edate'] = $upTimes;//最后更新时间
