@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by iResearch
  * Service 过滤层
@@ -13,13 +14,15 @@ class ServiceController extends Controller
     private $model;
     const M = "Service";
 
-    public function __construct()
+    public function __construct($className)
     {
+        parent::__construct($className);
         $this->model = Model::instance(self::M);
     }
 
     //初始方法
-    public function index(){
+    public function index()
+    {
 
     }
 
@@ -40,11 +43,17 @@ class ServiceController extends Controller
         $data = _POST();
 
         //验证参数-微信名称
-        if($data['wxName'] === null OR $data['wxName'] === ''){ _ERROR('000001','微信名称不能为空'); }
+        if (empty($data['wxName'])) {
+            _ERROR('000001', '微信名称不能为空');
+        }
         //验证参数-微信Openid
-        if($data['wxOpenid'] === null OR $data['wxOpenid'] === ''){ _ERROR('000001','微信Openid不能为空'); }
+        if (empty($data['wxOpenid'])) {
+            _ERROR('000001', '微信Openid不能为空');
+        }
         //验证参数-微信Unionid
-        if($data['wxUnionid'] === null OR $data['wxUnionid'] === ''){ _ERROR('000001','微信Unionid不能为空'); }
+        if (empty($data['wxUnionid'] )) {
+            _ERROR('000001', '微信Unionid不能为空');
+        }
 
         //绑定成功,,并返回响应结果
         $this->model->setWxService($data);
