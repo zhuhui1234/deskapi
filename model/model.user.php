@@ -12,9 +12,9 @@
 class UserModel extends AgentModel
 {
 
-    function __construct($classname)
+    function __construct($className)
     {
-        parent::__construct($classname);
+        parent::__construct($className);
     }
 
     /**
@@ -39,22 +39,14 @@ class UserModel extends AgentModel
         //登录方式
         if ($data['LoginType'] === 'mobile') {
             //游客注册
-//            $sql_chkMUser = "SELECT COUNT(1) mobile_num FROM idt_user WHERE u_mobile='{$data['Account']}'";
+//            $sql_chkMUser = "SELECT COUNT(1) mobile_num FROM idt_user WHERE u_mobile='{$data['loginMobile']}'";
 //            $ret_chkMUser = $this->mysqlQuery($sql_chkMUser, "all");
-            $ret_checkMuser = $this->checkMobile($data['Account']);
+            $ret_checkMUser = $this->checkMobile($data['loginMobile']);
 
-            if ($ret_checkMuser) {
+            if ($ret_checkMUser) {
                 //创建游客
-                $where_addMUser = [
-                    'u_id' => getGUID(),
-                    'u_mobile' => $data['Account'],
-                    'u_permissions' => 0,
-                    'u_token' => $upToken,
-                    'u_cdate' => $upTimes,
-                    'u_edate' => $upTimes
-                ];
 
-                $ret_addMUser = $this->mysqlInsert('idt_user', $where_addMUser);
+                $ret_addMUser = $this->__addGuest($data, $upToken, $upTimes, 'mobile');
 
                 if ($ret_addMUser != '1') {
                     _ERROR('000002', '登录失败,创建游客失败');
@@ -66,7 +58,7 @@ class UserModel extends AgentModel
                     FROM idt_user dba 
                     LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
                     LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
-                    WHERE dba.u_mobile='{$data['Account']}' AND dbb.mik_key='{$data['LoginKey']}' 
+                    WHERE dba.u_mobile='{$data['loginMobile']}' AND dbb.mik_key='{$data['LoginKey']}' 
                     AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5";
 
         } else if ($data['LoginType'] === 'weixin') {
@@ -75,7 +67,7 @@ class UserModel extends AgentModel
                     dba.u_state u_state 
                     FROM idt_user dba 
                     LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
-                    WHERE dba.u_wxopid='{$data['Account']}' AND dba.u_wxunid='{$data['LoginKey']}'";
+                    WHERE dba.u_wxopid='{$data['loginMobile']}' AND dba.u_wxunid='{$data['LoginKey']}'";
         } else {
             //登录失败,参数错误
             _ERROR('000001', '未知登录类型');
@@ -85,7 +77,9 @@ class UserModel extends AgentModel
         if (isset($sql)) {
             $ret = $this->mysqlQuery($sql, "all");
         } else {
-//            echo 'no sql';
+            if (DEBUG_LOG) {
+                write_to_log('login function no sql execute');
+            }
         }
 
 
@@ -114,7 +108,7 @@ class UserModel extends AgentModel
                     //更新微信名称
                     if ($data['LoginType'] === 'weixin') {
                         $where_upwxName['u_wxname'] = urlencode($data['wxName']);//微信名称
-                        $id_upwxName = " u_wxopid='" . $data['Account'] . "' AND u_wxunid='" . $data['LoginKey'] . "'";//微信帐号
+                        $id_upwxName = " u_wxopid='" . $data['loginMobile'] . "' AND u_wxunid='" . $data['LoginKey'] . "'";//微信帐号
                         $ret_upwxName = $this->mysqlEdit('idt_user', $where_upwxName, $id_upwxName);
                         if ($ret_upwxName != '1') {
                             _ERROR('000004', '登录失败,更新微信名称失败');
@@ -124,7 +118,7 @@ class UserModel extends AgentModel
                     //更新验证码状态
                     if ($data['LoginType'] === 'mobile') {
                         $where_upResCode['mik_state'] = 1; //验证码状态
-                        $id_upResCode = " mik_mobile='" . $data['Account'] . "' AND mik_key='" . $data['LoginKey'] . "'";//用户帐号
+                        $id_upResCode = " mik_mobile='" . $data['loginMobile'] . "' AND mik_key='" . $data['LoginKey'] . "'";//用户帐号
                         $ret_upResCode = $this->mysqlEdit('idt_mobilekey', $where_upResCode, $id_upResCode);
                         if ($ret_upResCode != '1') {
                             _ERROR('000002', '登录失败,更新验证码状态失败');
@@ -191,25 +185,31 @@ class UserModel extends AgentModel
 
         if ($ret_mnum[0]['mobile_num'] > 0) {
             //如果手机已存在，更新微信绑定
-            $where_editwx['u_wxname'] = urlencode($data['wxName']);//微信名称
-            $where_editwx['u_wxopid'] = $data['wxOpenid'];//微信Openid
-            $where_editwx['u_wxunid'] = $data['wxUnionid'];//微信Unionid
-            $where_editwx['u_edate'] = $upTimes;//最后更新时间
+            $where_editwx = [
+                'u_wxname' => urlencode($data['wxName']),
+                'u_wxopid' => $data['wxOpenid'],
+                'u_wxunid' => $data['wxUnionid'],
+                'u_edate' => $upTimes,
+            ];
+
             $id_editwx = " u_mobile='" . $data['loginMobile'] . "'";//用户帐号
             $ret_chk = $this->mysqlEdit('idt_user', $where_editwx, $id_editwx);
         } else {
             //创建用户
-            $where_addWMuser['u_id'] = getGUID();
-            $where_addWMuser['u_mobile'] = $data['loginMobile'];//手机号码
-            $where_addWMuser['u_wxname'] = $data['wxName'];//微信名称
-            $where_addWMuser['u_wxopid'] = $data['wxOpenid'];//微信Openid
-            $where_addWMuser['u_wxunid'] = $data['wxUnionid'];//微信Unionid
-            $where_addWMuser['u_permissions'] = 0;//用户身份(0普通用户 1公司用户)
-            $where_addWMuser['u_token'] = $upToken;//用户token
-            $where_addWMuser['u_cdate'] = $upTimes;//创建时间
-            $where_addWMuser['u_edate'] = $upTimes;//最后登录时间
-
-            $ret_chk = $this->mysqlInsert('idt_user', $where_addWMuser);
+//            $where_addWMuser = [
+//                'u_id' => getGUID(),
+//                'u_mobile' => $data['loginMobile'],
+//                'u_wxname' => $data['wxName'],
+//                'u_wxopid' => $data['wxOpenid'],
+//                'u_wxunid' => $data['wxUnionid'],
+//                'u_permissions' => 0, //用户身份(0游客 1公司用户)
+//                'u_token' => $upToken,
+//                'u_cdate' => $upTimes,
+//                'u_edate' => $upTimes
+//            ];
+//
+//            $ret_chk = $this->mysqlInsert('idt_user', $where_addWMuser);
+            $ret_chk = $this->__addGuest($data, $upToken, $upTimes, 'wechat');
         }
 
         //获取用户
@@ -364,7 +364,10 @@ class UserModel extends AgentModel
     {
         //查询产品Key
         $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,dba.u_mobile,dba.u_position,dba.u_name 
-                FROM idt_user dba LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) WHERE dba.u_id='{$data['userID']}'";
+                FROM idt_user dba 
+                LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
+                WHERE dba.u_id='{$data['userID']}'";
+
         $ret = $this->mysqlQuery($sql, "all");
 
         //返回用户信息
@@ -395,7 +398,11 @@ class UserModel extends AgentModel
         return $rs;
     }
 
-    //修改用户资料
+    /**
+     * update user info
+     *
+     * @param $data
+     */
     public function editUserInfo($data)
     {
         //修改用户姓名
@@ -441,47 +448,31 @@ class UserModel extends AgentModel
         }
     }
 
-    //冰结用户
+    /**
+     * block user
+     *
+     * @param $data
+     */
     public function iceUser($data)
     {
-        //当前时间
-        $upTimes = date("Y-m-d H:i:s");
-
-        //解冻用户
-        $where_iceUser['u_state'] = 1; //用户状态(0正常 1冰结)
-        $where_iceUser['u_edate'] = $upTimes; //最后登录时间
-        $id_iceUser = " u_id='" . $data['uid'] . "'";//用户GUID
-        $ret = $this->mysqlEdit('idt_user', $where_iceUser, $id_iceUser);
-
-        //验证并返回响应结果
-        if ($ret == 1) {
-            _SUCCESS('000000', '冻结成功');
-        } else {
-            _ERROR('000002', '冻结失败');
-        }
+        $this->__changeUserState($data['userID'],1);
     }
 
-    //解冰用户
+    /**
+     * unblock user
+     *
+     * @param $data
+     */
     public function thawUser($data)
     {
-        //当前时间
-        $upTimes = date("Y-m-d H:i:s");
-
-        //解冻用户
-        $where_thawUser['u_state'] = 0; //用户状态(0正常 1冰结)
-        $where_thawUser['u_edate'] = $upTimes; //最后登录时间
-        $id_thawUser = " u_id='" . $data['uid'] . "'";//用户GUID
-        $ret = $this->mysqlEdit('idt_user', $where_thawUser, $id_thawUser);
-
-        //验证并返回响应结果
-        if ($ret == 1) {
-            _SUCCESS('000000', '解冻成功');
-        } else {
-            _ERROR('000002', '解冻失败');
-        }
+        $this->__changeUserState($data['userID'],0);
     }
 
-    //获取用户List
+    /**
+     * user list
+     *
+     * @param $data
+     */
     public function userList($data)
     {
         //查询初始化条件
@@ -752,6 +743,26 @@ class UserModel extends AgentModel
     }
 
     /**
+     * change user status
+     *
+     * @param $u_id
+     * @param $state
+     */
+    private function __changeUserState($u_id, $state)
+    {
+        $where['u_state'] = $state; //用户状态(0正常 1冰结)
+        $where['u_edate'] = date("Y-m-d H:i:s"); //最后登录时间
+        $id_thawUser = " u_id='" . $u_id . "'";//用户GUID
+        $ret = $this->mysqlEdit('idt_user', $where, $id_thawUser);
+        //验证并返回响应结果
+        if ($ret == 1) {
+            _SUCCESS('000000', '冻结成功');
+        } else {
+            _ERROR('000002', '冻结失败');
+        }
+    }
+
+    /**
      * get user of company
      *
      * @param $u_id
@@ -828,6 +839,46 @@ class UserModel extends AgentModel
         } else {
             return false;
         }
+    }
+
+    /**
+     * add guest
+     *
+     * @param        $data
+     * @param        $upToken
+     * @param        $upTimes
+     * @param string $type
+     *
+     * @return array|int|string
+     */
+    private function __addGuest($data, $upToken, $upTimes, $type = 'mobile')
+    {
+        write_to_log(json_encode($data), '_debug');
+        if ($type == 'mobile') {
+            $addUser = [
+                'u_id' => getGUID(),
+                'u_mobile' => $data['loginMobile'],
+                'u_permissions' => 0,
+                'u_token' => $upToken,
+                'u_cdate' => $upTimes,
+                'u_edate' => $upTimes
+            ];
+        } else {
+
+            $addUser = [
+                'u_id' => getGUID(),
+                'u_mobile' => $data['loginMobile'],
+                'u_wxname' => $data['wxName'],
+                'u_wxopid' => $data['wxOpenid'],
+                'u_wxunid' => $data['wxUnionid'],
+                'u_permissions' => 0, //用户身份(0游客 1公司用户)
+                'u_token' => $upToken,
+                'u_cdate' => $upTimes,
+                'u_edate' => $upTimes
+            ];
+        }
+
+        return $this->mysqlInsert('idt_user', $addUser);
     }
 
 }
