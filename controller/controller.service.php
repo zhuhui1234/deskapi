@@ -20,13 +20,17 @@ class ServiceController extends Controller
         $this->model = Model::instance(self::M);
     }
 
-    //初始方法
+    /**
+     * 初始方法
+     */
     public function index()
     {
 
     }
 
-    //获取绑定服务
+    /**
+     * 获取绑定服务
+     */
     public function getService()
     {
         //获取POST请求数据
@@ -36,7 +40,9 @@ class ServiceController extends Controller
         $this->model->getService($data);
     }
 
-    //绑定微信
+    /**
+     * 绑定微信
+     */
     public function setWxService()
     {
         //获取POST请求数据
