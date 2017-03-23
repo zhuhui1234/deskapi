@@ -152,4 +152,3 @@ class AgentModel extends Model {
 
 }
 
-?>
