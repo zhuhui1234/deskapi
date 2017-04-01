@@ -459,14 +459,14 @@ class PermissionsModel extends AgentModel
         $sql = "SELECT start_date, end_date, pnum_number FROM idt_permissions_number WHERE cpy_id='{$cpy_id}' 
                 AND pdt_id='{$pdt_id}'";
         $ret = $this->mysqlQuery($sql, 'all');
-        $now = Date('Y-m-d H:i:s');
+        $now = strtotime('now');
         if ($ret[0]['start_date' !== null] AND $ret[0]['end_date'] !== null) {
             return false;
         } else {
-            if ($ret[0]['start_date'] < $now AND $ret[0]['end_date'] > $now) {
-
+            if (strtotime($ret[0]['start_date']) < $now AND strtotime($ret[0]['end_date']) > $now) {
                 return $this->__countLicense($cpy_id, $pdt_id) <= $ret[0]['pnum_number'];
             } else {
+                write_to_log('no license for '. $cpy_id, '_nolicense');
                 return false;
             }
         }
