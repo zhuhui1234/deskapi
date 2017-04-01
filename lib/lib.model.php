@@ -67,6 +67,7 @@ class Model {
             self::$_myRedis = new Redis();
             self::$_myRedis->connect($host[0], $host[1]);
         }
+	self::$_myRedis->auth($arrcon['pass']);
         return self::$_myRedis;
     }
 	protected function data_unset() {
