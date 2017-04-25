@@ -62,7 +62,10 @@ class PermissionsController extends Controller
 
     /**
      * 根据token，以及产品验证用户是否可以使用改产品
-     * http://iutmain.itracker.cn/NLogin.aspx?guid=8fc6ed3b-8ce5-40a2-b0b5-5281cec92a01&irv_callback=http://10.10.21.163/iResearchDataWeb/?m=irdata&a=classicSys&ppname=PC%E7%AB%AF%E7%94%A8%E6%88%B7%E8%A1%8C%E4%B8%BA%E7%9B%91%E6%B5%8B&backType=1
+     * http://iutmain.itracker.cn/NLogin.aspx?
+     * guid=8fc6ed3b-8ce5-40a2-b0b5-5281cec92a01&
+     * irv_callback=http://10.10.21.163/iResearchDataWeb/?m=irdata&
+     * a=classicSys&ppname=PC%E7%AB%AF%E7%94%A8%E6%88%B7%E8%A1%8C%E4%B8%BA%E7%9B%91%E6%B5%8B&backType=1
      */
     public function checkUserProPer(){
         $data = json_decode(file_get_contents('php://input'), true);
@@ -71,6 +74,9 @@ class PermissionsController extends Controller
         $this->model->checkUserProPer($data);
     }
 
+    /**
+     * check permission
+     */
     public function checkPermission()
     {
         $data = json_decode(file_get_contents('php://input'), true);
@@ -83,7 +89,7 @@ class PermissionsController extends Controller
                     'state' =>'deny','data'=>$this->model->getPdtInfo($data['pdt_id'])]);
             };
         } else {
-
+            _ERROR('40004','TOKEN不能为空');
         }
     }
 }

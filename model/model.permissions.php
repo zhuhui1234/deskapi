@@ -414,15 +414,20 @@ class PermissionsModel extends AgentModel
         }
     }
 
+    /**
+     * 获取产品信息
+     *
+     * @param $pdt_id
+     *
+     * @return bool
+     */
     public function getPdtInfo($pdt_id)
     {
         if (!empty($pdt_id)) {
             $sql = "SELECT pdt_name, pdt_url FROM idt_product WHERE pdt_id='{$pdt_id}' 
                 AND pdt_state=0 AND pdt_vtype=1";
             $ret = $this->mysqlQuery($sql, 'all');
-
             return $ret[0] ;
-
         } else {
             return false;
         }
