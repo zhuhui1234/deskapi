@@ -215,7 +215,7 @@ function remove($ret, $top)
     return $list;
 }
 
-;
+
 
 //截取中文字符
 function cnSubStr($string, $sublen, $tip = '')

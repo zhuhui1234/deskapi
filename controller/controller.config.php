@@ -146,7 +146,7 @@ class ConfigController extends Controller
 
         //服务列表
         $where = json_decode(file_get_contents('php://input'), true);
-        $rs = array( 'resTime' => time().'', 'data' => '', 'resCode' => '', 'resMsg' => '' );//初始返回值
+        $rs = array( 'resTime' => strtotime('now'), 'data' => '', 'resCode' => '', 'resMsg' => '' );//初始返回值
 
         //获取服务列表
         $ret = $this->model->upAudit($where);

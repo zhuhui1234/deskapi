@@ -53,8 +53,10 @@ class UserModel extends AgentModel
                 }
             }
 
-            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.u_head headimg,dba.u_product_key productkey,
-                    dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,dba.u_state u_state 
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,
+                    dba.u_head headimg,dba.u_product_key productkey,
+                    dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
+                    dba.u_state u_state 
                     FROM idt_user dba 
                     LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
                     LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
@@ -62,12 +64,13 @@ class UserModel extends AgentModel
                     AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5";
 
         } else if ($data['LoginType'] === 'weixin') {
-            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.u_head headimg,
-                    dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,
+                    dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,
+                    dba.u_permissions permissions,dba.u_token token,
                     dba.u_state u_state 
                     FROM idt_user dba 
                     LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
-                    WHERE dba.u_wxopid='{$data['loginMobile']}' AND dba.u_wxunid='{$data['LoginKey']}'";
+                    WHERE dba.u_wxopid='{$data['Account']}' AND dba.u_wxunid='{$data['LoginKey']}'";
         } else {
             //登录失败,参数错误
             _ERROR('000001', '未知登录类型');
@@ -99,6 +102,7 @@ class UserModel extends AgentModel
             //验证登录&USER GUID不为空
             if (count($ret) > 0 AND ($ret[0]['userid'] != null OR $ret[0]['userid'] != "")) {
                 //更新TOKEN
+                $this->redisHere(VERSION . '_' . $ret[0]['userid'] . '_ird', true);
                 $where_upToken['u_token'] = $upToken;//更新TOKEN
                 $id_upToken = " u_id='" . $ret[0]['userid'] . "'";//用户GUID
                 $ret_upToken = $this->mysqlEdit('idt_user', $where_upToken, $id_upToken);
@@ -155,7 +159,11 @@ class UserModel extends AgentModel
         }
     }
 
-    //用户注册且绑定微信
+    /**
+     * 用户注册且绑定微信
+     *
+     * @param $data
+     */
     public function addUser($data)
     {
         //响应时间
@@ -384,18 +392,21 @@ class UserModel extends AgentModel
     {
         $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,
                 dba.u_mobile,dba.u_position,dba.u_name,dba.u_id 
-                FROM idt_user dba LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) WHERE dba.u_token='{$data['token']}'";
+                FROM idt_user dba LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
+                WHERE dba.u_token='{$data['token']}'";
 
         $ret = $this->mysqlQuery($sql, "all");
         //返回用户信息
-        $rs['company'] = $ret[0]['cpy_cname']; //公司
-        $rs['companyEmail'] = $ret[0]['u_mail']; //公司邮箱
-        $rs['headImg'] = "upload/head/" . $ret[0]['u_head']; //头像
-        $rs['mobile'] = $ret[0]['u_mobile']; //手机
-        $rs['position'] = $ret[0]['u_position']; //职位
-        $rs['uname'] = $ret[0]['u_name']; //姓名
-        $rs['uid'] = $ret[0]['u_id']; //姓名
-        return $rs;
+        return [
+            'company' => $ret[0]['cpy_cname'],
+            'companyID' => $ret[0]['cpy_id'],
+            'companyEmail' => $ret[0]['u_mail'],
+            'headImg' => 'upload/head/' . $ret[0]['u_head'],
+            'mobile' => $ret[0]['u_mobile'],
+            'position' => $ret[0]['u_position'],
+            'uname' => $ret[0]['u_name'],
+            'uid' => $ret[0]['u_id']
+        ];
     }
 
     /**
@@ -455,7 +466,7 @@ class UserModel extends AgentModel
      */
     public function iceUser($data)
     {
-        $this->__changeUserState($data['userID'],1);
+        $this->__changeUserState($data['userID'], 1);
     }
 
     /**
@@ -465,7 +476,7 @@ class UserModel extends AgentModel
      */
     public function thawUser($data)
     {
-        $this->__changeUserState($data['userID'],0);
+        $this->__changeUserState($data['userID'], 0);
     }
 
     /**

@@ -25,7 +25,7 @@ class LoginModel extends AgentModel
         $id_upTOKEN = " u_id='".$data['userID']."'";//用户GUID
         $ret_upTOKEN = $this->mysqlEdit('idt_user',$where_upTOKEN,$id_upTOKEN);
         if($ret_upTOKEN != 1){ _ERROR('000002','注销失败'); }
-
+        $this->redisHere(VERSION .'_' . $data['userID'].'_ird',true);
         //返回响应结果
         _SUCCESS('000000','注销成功');
     }

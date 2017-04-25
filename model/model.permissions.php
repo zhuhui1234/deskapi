@@ -125,10 +125,22 @@ class PermissionsModel extends AgentModel
 
             //绑定的老产品
 
+            $getRedis = $this->redisHere(VERSION . '_' . $data['userID'] . '_ird');
+
+//            write_to_log(json_encode($getRedis), '_redis');
+            if (!$getRedis['0']) {
+                $where_irdKey['iUserID'] = $ret_irdID[0]['u_product_key'];
+                $ret_irdKey = $this->request()->_curlRADPost(IRD_SERVER_URL, ['v' => fnEncrypt(json_encode($where_irdKey), KEY)]);
+//                write_to_log($ret_irdKey,'_redis');
+                $this->redis()->setex(VERSION . '_' . $data['userID'] . '_ird', REDIS_TIME_OUT, $ret_irdKey);
+                $ret_irdKey = json_decode($ret_irdKey, JSON_UNESCAPED_UNICODE);
+
+            } else {
+                $ret_irdKey = json_decode($getRedis['1'], JSON_UNESCAPED_UNICODE);
+
+            }
             //获取IRD权限LIST
-            $where_irdKey['iUserID'] = $ret_irdID[0]['u_product_key'];
-            $ret_irdKey = $this->request()->_curlRADPost(IRD_SERVER_URL, ['v' => fnEncrypt(json_encode($where_irdKey), KEY)]);
-            $ret_irdKey = json_decode($ret_irdKey, JSON_UNESCAPED_UNICODE);
+
 
             //格式化IRD权限LIST
             foreach ($ret_irdKey['pplist'] as $a_format => $v_format) {
@@ -378,6 +390,44 @@ class PermissionsModel extends AgentModel
         _SUCCESS('000000', '验证成功', $rs);
     }
 
+    /**
+     * get permissionInfo
+     *
+     * @param $data ['token', 'pdt_id']
+     * @return string/bool
+     */
+    public function getPermissionInfo($data)
+    {
+        $userInfo = Model::instance('user')->_getUserInfoByToken($data);
+        if (OPEN_ME AND $userInfo['companyID'] = 1) {
+            return $this->getPdtInfo($data['pdt_id']);
+        } else {
+            if (!empty($userInfo['userID']) AND !empty($userInfo['companyID']) AND !empty($data['pdt_id'])) {
+                if($this->__checkPermission($userInfo['userID'],$userInfo['companyID'], $data['pdt_id'])) {
+                    return $this->getPdtInfo($data['pdt_id']);
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+    }
+
+    public function getPdtInfo($pdt_id)
+    {
+        if (!empty($pdt_id)) {
+            $sql = "SELECT pdt_name, pdt_url FROM idt_product WHERE pdt_id='{$pdt_id}' 
+                AND pdt_state=0 AND pdt_vtype=1";
+            $ret = $this->mysqlQuery($sql, 'all');
+
+            return $ret[0] ;
+
+        } else {
+            return false;
+        }
+    }
+
     ######################################################################################
     ##################################                     ###############################
     #################################   PRIVATE METHODS   ################################
@@ -466,7 +516,7 @@ class PermissionsModel extends AgentModel
             if (strtotime($ret[0]['start_date']) < $now AND strtotime($ret[0]['end_date']) > $now) {
                 return $this->__countLicense($cpy_id, $pdt_id) <= $ret[0]['pnum_number'];
             } else {
-                write_to_log('no license for '. $cpy_id, '_nolicense');
+                write_to_log('no license for ' . $cpy_id, '_nolicense');
                 return false;
             }
         }
@@ -492,5 +542,33 @@ class PermissionsModel extends AgentModel
         } else {
             return $ret[0]['co'];
         }
+    }
+
+    /**
+     * check permission 检查权限
+     *
+     * @param $userID
+     * @param $pdt_id
+     * @param $cpy_id
+     *
+     * @return bool
+     */
+    private function __checkPermission($userID, $pdt_id, $cpy_id)
+    {
+        $now = date('Y-m-d');
+        //判断用户是否有这个权限的产品
+        $sql = "SELECT COUNT(*) co FROM idt_permissions 
+                WHERE u_id='{$userID}' 
+                AND pdt_id='{$pdt_id}' AND prs_state='1' ";
+        //权限是否过期
+        $numSql = "SELECT COUNT(*) co FROM idt_permissions_number 
+                    WHERE cpy_id='{$cpy_id}' 
+                    AND pdt_id='{$pdt_id}'
+                    AND end_date>='{$now}' AND start_date<={$now}";
+
+        $res = $this->mysqlQuery($sql, 'all');
+        $num = $this->mysqlQuery($numSql, 'all');
+
+        return $res[0]['co'] > 0 AND $num[0]['co'] > 0;
     }
 }

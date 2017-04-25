@@ -13,11 +13,15 @@ class IndustryController extends Controller
     private $model;
     const M = "Industry";
 
-    public function __construct()
+    public function __construct($className)
     {
+        parent::__construct($className);
         $this->model = Model::instance(self::M);
     }
 
+    /**
+     * index
+     */
     public function index(){
         $ret_data = array(
             'resTime' => time().'',
@@ -28,7 +32,9 @@ class IndustryController extends Controller
         echo json_encode($ret_data,true);
     }
 
-    //查询大行业LIST
+    /**
+     * 查询大行业LIST
+     */
     public function IndustryMaxList(){
         //接收登录信息
         $where = json_decode(file_get_contents('php://input'), true);

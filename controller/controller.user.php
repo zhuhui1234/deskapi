@@ -33,9 +33,8 @@ class UserController extends Controller
     {
         //获取POST请求数据
         $data = _POST();
-
         //验证参数-登录账号
-        if (empty($data['loginMobile'])) {
+        if (empty($data['loginMobile']) && empty($data['Account'])) {
             _ERROR('000001', '登录账号不能为空');
         }
         //验证参数-账号密码
@@ -205,5 +204,6 @@ class UserController extends Controller
         //查询成功,并返回响应结果
         $this->model->userList($data);
     }
+
 
 }

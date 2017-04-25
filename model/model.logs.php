@@ -11,9 +11,9 @@
 class LogsModel extends AgentModel
 {
 
-    public function __consturct()
+    public function __construct($className)
     {
-
+        parent::__construct($className);
     }
 
     //获取日志LIST
@@ -27,7 +27,9 @@ class LogsModel extends AgentModel
         $data['keyword'] == null ? $keyword = '' : $keyword = " AND (loguser LIKE '%" . $data['logUser'] . "%' OR resmsg LIKE '%" . $data['resMsg'] . "%')"; //查询条件
 
         //获取日志
-        $sql = "SELECT sys_id logid,sys_user loguser,sys_resmsg resmsg,sys_ip logip,sys_ctime createtime FROM idt_sys_logs WHERE 1=1{$keyword} AND sys_sys='irview_deskapi' ORDER BY {$orderByColumn} {$orderByType} LIMIT {$pageNo},{$pageSize}";
+        $sql = "SELECT sys_id logid,sys_user loguser,sys_resmsg resmsg,sys_ip logip,sys_ctime createtime 
+                FROM idt_sys_logs WHERE 1=1{$keyword} AND sys_sys='irview_deskapi' 
+                ORDER BY {$orderByColumn} {$orderByType} LIMIT {$pageNo},{$pageSize}";
         $ret = $this->mysqlQuery($sql, "all");
 
         //执行总数

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by iResearch
  * User: JOSON
@@ -11,18 +12,23 @@
 class TokenModel extends AgentModel
 {
 
-    public function __consturct()
+    public function __construct($className)
     {
-
+        parent::__construct($className);
     }
 
-    //验证TOKEN
+    /**
+     * isToken
+     *
+     * @param $where
+     *
+     * @return array|string
+     */
     public function isToken($where)
     {
         //查询大行业LIST
-        $sql = "SELECT count(1) FROM ivw_user WHERE 1=1 AND u_token='{$where['token']}'";
-        $ret = $this->mysqlQuery($sql, "row");
-        return $ret;
+        $sql = "SELECT count(1) FROM idt_user WHERE 1=1 AND u_token='{$where['token']}'";
+        return $this->mysqlQuery($sql, "row");
     }
 
 }

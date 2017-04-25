@@ -70,4 +70,20 @@ class PermissionsController extends Controller
         if($data['productID'] === null OR $data['productID'] === ''){ _ERROR('000001','产品ID不能为空'); }
         $this->model->checkUserProPer($data);
     }
+
+    public function checkPermission()
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!empty($data['token'])) {
+            $ret = $this->model->getPermissionInfo($data);
+            if ($ret){
+                _SUCCESS('20000','done',['state' => 'allow','data'=>$ret]);
+            } else {
+                _ERROR('40000','无权使用',[
+                    'state' =>'deny','data'=>$this->model->getPdtInfo($data['pdt_id'])]);
+            };
+        } else {
+
+        }
+    }
 }
