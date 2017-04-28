@@ -66,6 +66,7 @@ define('SESSION_TIME_OUT', false);
 define('COOKIE_TIME_OUT', 7 * 24 * 3600);
 //redis 失效时间
 define('REDIS_TIME_OUT', 86400);
+define('VERSION', 'idata_desktop_api');
 //下拉框
 define('SELECT_HOUR', 24 * 3600);
 define('SELECT_DAY', 30 * 86400);
@@ -78,6 +79,7 @@ define('CACHE_ON', false);
 define('DEBUG', false || isset($_GET['debug']));
 define('DEBUG_LOG', TRUE); //记录日志
 define('START_TIME', microtime(true));
+define('OPEN_ME', true);
 
 define('NOW', date('Y-m-d H:i:s'));
 if (DEBUG) {
@@ -108,7 +110,7 @@ $_request = Request::instance();
 $_request->validation();
 
 
-
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Cache-Control: post-check=0, pre-check=0", false);
-header("Pragma: no-cache"); // HTTP/1.0
+//
+//header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+//header("Cache-Control: post-check=0, pre-check=0", false);
+//header("Pragma: no-cache"); // HTTP/1.0

@@ -47,3 +47,5 @@ fabric.properties
 # log dirctory
 log
 .idea/
+.DS_Store
+upload/
