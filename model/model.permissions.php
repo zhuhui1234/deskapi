@@ -399,11 +399,12 @@ class PermissionsModel extends AgentModel
     public function getPermissionInfo($data)
     {
         $userInfo = Model::instance('user')->_getUserInfoByToken($data);
-        if (OPEN_ME AND $userInfo['companyID'] = 1) {
+        write_to_log(json_encode($userInfo),'_test');
+        if (OPEN_ME AND $userInfo['companyID'] == 1) {
             return $this->getPdtInfo($data['pdt_id']);
         } else {
-            if (!empty($userInfo['userID']) AND !empty($userInfo['companyID']) AND !empty($data['pdt_id'])) {
-                if($this->__checkPermission($userInfo['userID'],$userInfo['companyID'], $data['pdt_id'])) {
+            if (!empty($userInfo['uid']) AND !empty($userInfo['companyID']) AND !empty($data['pdt_id'])) {
+                if($this->__checkPermission($userInfo['uid'],$data['pdt_id'],$userInfo['companyID'] )) {
                     return $this->getPdtInfo($data['pdt_id']);
                 } else {
                     return false;
@@ -561,19 +562,23 @@ class PermissionsModel extends AgentModel
     private function __checkPermission($userID, $pdt_id, $cpy_id)
     {
         $now = date('Y-m-d');
+
         //判断用户是否有这个权限的产品
         $sql = "SELECT COUNT(*) co FROM idt_permissions 
                 WHERE u_id='{$userID}' 
                 AND pdt_id='{$pdt_id}' AND prs_state='1' ";
+
         //权限是否过期
         $numSql = "SELECT COUNT(*) co FROM idt_permissions_number 
                     WHERE cpy_id='{$cpy_id}' 
                     AND pdt_id='{$pdt_id}'
                     AND end_date>='{$now}' AND start_date<={$now}";
-
+        write_to_log($sql,'_test');
+        write_to_log($numSql,'_test');
         $res = $this->mysqlQuery($sql, 'all');
         $num = $this->mysqlQuery($numSql, 'all');
-
+        write_to_log(json_encode($res),'_test');
+        write_to_log(json_encode($num),'_test');
         return $res[0]['co'] > 0 AND $num[0]['co'] > 0;
     }
 }

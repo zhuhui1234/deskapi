@@ -390,12 +390,13 @@ class UserModel extends AgentModel
 
     public function _getUserInfoByToken($data)
     {
-        $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,
+        $sql = "SELECT dbb.cpy_cname,dbb.cpy_id,dba.u_mail,dba.u_head,
                 dba.u_mobile,dba.u_position,dba.u_name,dba.u_id 
                 FROM idt_user dba LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                 WHERE dba.u_token='{$data['token']}'";
 
         $ret = $this->mysqlQuery($sql, "all");
+//        write_to_log(json_encode($ret),'_test');
         //返回用户信息
         return [
             'company' => $ret[0]['cpy_cname'],
