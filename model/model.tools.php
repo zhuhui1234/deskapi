@@ -58,4 +58,5 @@ class ToolsModel extends AgentModel
         $this->mysqlInsert('idt_sys_logs',$where_logs);
     }
 
+
 }

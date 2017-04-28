@@ -106,4 +106,23 @@ class PermissionsController extends Controller
             _ERROR('40004', 'TOKEN不能为空');
         }
     }
+
+    /**
+     * 根据URI判断权限
+     */
+    public function checkPermissionURI()
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!empty($data['token'])) {
+            $ret = $this->model->getPermissionInfoByURI($data);
+            if ($ret) {
+                _SUCCESS('20000', 'done', ['state' => 'allow', 'data' => $ret]);
+            } else {
+                _ERROR('40000', '无权使用', [
+                    'state' => 'deny', 'data' => $this->model->getPdtInfo($data['pdt_id'])]);
+            };
+        } else {
+            _ERROR('40004', 'TOKEN不能为空');
+        }
+    }
 }

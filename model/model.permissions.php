@@ -394,18 +394,58 @@ class PermissionsModel extends AgentModel
      * get permissionInfo
      *
      * @param $data ['token', 'pdt_id']
+     *
      * @return string/bool
      */
     public function getPermissionInfo($data)
     {
         $userInfo = Model::instance('user')->_getUserInfoByToken($data);
-        write_to_log(json_encode($userInfo),'_test');
+//        write_to_log(json_encode($userInfo),'_test');
         if (OPEN_ME AND $userInfo['companyID'] == 1) {
             return $this->getPdtInfo($data['pdt_id']);
         } else {
             if (!empty($userInfo['uid']) AND !empty($userInfo['companyID']) AND !empty($data['pdt_id'])) {
-                if($this->__checkPermission($userInfo['uid'],$data['pdt_id'],$userInfo['companyID'] )) {
+                if ($this->__checkPermission($userInfo['uid'], $data['pdt_id'], $userInfo['companyID'])) {
                     return $this->getPdtInfo($data['pdt_id']);
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * 根据URI 拿权限
+     *
+     * @param $data
+     *
+     * @return bool
+     */
+    public function getPermissionInfoByURI($data)
+    {
+        $userInfo = Model::instance('user')->_getUserInfoByToken($data);
+        if (OPEN_ME AND $userInfo['companyID'] == 1) {
+           if (!empty($data['uri'])){
+               $pdt = $this->getPdtInfoByURI($data['uri']);
+               return $this->getPdtInfo($pdt['pdt_id']);
+           }else{
+               return false;
+           }
+        } else {
+            if (!empty($data['uri'])) {
+                $pdt = $this->getPdtInfoByURI($data['uri']);
+                if ($pdt) {
+                    if (!empty($userInfo['uid']) AND !empty($userInfo['companyID']) AND !empty($pdt['pdt_id'])) {
+                        if ($this->__checkPermission($userInfo['uid'], $pdt['pdt_id'], $userInfo['companyID'])) {
+                            return $this->getPdtInfo($pdt['pdt_id']);
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
                 } else {
                     return false;
                 }
@@ -428,11 +468,34 @@ class PermissionsModel extends AgentModel
             $sql = "SELECT pdt_name, pdt_url FROM idt_product WHERE pdt_id='{$pdt_id}' 
                 AND pdt_state=0 AND pdt_vtype=1";
             $ret = $this->mysqlQuery($sql, 'all');
-            return $ret[0] ;
+            return $ret[0];
         } else {
             return false;
         }
     }
+
+    /**
+     * 通过uri获取或许产品信息
+     *
+     * @param $uri
+     *
+     * @return bool
+     */
+    public function getPdtInfoByURI($uri)
+    {
+        $uri = trim($uri);
+        if (!empty($uri)) {
+            $sql = "SELECT pdt_id,pdt_name,pdt_url 
+                    FROM idt_product WHERE pdt_url='{$uri}'
+                    AND pdt_ptype=0 AND pdt_vtype=1";
+
+            $ret = $this->mysqlQuery($sql ,'all');
+            return $ret[0];
+        } else {
+            return false;
+        }
+    }
+
 
     ######################################################################################
     ##################################                     ###############################
@@ -573,12 +636,12 @@ class PermissionsModel extends AgentModel
                     WHERE cpy_id='{$cpy_id}' 
                     AND pdt_id='{$pdt_id}'
                     AND end_date>='{$now}' AND start_date<={$now}";
-        write_to_log($sql,'_test');
-        write_to_log($numSql,'_test');
+        write_to_log($sql, '_test');
+        write_to_log($numSql, '_test');
         $res = $this->mysqlQuery($sql, 'all');
         $num = $this->mysqlQuery($numSql, 'all');
-        write_to_log(json_encode($res),'_test');
-        write_to_log(json_encode($num),'_test');
+        write_to_log(json_encode($res), '_test');
+        write_to_log(json_encode($num), '_test');
         return $res[0]['co'] > 0 AND $num[0]['co'] > 0;
     }
 }

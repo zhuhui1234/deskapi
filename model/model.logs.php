@@ -52,4 +52,70 @@ class LogsModel extends AgentModel
         _SUCCESS('000000','查询日志',$rs);
     }
 
+    public function pushLog($data)
+    {
+        if (isset($data['user']) && isset($data['action'])) {
+            $data = $this->__checkLogData($data);
+
+            if (!empty($data['user']) AND !empty($data['action'])) {
+//                var_dump($data);
+                $where = [
+                    'log_user' => $data['user'],
+                    'log_companyID' => $data['companyID'],
+                    'log_type' => $data['type'],
+                    'log_status' => $data['status'],
+                    'log_resource' => $data['resource'],
+                    'log_content' => $data['content'],
+                    'log_level' => $data['level'],
+                    'log_subid' => $data['sub_id'],
+                    'log_fingerprint' => $data['fingerprint'],
+                    'log_ip' => getIp(),
+                    'log_datetime' => time(),
+                    'log_action' => $data['action'],
+                ];
+                return $this->mysqlInsert('idt_logs', $where);
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    private function __checkLogData(array $data) {
+        if (!isset($data['companyID'])) {
+            $data['companyID'] = null;
+        }
+
+        if (!isset($data['status'])){
+            $data['status'] = null;
+        }
+
+        if (!isset($data['type'])) {
+            $data['type'] = null;
+        }
+
+        if (!isset($data['content'])) {
+            $data['content']  = null;
+        }
+
+        if (!isset($data['level'])) {
+            $data['level'] = 0;
+        }
+
+        if (!isset($data['sub_id'])) {
+            $data['sub_id'] = null;
+        }
+
+        if (!isset($data['resource'])) {
+            $data['resource'] = null;
+        }
+
+        if (!isset($data['fingerprint'])) {
+            $data['fingerprint'] = time();
+        }
+
+        return $data;
+    }
+
 }

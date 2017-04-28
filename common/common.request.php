@@ -215,6 +215,7 @@ class Request
             OR ($_GET['m']=='User' AND $_GET['a']=='setMobileKey') //短信服务
             OR ($_GET['m']=='User' AND $_GET['a']=='addUser') //用户注册
             OR ($_GET['m']=='permissions' AND $_GET['a']=='checkUserProPer') //验证用户权限
+            OR ($_GET['m'] == 'logs' AND $_GET['a'] == 'pushLog')
         ){
             //不作任何操作
         } else {
