@@ -13,6 +13,7 @@ class Request
 
     /**
      * _filter function
+     *
      * @param $array
      */
     private function _filter(&$array)
@@ -47,7 +48,9 @@ class Request
 
     /**
      * filter function
+     *
      * @param $filter
+     *
      * @return $this
      */
     public function filter($filter)
@@ -156,10 +159,11 @@ class Request
     /**
      * _curlPost
      *
-     * @param $url
-     * @param array $data
+     * @param        $url
+     * @param array  $data
      * @param string $cookiepath
-     * @param int $timeout
+     * @param int    $timeout
+     *
      * @return mixed|string
      */
     public function _curlPost($url, $data = array(), $method, $cookiepath = '/', $timeout = 300)
@@ -210,24 +214,28 @@ class Request
     //验证TOKEN
     public function validation()
     {
-        if(
-            ($_GET['m']=='User' AND $_GET['a']=='login') //登录
-            OR ($_GET['m']=='User' AND $_GET['a']=='setMobileKey') //短信服务
-            OR ($_GET['m']=='User' AND $_GET['a']=='addUser') //用户注册
-            OR ($_GET['m']=='Permissions' AND $_GET['a']=='checkUserProPer') //验证用户权限
-            OR ($_GET['m']=='Permissions' AND $_GET['a']=='checkPermission') //验证用户权限
-            OR ($_GET['m']=='Permissions' AND $_GET['a']=='checkPermissionURI') //验证用户权限
-            OR ($_GET['m']=='Permissions' AND $_GET['a']=='getHomeMenu')
-            OR ($_GET['m'] == 'logs' AND $_GET['a'] == 'pushLog')
-        ){
+        if (
+            ($_GET['m'] == 'User' AND $_GET['a'] == 'login') //登录
+            OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'setMobileKey') //短信服务
+            OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'addUser') //用户注册
+            OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'checkUserProPer') //验证用户权限
+            OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'checkPermission') //验证用户权限
+            OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'checkPermissionURI') //验证用户权限
+            OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'getHomeMenu')
+            OR (strtolower($_GET['m']) == 'logs' AND $_GET['a'] == 'pushLog')
+        ) {
             //不作任何操作
         } else {
             //获取POST请求数据
             $data = _POST();
             //验证参数-登录账号
-            if($data['TOKEN'] === null OR $data['TOKEN'] === ''){ _ERROR('000001','TOKEN不能为空'); }
+            if ($data['TOKEN'] === null OR $data['TOKEN'] === '') {
+                _ERROR('000001', 'TOKEN不能为空');
+            }
             //验证参数-用户GUID
-            if($data['userID'] === null OR $data['userID'] === ''){ _ERROR('000001','用户ID不能为空'); }
+            if ($data['userID'] === null OR $data['userID'] === '') {
+                _ERROR('000001', '用户ID不能为空');
+            }
 
             //验证TOKEN
             Model::instance('tools')->isToken($data);
@@ -241,14 +249,15 @@ class Request
      * errorCode 错误状态码
      * errorMessage 错误信息
      */
-    public function getPostJson(){
+    public function getPostJson()
+    {
         //接收POST数据
         $postVar = file_get_contents('php://input');
         //数据转义数组
-        $postJson = json_decode($postVar,JSON_UNESCAPED_UNICODE);
+        $postJson = json_decode($postVar, JSON_UNESCAPED_UNICODE);
 
         //验证数据类型(必须为JSON数组)
-        if(!is_array($postJson)){
+        if (!is_array($postJson)) {
             exit("非法格式");
         }
 
@@ -257,31 +266,32 @@ class Request
     }
 
     //RAD POST请求方法
-    function _curlRADPost($url, $data = array(), $cookiepath = '/',$timeout=300){
+    function _curlRADPost($url, $data = array(), $cookiepath = '/', $timeout = 300)
+    {
         $userAgent = 'Mozilla/4.0+(compatible;+MSIE+6.0;+Windows+NT+5.1;+SV1)';
         $referer = $url;
-        if(!is_array($data) || !$url) return '';
-        $data['userIP']=getIp();
+        if (!is_array($data) || !$url) return '';
+        $data['userIP'] = getIp();
 //        $post = json_encode($data);
         $post = $data;
-        if(DEBUG){
-            echo $url,'<br>';
+        if (DEBUG) {
+            echo $url, '<br>';
             print_r($post);
             echo '<br>';
         }
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);				// 设置访问的url地址
+        curl_setopt($ch, CURLOPT_URL, $url);                // 设置访问的url地址
         curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);        // 设置超时
-        curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);	// 用户访问代理 User-Agent
-        curl_setopt($ch, CURLOPT_REFERER, $referer);		// 设置 referer
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);		// 跟踪301
-        curl_setopt($ch, CURLOPT_POST, 1);					// 指定post数据
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $post);		// 添加变量
-        curl_setopt($ch, CURLOPT_COOKIEJAR, $cookiepath);	// COOKIE的存储路径,返回时保存COOKIE的路径
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);		// 返回结果
+        curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);    // 用户访问代理 User-Agent
+        curl_setopt($ch, CURLOPT_REFERER, $referer);        // 设置 referer
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);        // 跟踪301
+        curl_setopt($ch, CURLOPT_POST, 1);                    // 指定post数据
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $post);        // 添加变量
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $cookiepath);    // COOKIE的存储路径,返回时保存COOKIE的路径
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);        // 返回结果
         $content = curl_exec($ch);
         curl_close($ch);
-        if(DEBUG){
+        if (DEBUG) {
             pr($content, 1);
             echo '<br>';
         }
