@@ -214,7 +214,10 @@ class Request
             ($_GET['m']=='User' AND $_GET['a']=='login') //登录
             OR ($_GET['m']=='User' AND $_GET['a']=='setMobileKey') //短信服务
             OR ($_GET['m']=='User' AND $_GET['a']=='addUser') //用户注册
-            OR ($_GET['m']=='permissions' AND $_GET['a']=='checkUserProPer') //验证用户权限
+            OR ($_GET['m']=='Permissions' AND $_GET['a']=='checkUserProPer') //验证用户权限
+            OR ($_GET['m']=='Permissions' AND $_GET['a']=='checkPermission') //验证用户权限
+            OR ($_GET['m']=='Permissions' AND $_GET['a']=='checkPermissionURI') //验证用户权限
+            OR ($_GET['m']=='Permissions' AND $_GET['a']=='getHomeMenu')
             OR ($_GET['m'] == 'logs' AND $_GET['a'] == 'pushLog')
         ){
             //不作任何操作
