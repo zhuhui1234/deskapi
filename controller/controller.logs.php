@@ -41,6 +41,9 @@ class LogsController extends Controller
     public function pushLog()
     {
         $data = json_decode(file_get_contents('php://input'), true);
+        $d = file_get_contents('php://input');
+        pr(json_decode($d,true ));
+
         if (is_array($data)) {
             $ret = $this->model->pushLog($data);
             if ($ret) {

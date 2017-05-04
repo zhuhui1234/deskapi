@@ -86,9 +86,12 @@ class PermissionsModel extends AgentModel
         if ((int)$this->userModel->checkUserRole($data['userID']) > 0) {
             //no guest
             $ret = $this->__getOfficialMenuSQL($data);
+            $role = 'member';
+
         } else {
             //guest
             $ret = $this->__getGustMenuSQL();
+            $role = 'guest';
         }
 
         //转义功能标签
@@ -371,6 +374,8 @@ class PermissionsModel extends AgentModel
             print_r($ret);
             pr('end debug');
         }
+
+        $rs['role'] = $role;
 
         //返回响应结果
         _SUCCESS('000000', '查询成功', $rs);

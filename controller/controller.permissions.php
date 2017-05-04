@@ -97,7 +97,7 @@ class PermissionsController extends Controller
         if (!empty($data['token'])) {
             $ret = $this->model->getPermissionInfo($data);
             if ($ret) {
-                _SUCCESS('20000', 'done', ['state' => 'allow', 'data' => $ret]);
+                _SUCCESS('20000', 'done', ['state' => 'allow', 'data' => $ret,'userInfo' ]);
             } else {
                 _ERROR('40000', '无权使用', [
                     'state' => 'deny', 'data' => $this->model->getPdtInfo($data['pdt_id'])]);

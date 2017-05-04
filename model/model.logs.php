@@ -69,7 +69,7 @@ class LogsModel extends AgentModel
                     'log_level' => $data['level'],
                     'log_subid' => $data['sub_id'],
                     'log_fingerprint' => $data['fingerprint'],
-                    'log_ip' => getIp(),
+                    'log_ip' => $data['log_ip'],
                     'log_datetime' => time(),
                     'log_action' => $data['action'],
                 ];
@@ -114,7 +114,6 @@ class LogsModel extends AgentModel
         if (!isset($data['fingerprint'])) {
             $data['fingerprint'] = time();
         }
-
         return $data;
     }
 
