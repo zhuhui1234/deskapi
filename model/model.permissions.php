@@ -640,7 +640,7 @@ class PermissionsModel extends AgentModel
         $numSql = "SELECT COUNT(*) co FROM idt_permissions_number 
                     WHERE cpy_id='{$cpy_id}' 
                     AND pdt_id='{$pdt_id}'
-                    AND end_date>='{$now}' AND start_date<={$now}";
+                    AND end_date>='{$now}' AND start_date<='{$now}'";
         write_to_log($sql, '_test');
         write_to_log($numSql, '_test');
         $res = $this->mysqlQuery($sql, 'all');
