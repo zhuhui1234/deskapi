@@ -125,4 +125,35 @@ class PermissionsController extends Controller
             _ERROR('40004', 'TOKEN不能为空');
         }
     }
+
+    /**
+     * apply product!
+     */
+    public function applyPermission()
+    {
+        $data = _POST();
+        if(empty($data['userID'])) {
+            _ERROR('40000', '用户没有登入或是注册');
+        }
+
+        if (empty($data['username'])) {
+            _ERROR('40000', '名字不能为空');
+        }
+
+        if(empty($data['mobile'])) {
+            _ERROR('40000','没有手机号');
+        }
+
+        if(empty($data['pdt_id'])) {
+            _ERROR('40000', '没有产品');
+        }
+
+        $ret = $this->model->applyPermission($data);
+//        var_dump($ret);
+        if ($ret) {
+            _SUCCESS('20000', 'done');
+        } else {
+            _ERROR('40000','申请失败');
+        }
+    }
 }

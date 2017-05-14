@@ -432,12 +432,12 @@ class PermissionsModel extends AgentModel
     {
         $userInfo = Model::instance('user')->_getUserInfoByToken($data);
         if (OPEN_ME AND $userInfo['companyID'] == 1) {
-           if (!empty($data['uri'])){
-               $pdt = $this->getPdtInfoByURI($data['uri']);
-               return $this->getPdtInfo($pdt['pdt_id']);
-           }else{
-               return false;
-           }
+            if (!empty($data['uri'])) {
+                $pdt = $this->getPdtInfoByURI($data['uri']);
+                return $this->getPdtInfo($pdt['pdt_id']);
+            } else {
+                return false;
+            }
         } else {
             if (!empty($data['uri'])) {
                 $pdt = $this->getPdtInfoByURI($data['uri']);
@@ -494,11 +494,50 @@ class PermissionsModel extends AgentModel
                     FROM idt_product WHERE pdt_url='{$uri}'
                     AND pdt_ptype=0 AND pdt_vtype=1";
 
-            $ret = $this->mysqlQuery($sql ,'all');
+            $ret = $this->mysqlQuery($sql, 'all');
             return $ret[0];
         } else {
             return false;
         }
+    }
+
+    /**
+     * apply product permission
+     *
+     * @param $data
+     *
+     * @return array|int|string
+     */
+    public function applyPermission($data)
+    {
+        $saveData = [
+            'u_id' => $data['userID'],
+            'cpy_id' => $data['companyID'],
+            'pdt_id' => $data['pdt_id'],
+            'u_name' => $data['username'],
+            'state' => 0,
+            'cdate' => time(),
+            'u_mail' => $data['mail'],
+            'cpy_cname' => $data['companyName'],
+            'u_mobile' => $data['mobile'],
+            'city' => $data['city'],
+            'comment' => $data['comment'],
+            'position' => $data['position']
+        ];
+
+        $getApplyPermission = $this->__getApplyPermission($data);
+
+        if ($getApplyPermission[0]['co'] > 0) {
+            _ERROR('40000', '之前已提交过申请');
+        }
+
+        if ((int)$this->__getProduct($data) < 0 ) {
+            _ERROR('40000', '你申请的产品不存在');
+        }
+
+        return $this->mysqlInsert('idt_apply', $saveData);
+
+
     }
 
 
@@ -507,6 +546,26 @@ class PermissionsModel extends AgentModel
     #################################   PRIVATE METHODS   ################################
     ################################                     #################################
     ######################################################################################
+
+    /**
+     * get apply information for user
+     *
+     * @param $data
+     *
+     * @return array|string
+     */
+    private function __getApplyPermission($data)
+    {
+        $sql = "SELECT COUNT(*) co FROM idt_apply WHERE pdt_id = '{$data['pdt_id']}' AND state='0' AND u_id='{$data['userID']}' ";
+        return $this->mysqlQuery($sql, 'all');
+    }
+
+    private function __getProduct($data)
+    {
+        $sql = "SELECT COUNT(*) co FROM idatadb.idt_product WHERE pdt_id='{$data['pdt_id']}' AND pdt_state='0'";
+        $ret = $this->mysqlQuery($sql,'all');
+        return $ret[0];
+    }
 
     /**
      * get user menu for permission sql 获取首页菜单导航

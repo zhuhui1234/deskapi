@@ -965,6 +965,10 @@ function _POST()
 //返回正确信息
 function _SUCCESS($resCode = '000000', $resMsg = '处理成功', $data = '')
 {
+    if (!DEBUG) {
+        @ob_clean();
+    }
+
     $arr = array(
         'resTime' => time() . '',
         'resCode' => $resCode,
@@ -991,7 +995,6 @@ function _ERROR($resCode = '999999', $resMsg = '处理失败', $data = '')
     );
     if (!DEBUG) {
         @ob_clean();
-
     }
     //写日志
     Model::instance('tools')->logs($resCode, $resMsg, $data);
