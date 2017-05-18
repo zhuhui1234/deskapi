@@ -3,6 +3,7 @@
 /**
  * Created by iResearch
  * User: JOSON
+ * modify: Lane391
  * Date: 16-08-23
  * Time: 下午16:26
  * Email:joson@iresearch.com.cn
@@ -280,52 +281,44 @@ class UserModel extends AgentModel
         //当前时间
         $upTimes = date("Y-m-d H:i:s");
 
-        //验证短信30内秒不可重复操作
-        $sql_codeTime = "SELECT mik_key 
-                        FROM idt_mobilekey 
-                        WHERE mik_mobile='{$data['Mobile']}' AND mik_state='0' 
-                        AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=0.01 
-                        ORDER BY mik_cdate DESC LIMIT 1";
 
-        $ret_codeTime = $this->mysqlQuery($sql_codeTime, "all");
+        $ret_codeSend = $this->__setMobileKey($data, $upTimes);
 
-        //验证短信30内秒不可重复操作
-        if ($ret_codeTime[0]['mik_key'] != "" OR $ret_codeTime[0]['mik_key'] != null) {
-            _ERROR('000002', '发送失败,操作频繁,请稍后尝试');
-        } else {
-            //验证五分钟以内不产生新的验证码
-            $sql_codeNews = "SELECT mik_key 
-                            FROM idt_mobilekey WHERE mik_mobile='{$data['Mobile']}' 
-                            AND mik_state='0' AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5 
-                            ORDER BY mik_cdate DESC LIMIT 1";
 
-            $ret_codeNews = $this->mysqlQuery($sql_codeNews, "all");
-            //生成短信验证码
-            if ($ret_codeNews[0]['mik_key'] == null OR $ret_codeNews[0]['mik_key'] == null) {
-                $data['Code'] = rand(100001, 999999);
-            } else {
-                $data['Code'] = $ret_codeNews[0]['mik_key'];
-            }
+        if ($ret_codeSend) {
+            $data = $ret_codeSend;
+            //调用SMS,发送验证码
+            $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT);
+            $phones = $data['Mobile'];
+            $mail = $this->__checkHasEmail($data['Mobile']);
+            write_to_log('ready to send mail: ' . $mail, '_mail');
 
-            //发送验证码
-            $where['mik_mobile'] = $data['Mobile'];//手机号码
-            $where['mik_type'] = 0;//验证类型(0.登录 1.注册 2.找回密码)
-            $where['mik_key'] = $data['Code'];//验证码
-            $where['mik_cdate'] = $upTimes;//创建时间
-            $ret_codeSend = $this->mysqlInsert('idt_mobilekey', $where);
-            if ($ret_codeSend == '1') {
-                //调用SMS,发送验证码
-                $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT);
-                $phones = $data['Mobile'];
-                $sms = Sms::instance()->sendSms($content, $phones);
-                if ($sms == '发送成功') {
-                    _SUCCESS('000000', '发送成功');
-                } else {
-                    _ERROR('000002', '发送失败,SMS错误');
+            if (!empty($mail)) {
+                write_to_log('send mail: ' . $mail . ' and code is ' . $data['Code'], '_mail');
+                foreach (NEED_MAIL as $wMail) {
+                    $t = strpos($mail,$wMail);
+                    if ( $t >= 0) {
+                        write_to_log('the mail in need send mail list : '.$mail.','.$wMail,'_mail');
+                        $this->__sendCode($mail, $data['Code']);
+                    } else{
+                        write_to_log('the mail not in need send mail list : '.$mail.','.$wMail,'_mail');
+                    }
                 }
             } else {
-                _ERROR('000002', '发送失败,数据异常');
+                write_to_log('no email send ', '_mail');
+                //var_dump('no mail');
             }
+
+            $sms = Sms::instance()->sendSms($content, $phones);
+            if ($sms == '发送成功') {
+                _SUCCESS('000000', '发送成功');
+            } else {
+                _ERROR('000002', '发送失败,SMS错误');
+            }
+
+        } else {
+
+            _ERROR('000002', '发送失败,数据异常');
         }
     }
 
@@ -662,6 +655,69 @@ class UserModel extends AgentModel
     ######################################################################################
 
     /**
+     * set mobile key
+     *
+     * @param $data
+     * @param $upTimes
+     *
+     * @return array|int|string
+     */
+    private function __setMobileKey($data, $upTimes)
+    {
+        //验证短信30内秒不可重复操作
+        $sql_codeTime = "SELECT mik_key 
+                        FROM idt_mobilekey 
+                        WHERE mik_mobile='{$data['Mobile']}' AND mik_state='0' 
+                        AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=0.01 
+                        ORDER BY mik_cdate DESC LIMIT 1";
+
+        $ret_codeTime = $this->mysqlQuery($sql_codeTime, "all");
+
+        //验证短信30内秒不可重复操作
+        if ($ret_codeTime[0]['mik_key'] != "" OR $ret_codeTime[0]['mik_key'] != null) {
+            _ERROR('000002', '发送失败,操作频繁,请稍后尝试');
+        } else {
+            //验证五分钟以内不产生新的验证码
+            $sql_codeNews = "SELECT mik_key 
+                            FROM idt_mobilekey WHERE mik_mobile='{$data['Mobile']}' 
+                            AND mik_state='0' AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5 
+                            ORDER BY mik_cdate DESC LIMIT 1";
+
+            $ret_codeNews = $this->mysqlQuery($sql_codeNews, "all");
+            //生成短信验证码
+            if ($ret_codeNews[0]['mik_key'] == null OR $ret_codeNews[0]['mik_key'] == null) {
+                $data['Code'] = rand(100001, 999999);
+            } else {
+                $data['Code'] = $ret_codeNews[0]['mik_key'];
+            }
+
+            //发送验证码
+            $where['mik_mobile'] = $data['Mobile'];//手机号码
+            $where['mik_type'] = 0;//验证类型(0.登录 1.注册 2.找回密码)
+            $where['mik_key'] = $data['Code'];//验证码
+            $where['mik_cdate'] = $upTimes;//创建时间
+            if ($this->mysqlInsert('idt_mobilekey', $where)){
+                return $data;
+            } else {
+                return false;
+            };
+        }
+    }
+
+    /**
+     *
+     * @param $mobile
+     *
+     * @return array|string
+     */
+    private function __checkHasEmail($mobile)
+    {
+        $sql = "select u_mail from idatadb.idt_user WHERE u_mobile='{$mobile}'";
+        $ret = $this->mysqlQuery($sql, 'all');
+        return $ret[0]['u_mail'];
+    }
+
+    /**
      * check mobile sql
      *
      * @param $mobile
@@ -889,8 +945,29 @@ class UserModel extends AgentModel
                 'u_edate' => $upTimes
             ];
         }
-
         return $this->mysqlInsert('idt_user', $addUser);
+    }
+
+    private function __sendCode($sender, $code)
+    {
+        $phpMail = new PHPMailer;
+        $phpMail->isSMTP();
+        $phpMail->Host = EMAIL_SMTPSERVER;
+        $phpMail->SMTPAuth = true;
+        $phpMail->Username = EMAIL_SMTPUSER;
+        $phpMail->Password = EMAIL_SMTPPASS;
+        $phpMail->SMTPSecure = 'tls';
+        $phpMail->Port = EMAIL_SMTPSERVERPORT;
+        $phpMail->setFrom(EMAIL_SMTPUSER, 'iResearchGroup');
+        $phpMail->addAddress($sender);
+        $phpMail->isHTML(true);
+        $phpMail->Subject = '[iRD] Authentication Code';
+        $phpMail->Body = "The recent authentication code of acessing iRD is <span style='color: red'>{$code}</span>, which will be expired in 5 mins";
+        if (!$phpMail->send()) {
+            write_to_log("{$sender} sent error " . $phpMail->ErrorInfo, '_mail');
+        } else {
+            write_to_log("{$sender} is sent!", '_mail');
+        }
     }
 
 }

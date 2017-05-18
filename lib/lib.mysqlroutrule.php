@@ -31,17 +31,25 @@ class MysqlRoutRule implements IMysqlRoutRule{
         $this->routArr = array(
             'M'=>array(
                 '0'=>array(
-                    'host'=>'180.169.19.208',
-                    'user'=>'idata_admin',
-                    'pass'=>'1qaz2wsx',
-                    'db'=>'idatadb'
+//                    'host'=>'180.169.19.208',
+//                    'user'=>'idata_admin',
+//                    'pass'=>'1qaz2wsx',
+//                    'db'=>'idatadb'
+                    'host' => 'localhost',
+                    'user' => 'root',
+                    'pass' => 'root',
+                    'db' => 'idatadb'
                 )
             ),
             'S'=>array(
                 '0'=>array(
-                    'host'=>'180.169.19.208',
-                    'user'=>'idata_admin',
-                    'pass'=>'1qaz2wsx',
+//                    'host'=>'180.169.19.208',
+//                    'user'=>'idata_admin',
+//                    'pass'=>'1qaz2wsx',
+//                    'db'=>'idatadb'
+                    'host'=>'localhost',
+                    'user'=>'root',
+                    'pass'=>'root',
                     'db'=>'idatadb'
                 )
             ),
@@ -65,12 +73,14 @@ class MysqlRoutRule implements IMysqlRoutRule{
             'RM'=>array(
                 '0'=>array(
                     'host'=>'127.0.0.1:6379',
+//                    'pass' => 'weiwei',
                     'db'=>''
                 )
             ),
             'RS'=>array(
                 '0'=>array(
                     'host'=>'127.0.0.1:6379',
+//                    'pass' => 'weiwei ',
                     'db'=>''
                 )
             )
@@ -86,4 +96,3 @@ class MysqlRoutRule implements IMysqlRoutRule{
 }
 //var_dump(MysqlRoutRule::Rout('mdd'));
 
-?>

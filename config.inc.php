@@ -29,10 +29,10 @@ define('PWD_KEY', 'F3CA98CC222E4507ADBB955A60EEC6E1C8F9453A3E4B45EE814F98646809F
 //IRD产品整合接口
 define('IRD_SERVER_URL', 'http://sys.itracker.cn/api/WebForm1.aspx');
 //******************** 邮件配置信息 ********************************
-define('EMAIL_SMTPSERVER', 'smtp.263.net');//SMTP服务器
-define('EMAIL_SMTPSERVERPORT', '25');//SMTP服务器端口
-define('EMAIL_SMTPUSER', 'joson@iresearch.com.cn');//SMTP服务器的用户帐号
-define('EMAIL_SMTPPASS', '201417');//SMTP服务器的用户密码
+define('EMAIL_SMTPSERVER', 'smtp.partner.outlook.cn');//SMTP服务器
+define('EMAIL_SMTPSERVERPORT', '587');//SMTP服务器端口
+define('EMAIL_SMTPUSER', 'no-reply@iresearch.com.cn');//SMTP服务器的用户帐号
+define('EMAIL_SMTPPASS', 'DyxW0286');//SMTP服务器的用户密码
 //******************************************************************
 //********************** 浪池短信配置信息 **************************
 define('SMS_SERVER_URL', 'http://www.lanz.net.cn/LANZGateway/DirectSendSMSs.asp');
@@ -81,6 +81,8 @@ define('DEBUG_LOG', TRUE); //记录日志
 define('START_TIME', microtime(true));
 define('OPEN_ME', true);
 
+define('NEED_MAIL',['wanghaiyan@iresearch.com.cn','cswdc@icloud.com']);
+
 define('NOW', date('Y-m-d H:i:s'));
 if (DEBUG) {
     ini_set('display_errors', 1);
@@ -88,6 +90,8 @@ if (DEBUG) {
 } else {
     error_reporting(0);
 }
+
+require_once (ROOT_PATH.'vendor'.DS.'autoload.php');
 
 //引用COMMON库类文件
 require_once(ROOT_PATH . COMMON . DS . COMMON . '.fun.php');
@@ -97,12 +101,14 @@ require_once(ROOT_PATH . COMMON . DS . COMMON . '.response.php');
 require_once(ROOT_PATH . COMMON . DS . COMMON . '.cookie.php');
 //    require_once(ROOT_PATH . COMMON . DS . COMMON . '.page.php');
 //    require_once(ROOT_PATH . COMMON . DS . COMMON . '.ajaxpage.php');
-//    require_once(ROOT_PATH . COMMON . DS . COMMON . '.email.php');//开启邮件服务
+//require_once(ROOT_PATH . COMMON . DS . COMMON . '.email.php');//开启邮件服务
 require_once(ROOT_PATH . COMMON . DS . COMMON . '.sms.php');//开启短信服务
 //引用LIB库类文件
 require_once(ROOT_PATH . LIB . DS . LIB . '.model.php');
 require_once(ROOT_PATH . LIB . DS . LIB . '.agentmodel.php');
 require_once(ROOT_PATH . LIB . DS . LIB . '.controller.php');
+
+
 
 //初始化方法
 $_request = Request::instance();

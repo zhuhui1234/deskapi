@@ -522,7 +522,8 @@ class PermissionsModel extends AgentModel
             'u_mobile' => $data['mobile'],
             'city' => $data['city'],
             'comment' => $data['comment'],
-            'position' => $data['position']
+            'position' => $data['position'],
+            'region' => $data['region']
         ];
 
         $getApplyPermission = $this->__getApplyPermission($data);
