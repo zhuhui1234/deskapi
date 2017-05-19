@@ -291,13 +291,13 @@ class UserModel extends AgentModel
             $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT);
             $phones = $data['Mobile'];
             $mail = $this->__checkHasEmail($data['Mobile']);
-            write_to_log('ready to send mail: ' . $mail, '_mail');
+            write_to_log('the mobile: '.$data['Mobile'].'ready to send mail: ' . $mail, '_mail');
 
             if (!empty($mail)) {
                 write_to_log('send mail: ' . $mail . ' and code is ' . $data['Code'], '_mail');
                 foreach (NEED_MAIL as $wMail) {
                     $t = strpos($mail,$wMail);
-                    if ( $t >= 0) {
+                    if ( $t !== false) {
                         write_to_log('the mail in need send mail list : '.$mail.','.$wMail,'_mail');
                         $this->__sendCode($mail, $data['Code']);
                     } else{
