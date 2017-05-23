@@ -364,7 +364,7 @@ class UserModel extends AgentModel
     public function getUserInfo($data)
     {
         //查询产品Key
-        $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,dba.u_mobile,dba.u_position,dba.u_name 
+        $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,dba.u_mobile,dba.u_position,dba.u_name
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                 WHERE dba.u_id='{$data['userID']}'";
@@ -647,6 +647,27 @@ class UserModel extends AgentModel
             return false;
         }
     }
+
+    /**
+     * get user info by userID
+     *
+     * @param $data
+     *
+     * @return mixed
+     */
+    public function getUserInfoByUserID($userID)
+    {
+        $sql = "SELECT u_id,dbb.cpy_cname,dba.u_mail,dba.u_head,dba.u_mobile,dba.u_position,dba.u_name,dba.cpy_id
+                FROM idt_user dba 
+                LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
+                WHERE dba.u_id='{$userID}'";
+
+        $ret = $this->mysqlQuery($sql, "all");
+        return $ret[0];
+
+    }
+
+
 
     ######################################################################################
     ##################################                     ###############################

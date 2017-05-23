@@ -421,6 +421,24 @@ class PermissionsModel extends AgentModel
         }
     }
 
+    public function getPermissionInfoByUserID($data)
+    {
+        $userInfo = Model::instance('user')->getUserInfoByUserID($data['userID']);
+        if (OPEN_ME AND $userInfo['companyID'] == 1) {
+            return $this->getPdtInfo($data['pdt_id']);
+        } else {
+            if (!empty($userInfo['u_id']) AND !empty($userInfo['cpy_id']) AND !empty($data['pdt_id'])) {
+                if ($this->__checkPermission($userInfo['u_id'], $data['pdt_id'], $userInfo['cpy_id'])) {
+                    return $this->getPdtInfo($data['pdt_id']);
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+    }
+
     /**
      * 根据URI 拿权限
      *
