@@ -221,6 +221,7 @@ class Request
             OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'checkUserProPer') //验证用户权限
             OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'checkPermission') //验证用户权限
             OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'checkPermissionURI') //验证用户权限
+            OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'checkPermissionForMobile') //验证用户权限
             OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'getHomeMenu')
             OR (strtolower($_GET['m']) == 'logs' AND $_GET['a'] == 'pushLog')
         ) {

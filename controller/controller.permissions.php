@@ -93,7 +93,7 @@ class PermissionsController extends Controller
     public function checkPermission()
     {
         $data = json_decode(file_get_contents('php://input'), true);
-        write_to_log(json_encode($data),'_test');
+//        write_to_log(json_encode($data),'_test');
         if (!empty($data['token'])) {
             $ret = $this->model->getPermissionInfo($data);
             if ($ret) {
@@ -104,6 +104,26 @@ class PermissionsController extends Controller
             };
         } else {
             _ERROR('40004', 'TOKEN不能为空');
+        }
+    }
+
+    /**
+     * check permission for mobile
+     */
+    public function checkPermissionForMobile()
+    {
+        $data = json_decode(file_get_contents('php://input'),true);
+        if (!empty($data['userID'])) {
+            $ret = $this->model->getPermissionInfoByUserID($data);
+            if ($ret) {
+                _SUCCESS('20000', 'done', ['state' => 'allow', 'data' => $ret,'userInfo' ]);
+            } else {
+                _ERROR('40000', '无权使用', [
+                    'state' => 'deny', 'data' => $this->model->getPdtInfo($data['pdt_id'])]);
+            };
+
+        } else {
+            _ERROR('40004', 'user id 不能为空');
         }
     }
 
