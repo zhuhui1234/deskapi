@@ -168,6 +168,14 @@ class PermissionsController extends Controller
             _ERROR('40000', '没有产品');
         }
 
+        if(empty($data['mail'])) {
+            _ERROR('40000','没有邮箱');
+        }
+
+        if(empty($data['region'])) {
+            _ERROR('40000','没有选择地区');
+        }
+
         $ret = $this->model->applyPermission($data);
 //        var_dump($ret);
         if ($ret) {

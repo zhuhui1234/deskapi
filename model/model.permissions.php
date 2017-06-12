@@ -530,7 +530,7 @@ class PermissionsModel extends AgentModel
     {
         $saveData = [
             'u_id' => $data['userID'],
-            'cpy_id' => $data['companyID'],
+            'cpy_id' => empty($data['companyID']) ? 0 : $data['companyID'],
             'pdt_id' => $data['pdt_id'],
             'u_name' => $data['username'],
             'state' => 0,
@@ -550,7 +550,7 @@ class PermissionsModel extends AgentModel
             _ERROR('40000', '之前已提交过申请');
         }
 
-        if ((int)$this->__getProduct($data) < 0 ) {
+        if ((int)$this->__getProduct($data) < 0) {
             _ERROR('40000', '你申请的产品不存在');
         }
 
@@ -582,7 +582,7 @@ class PermissionsModel extends AgentModel
     private function __getProduct($data)
     {
         $sql = "SELECT COUNT(*) co FROM idatadb.idt_product WHERE pdt_id='{$data['pdt_id']}' AND pdt_state='0'";
-        $ret = $this->mysqlQuery($sql,'all');
+        $ret = $this->mysqlQuery($sql, 'all');
         return $ret[0];
     }
 
