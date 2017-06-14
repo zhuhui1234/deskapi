@@ -88,6 +88,19 @@ class PermissionsController extends Controller
     }
 
     /**
+     * get user info by token
+     */
+    public function getUserInfo()
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!empty($data['token'])){
+            _SUCCESS('20000',done,Model::instance('user')->_getUserInfoByToken($data));
+        } else {
+            _ERROR('000003', 'token is empty');
+        }
+    }
+
+    /**
      * check permission
      */
     public function checkPermission()
