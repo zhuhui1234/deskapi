@@ -37,6 +37,13 @@ class PermissionsModel extends AgentModel
         _SUCCESS('000000', '查询成功', $rs);
     }
 
+    public function getProduct($data)
+    {
+        $sql = "SELECT pdt_name, pdt_ename FROM idatadb.idt_product WHERE pdt_id='{$data['pdt_id']}'";
+        $ret = $this->mysqlQuery($sql, 'all');
+        return $ret;
+    }
+
     //获取用户权限
     public function getPermissionsList($data)
     {

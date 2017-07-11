@@ -110,7 +110,7 @@ class PermissionsController extends Controller
         if (!empty($data['token'])) {
             $ret = $this->model->getPermissionInfo($data);
             if ($ret) {
-                _SUCCESS('20000', 'done', ['state' => 'allow', 'data' => $ret,'userInfo' ]);
+                _SUCCESS('20000', 'done', ['state' => 'allow', 'data' => $ret,'userInfo' => Model::instance('user')->_getUserInfoByToken($data)]);
             } else {
                 _ERROR('40000', '无权使用', [
                     'state' => 'deny', 'data' => $this->model->getPdtInfo($data['pdt_id'])]);
@@ -158,6 +158,19 @@ class PermissionsController extends Controller
             _ERROR('40004', 'TOKEN不能为空');
         }
     }
+
+    public function getProduct()
+    {
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (isset($data['pdt_id'])) {
+            $ret = $this->model->getProduct($data);
+            _SUCCESS('0000000','check product', $ret);
+        }else{
+            _ERROR('40000', '没有产品id');
+        }
+
+    }
+
 
     /**
      * apply product!
