@@ -561,6 +561,20 @@ class PermissionsModel extends AgentModel
             _ERROR('40000', '你申请的产品不存在');
         }
 
+        if ($data['pdt_id'] == 38) {
+            $this->__sendMail('wanghaiyan@iresearch.com.cn',
+                "
+                        城市: {$data['city']}</br>
+                        用戶ID:  {$data['userID']}</br>
+                        用戶名稱: {$data['username']} </br>
+                        公司名称: {$data['companyName']} </br>
+                        手机: {$data['mobile']} </br>
+                        邮箱: {$data['mail']} </br>
+                        产品ID:  {$data['pdt_id']} </br>
+                        职位: {$data['position']} </br>
+                        ");
+        }
+
         return $this->mysqlInsert('idt_apply', $saveData);
 
 
@@ -733,5 +747,30 @@ class PermissionsModel extends AgentModel
         write_to_log(json_encode($res), '_test');
         write_to_log(json_encode($num), '_test');
         return $res[0]['co'] > 0 AND $num[0]['co'] > 0;
+    }
+
+    private function __sendMail($sender, $body)
+    {
+
+        $phpMail = new PHPMailer;
+        $phpMail->isSMTP();
+        $phpMail->Host = EMAIL_SMTPSERVER;
+        $phpMail->SMTPAuth = true;
+        $phpMail->Username = EMAIL_SMTPUSER;
+        $phpMail->Password = EMAIL_SMTPPASS;
+        $phpMail->SMTPSecure = 'tls';
+        $phpMail->Port = EMAIL_SMTPSERVERPORT;
+        $phpMail->setFrom(EMAIL_SMTPUSER, 'iResearchGroup');
+        $phpMail->addAddress($sender);
+        $phpMail->isHTML(true);
+        $phpMail->CharSet = 'UTF-8';
+        $phpMail->Subject = '智云产品申请';
+        $phpMail->Body = $body;
+        if (!$phpMail->send()) {
+            write_to_log("{$sender} sent error " . $phpMail->ErrorInfo, '_mail');
+        } else {
+            write_to_log("{$sender} is sent!", '_mail');
+        }
+
     }
 }
