@@ -561,6 +561,41 @@ class PermissionsModel extends AgentModel
             _ERROR('40000', '你申请的产品不存在');
         }
 
+        //send mail if the user is not a guest or the guest haven't
+
+        if (!$this->__checkNotGuest($data['userID'])) {
+            //is guest
+            if ($this->__checkVerifyMail($data['mail'])) {
+                //no same mail then  send mail
+                $saveData['check_mail'] = 0;
+                $pi = $this->__enCode($data['userID'], $data['mail'], $data['pdt_id']);
+                $cd = $this->__en($pi);
+                $url = 'http://localhost/iData/?m=index&a=checkMail&pi=' . $pi . '&cd=' . $cd;
+                $this->__sendMail($data['mail'], "
+                    感谢您申请使用艾瑞数据产品，请点击以下链接，验证您的邮箱：{$data['mail']} </br>
+                    <a href='{$url}' >点击链接验证</a> </br>
+                  
+                    如果你无法点击链接，可以复制改链接，访问：{$url} </br>
+                    
+                    </br>
+                    艾瑞
+                    
+                ", "邮箱验证邮件【系统邮件】");
+            } else {
+                return false;
+            }
+        } else {
+            //is not guest
+            if (!$this->__isYourMail($data['userID'], $data['mail'])) {
+                write_to_log('not your mail', 'check_mail');
+                write_to_log('userID: ' . $data['userID'] . ' , ' . 'mail: ' . $data['mail']);
+                return false;
+            } else {
+                $saveData['check_mail'] = 1;
+            }
+
+        }
+
         if ($data['pdt_id'] == 38) {
             $this->__sendMail('wanghaiyan@iresearch.com.cn',
                 "
@@ -577,8 +612,46 @@ class PermissionsModel extends AgentModel
 
         return $this->mysqlInsert('idt_apply', $saveData);
 
-
     }
+
+    /**
+     * check code
+     *
+     * @param $data
+     * @return array|bool|string
+     */
+    public function checkCode($data)
+    {
+        if (!empty($data['cd']) && !empty($data['pi'])) {
+            if ($this->__checkCode($data['pi'], $data['cd'])) {
+                $re = $this->__deCode($data['pi']);
+                $checkSql = "SELECT COUNT(u_id) AS cu FROM idt_apply 
+                             where 1=1 AND u_id='{$re['userID']}' AND pdt_id='{$re['pdt_id']}' 
+                            AND check_mail=0 AND u_mail='{$re['u_mail']}' ";
+                $co = $this->mysqlQuery($checkSql, 'all');
+                if ($co[0]['cu'] > 0) {
+                    $ret = $this->mysqlEdit('idt_apply',
+                        ['check_mail' => 1], ['u_id' => $re['userID'], 'pdt_id' => $re['pdt_id'], 'u_mail' => $re['u_mail']]);
+
+                    if ($ret) {
+                        $this->__sendMail($re['u_mail'], "
+                            你邮箱{$re['u_mail']} 已经验证通过，因此成功提交产品试用申请! </br>
+            
+                            艾瑞
+                    
+                        ", "邮箱验证通过【系统邮件】");
+                    }
+                    return $ret;
+                } else {
+                    return false;
+                }
+
+            } else {
+                return false;
+            }
+        }
+    }
+
 
 
     ######################################################################################
@@ -689,7 +762,7 @@ class PermissionsModel extends AgentModel
             if (strtotime($ret[0]['start_date']) < $now AND strtotime($ret[0]['end_date']) > $now) {
                 return $this->__countLicense($cpy_id, $pdt_id) <= $ret[0]['pnum_number'];
             } else {
-                write_to_log('no license for ' . $cpy_id, '_nolicense');
+                write_to_log('no license for ' . $cpy_id, '_noLicense');
                 return false;
             }
         }
@@ -749,7 +822,72 @@ class PermissionsModel extends AgentModel
         return $res[0]['co'] > 0 AND $num[0]['co'] > 0;
     }
 
-    private function __sendMail($sender, $body)
+    /**
+     *
+     * check same mail
+     *
+     * @param $mail
+     * @return bool
+     */
+    private function __checkVerifyMail($mail)
+    {
+        if (!empty($mail)) {
+            $sql = "SELECT count(u_mail) AS has_mail FROM idt_user WHERE u_mail= '{$mail}' ";
+            $ret = $this->mysqlQuery($sql, 'all');
+            return $ret[0]['has_mail'] == 0;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     *
+     * check user mail
+     *
+     * @param $userID
+     * @param $mail
+     * @return bool
+     */
+    private function __isYourMail($userID, $mail)
+    {
+        if (!empty($userID) && !empty($mail)) {
+            $sql = "SELECT count(u_id) AS u FROM idt_user WHERE u_id = '{$userID}' AND u_mail = '{$mail}' ";
+            $ret = $this->mysqlQuery($sql, 'all');
+            return $ret[0]['u'] > 0;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * check the user is not a guest
+     *
+     * @param $userID
+     * @return bool
+     */
+    private function __checkNotGuest($userID)
+    {
+        if (!empty($userID)) {
+            $sql = "SELECT u_permissions FROM idatadb.idt_user WHERE u_id = '{$userID}'";
+            $ret = $this->mysqlQuery($sql, 'all');
+            if (count($ret) > 0) {
+                return $ret[0]['u_permissions'] > 0;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * send mail
+     *
+     * @param $sender
+     * @param $body
+     * @param string $subject
+     */
+    private function __sendMail($sender, $body, $subject = '智云产品申请')
     {
 
         $phpMail = new PHPMailer;
@@ -764,7 +902,7 @@ class PermissionsModel extends AgentModel
         $phpMail->addAddress($sender);
         $phpMail->isHTML(true);
         $phpMail->CharSet = 'UTF-8';
-        $phpMail->Subject = '智云产品申请';
+        $phpMail->Subject = $subject;
         $phpMail->Body = $body;
         if (!$phpMail->send()) {
             write_to_log("{$sender} sent error " . $phpMail->ErrorInfo, '_mail');
@@ -773,4 +911,33 @@ class PermissionsModel extends AgentModel
         }
 
     }
+
+    private function __enCode($userID, $mail, $pdt_id)
+    {
+        return urlencode(base64_encode(json_encode(['userID' => $userID, 'u_mail' => $mail, 'pdt_id' => $pdt_id])));
+    }
+
+    private function __deCode($baseCode)
+    {
+        return json_decode(base64_decode(urldecode($baseCode)), true);
+    }
+
+    private function __en($baseCode)
+    {
+        return md5(base64_decode(urldecode($baseCode)) . KEY);
+    }
+
+    /**
+     * check code
+     *
+     * @param $baseCode
+     * @param $code
+     * @return bool
+     */
+    private function __checkCode($baseCode, $code)
+    {
+        $baseCode = md5(base64_decode(urldecode($baseCode)) . KEY);
+        return $baseCode == $code;
+    }
+
 }

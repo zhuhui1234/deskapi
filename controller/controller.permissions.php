@@ -93,8 +93,8 @@ class PermissionsController extends Controller
     public function getUserInfo()
     {
         $data = json_decode(file_get_contents('php://input'), true);
-        if (!empty($data['token'])){
-            _SUCCESS('20000',done,Model::instance('user')->_getUserInfoByToken($data));
+        if (!empty($data['token'])) {
+            _SUCCESS('20000', done, Model::instance('user')->_getUserInfoByToken($data));
         } else {
             _ERROR('000003', 'token is empty');
         }
@@ -110,7 +110,7 @@ class PermissionsController extends Controller
         if (!empty($data['token'])) {
             $ret = $this->model->getPermissionInfo($data);
             if ($ret) {
-                _SUCCESS('20000', 'done', ['state' => 'allow', 'data' => $ret,'userInfo' => Model::instance('user')->_getUserInfoByToken($data)]);
+                _SUCCESS('20000', 'done', ['state' => 'allow', 'data' => $ret, 'userInfo' => Model::instance('user')->_getUserInfoByToken($data)]);
             } else {
                 _ERROR('40000', '无权使用', [
                     'state' => 'deny', 'data' => $this->model->getPdtInfo($data['pdt_id'])]);
@@ -125,11 +125,11 @@ class PermissionsController extends Controller
      */
     public function checkPermissionForMobile()
     {
-        $data = json_decode(file_get_contents('php://input'),true);
+        $data = json_decode(file_get_contents('php://input'), true);
         if (!empty($data['userID'])) {
             $ret = $this->model->getPermissionInfoByUserID($data);
             if ($ret) {
-                _SUCCESS('20000', 'done', ['state' => 'allow', 'data' => $ret,'userInfo' ]);
+                _SUCCESS('20000', 'done', ['state' => 'allow', 'data' => $ret, 'userInfo']);
             } else {
                 _ERROR('40000', '无权使用', [
                     'state' => 'deny', 'data' => $this->model->getPdtInfo($data['pdt_id'])]);
@@ -164,8 +164,8 @@ class PermissionsController extends Controller
         $data = json_decode(file_get_contents('php://input'), true);
         if (isset($data['pdt_id'])) {
             $ret = $this->model->getProduct($data);
-            _SUCCESS('0000000','check product', $ret);
-        }else{
+            _SUCCESS('0000000', 'check product', $ret);
+        } else {
             _ERROR('40000', '没有产品id');
         }
 
@@ -178,7 +178,7 @@ class PermissionsController extends Controller
     public function applyPermission()
     {
         $data = _POST();
-        if(empty($data['userID'])) {
+        if (empty($data['userID'])) {
             _ERROR('40000', '用户没有登入或是注册');
         }
 
@@ -186,20 +186,20 @@ class PermissionsController extends Controller
             _ERROR('40000', '名字不能为空');
         }
 
-        if(empty($data['mobile'])) {
-            _ERROR('40000','没有手机号');
+        if (empty($data['mobile'])) {
+            _ERROR('40000', '没有手机号');
         }
 
-        if(empty($data['pdt_id'])) {
+        if (empty($data['pdt_id'])) {
             _ERROR('40000', '没有产品');
         }
 
-        if(empty($data['mail'])) {
-            _ERROR('40000','没有邮箱');
+        if (empty($data['mail'])) {
+            _ERROR('40000', '没有邮箱');
         }
 
-        if(empty($data['region'])) {
-            _ERROR('40000','没有选择地区');
+        if (empty($data['region'])) {
+            _ERROR('40000', '没有选择地区');
         }
 
         $ret = $this->model->applyPermission($data);
@@ -207,7 +207,30 @@ class PermissionsController extends Controller
         if ($ret) {
             _SUCCESS('20000', 'done');
         } else {
-            _ERROR('40000','申请失败');
+            _ERROR('40000', '申请失败');
         }
+    }
+
+    /**
+     * check mail
+     */
+    public function checkMail()
+    {
+        $data = _POST();
+        if (empty($data['pi'])) {
+            _ERROR('40000', '缺少参数');
+        }
+
+        if (empty($data['cd'])) {
+            _ERROR('40000', '缺少参数');
+        }
+
+        $ret = $this->model->checkCode($data);
+        if ($ret) {
+            _SUCCESS('20000','验证通过');
+        }else{
+            _ERROR('40000','验证失败');
+        }
+
     }
 }

@@ -19,3 +19,18 @@ CREATE UNIQUE INDEX idt_logs_log_id_uindex ON idatadb.idt_logs (log_id);
 ALTER TABLE idatadb.idt_logs COMMENT = 'idata logs';
 
 ALTER TABLE idatadb.idt_logs ADD log_level INT/*日志级别*/ NULL;
+
+
+CREATE TABLE idatadb.idt_verify_mail
+(
+	vm_id INT PRIMARY KEY AUTO_INCREMENT,
+	u_id CHAR(50) NOT NULL,
+	u_mail CHAR(100) NOT NULL,
+	c_time INT NOT NULL,
+	u_time INT NOT NULL,
+	status INT DEFAULT 0
+);
+CREATE UNIQUE INDEX idt_verify_mail_vm_id_uindex ON idatadb.idt_verify_mail (vm_id);
+
+ALTER TABLE idatadb.idt_user ADD u_is_check_mail INT DEFAULT 0 NULL;
+
