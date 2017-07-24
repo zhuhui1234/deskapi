@@ -225,6 +225,7 @@ class Request
             OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'getHomeMenu')
             OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'getProduct')
             OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'checkMail')
+            OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'ircLogin')
             OR (strtolower($_GET['m']) == 'logs' AND $_GET['a'] == 'pushLog')
         ) {
             //不作任何操作
