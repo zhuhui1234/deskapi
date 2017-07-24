@@ -44,6 +44,8 @@ class PermissionsModel extends AgentModel
         return $ret;
     }
 
+
+
     //获取用户权限
     public function getPermissionsList($data)
     {
