@@ -45,7 +45,6 @@ class PermissionsModel extends AgentModel
     }
 
 
-
     //获取用户权限
     public function getPermissionsList($data)
     {
@@ -414,7 +413,6 @@ class PermissionsModel extends AgentModel
     public function getPermissionInfo($data)
     {
         $userInfo = Model::instance('user')->_getUserInfoByToken($data);
-//        write_to_log(json_encode($userInfo),'_test');
         if (OPEN_ME AND $userInfo['companyID'] == 1) {
             return $this->getPdtInfo($data['pdt_id']);
         } else {
@@ -430,6 +428,12 @@ class PermissionsModel extends AgentModel
         }
     }
 
+    /**
+     * get permission info by user id
+     *
+     * @param $data
+     * @return bool
+     */
     public function getPermissionInfoByUserID($data)
     {
         $userInfo = Model::instance('user')->getUserInfoByUserID($data['userID']);
@@ -574,13 +578,17 @@ class PermissionsModel extends AgentModel
                 $cd = $this->__en($pi);
                 $url = 'http://localhost/iData/?m=index&a=checkMail&pi=' . $pi . '&cd=' . $cd;
                 $this->__sendMail($data['mail'], "
-                    感谢您申请使用艾瑞数据产品，请点击以下链接，验证您的邮箱：{$data['mail']} </br>
-                    <a href='{$url}' >点击链接验证</a> </br>
-                  
-                    如果你无法点击链接，可以复制改链接，访问：{$url} </br>
+                    您好，</br></br>
+                    感谢您申请使用艾瑞数据产品，请点击以下链接，验证您的邮箱：{$data['mail']} 
+                    </br></br>
                     
-                    </br>
-                    艾瑞
+                    <a href='{$url}' >点击链接验证</a> </br></br>
+                  
+                    如果你无法点击链接，可以复制改链接，访问：</br>
+                    {$url} </br>
+                    
+                    </br></br>
+                    艾瑞数据产品组
                     
                 ", "邮箱验证邮件【系统邮件】");
             } else {
@@ -637,9 +645,11 @@ class PermissionsModel extends AgentModel
 
                     if ($ret) {
                         $this->__sendMail($re['u_mail'], "
-                            你邮箱{$re['u_mail']} 已经验证通过，因此成功提交产品试用申请! </br>
+                            你邮箱{$re['u_mail']} 已经验证通过，因此成功提交产品试用申请! 
+                            </br>
+                            </br>
             
-                            艾瑞
+                            艾瑞数据产品组
                     
                         ", "邮箱验证通过【系统邮件】");
                     }
@@ -654,6 +664,20 @@ class PermissionsModel extends AgentModel
         }
     }
 
+    public function verifyPermissionsForIR($userID, $cpyID, $pdtID)
+    {
+        $countNumberSQL = "SELECT count(prs_id) as countNum FROM idatadb.idt_permissions WHERE 1=1 AND cpy_id='{$cpyID}' AND pdt_id='{$pdtID}'";
+        $countNumer = $this->mysqlQuery($countNumberSQL, 'all');
+
+        $getNumberSQL = "SELECT pnum_number FROM idatadb.idt_permissions_number WHERE 1=1 AND cpy_id='{$cpyID}' AND  pdt_id='{$pdtID}'";
+        $getNumber = $this->mysqlQuery($getNumberSQL, 'all');
+
+        if (!empty($getNumberSQL)) {
+
+        }else{
+
+        }
+    }
 
 
     ######################################################################################
