@@ -205,5 +205,64 @@ class UserController extends Controller
         $this->model->userList($data);
     }
 
+    /**
+     * irc 客户端登入
+     *
+     * @return mixed
+     */
+    public function ircLogin()
+    {
+        $data = _POST();
+        $ret = $this->model->ircLogin($data);
+        if ($ret['state']) {
+
+            $cp = $this->model->checkPdtPermissions($data['pdtID'], $ret['irUserInfo']['pplist']);
+
+            if ($cp) {
+                //权限匹配
+
+            } else {
+                //不匹配
+            }
+        }
+        pr($ret);
+        return $ret;
+    }
+
+    /**
+     * app login
+     *
+     * @return array
+     */
+    public function appLogin()
+    {
+        $data = _POST();
+        if (!isset($data['key']) or !isset($data['uuid'])) {
+            header('Content-Type: application/json');
+            json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
+            exit();
+        }
+
+        if ($data['key'] != md5($data['uuid'] . KEY)) {
+            header('Content-Type: application/json');
+            echo json_encode(['code' => '500', 'state' => false, 'msg' => '验证码失败']);
+            exit();
+        }
+
+        if (!empty($data['key']) and !empty($data['uuid'])) {
+            $ret = $this->model->appLogin($data['uuid']);
+            header('Content-Type: application/json');
+            echo json_encode($ret);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
+        }
+    }
+
+
+    public function appBindingAccount()
+    {
+
+    }
 
 }

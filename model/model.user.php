@@ -19,6 +19,65 @@ class UserModel extends AgentModel
     }
 
     /**
+     * app login
+     * @param $uuid
+     * @return array
+     */
+    public function appLogin($uuid)
+    {
+        if (empty($uuid)) {
+
+            return ['code' => '500', 'state' => false, 'msg' => 'uuid不能为空'];
+
+        } else {
+            $sql = "SELECT count(u_mobile) AS cu FROM idatadb.idt_user WHERE 1=1 AND u_wxunid='{$uuid}' AND u_state='0' ";
+
+            $ret = $this->mysqlQuery($sql, 'all');
+
+            if ((int)$ret[0]['cu'] > 0) {
+                return ['code' => '200', 'state' => true, 'msg' => '验证成功'];
+            } else {
+                return ['code' => '404', 'state' => false, 'msg' => '微信号不存在'];
+            }
+
+        }
+    }
+
+    /**
+     * @param $u_mobile
+     * @param $uuid
+     * @return array|bool|int|string
+     */
+    public function appBindAccount($u_mobile, $uuid)
+    {
+        if (empty($u_mobile)) {
+            return ['code' => '500', 'state' => false, 'msg' => '参数不能为空'];
+        }
+
+        if (empty($uuid)) {
+            return ['code' => '500', 'state' => false, 'msg' => '参数不能为空'];
+        }
+
+        $hasMobileSQL = "SELECT COUNT(*) as cc FROM idatadb.idt_user WHERE u_wxunid='{$uuid}' OR u_mobile='{$u_mobile}'";
+
+        $ret = $this->mysqlQuery($hasMobileSQL, 'all');
+
+        if ((int)$ret[0]['cc'] == 0) {
+            $insertRet = $this->mysqlInsert('idt_user', ['cpy_id' => 0, 'u_mobile' => $u_mobile, 'u_wxuuid' => $uuid]);
+
+            if ($insertRet) {
+                return ['code' => '200', 'state' => true, 'msg' => '绑定成功'];
+            } else {
+                return ['code' => '500', 'state' => false, 'msg' => '绑定失败'];
+            }
+        } else {
+            return ['code' => '500', 'state' => false, 'msg' => '想要绑定的手机或是微信号，库里已经存在!'];
+        }
+
+    }
+
+
+    /**
      * login
      *
      * @param $data
@@ -161,6 +220,148 @@ class UserModel extends AgentModel
     }
 
     /**
+     * IR LOGIN
+     * code:
+     *
+     * - 403:  账号被冻结
+     * - 500： token出错，数据不匹配
+     * - 200:  登入成功
+     * - 404： 没有绑定老产品
+     *
+     * @param $data
+     * @return array
+     */
+    public function ircLogin($data)
+    {
+        if ($this->__verifyKeyForIRLogin($data)) {
+            $userInfo = $this->__getUserInfo($data['irUserID']);
+
+            if (!empty($userInfo) and count($userInfo) == 1) {
+                if ($userInfo[0]['u_state'] == 1) {
+                    return [
+                        'state' => false,
+                        'code' => 403,
+                        'msg' => '账号被冻结'
+                    ];
+                }
+
+                //success login
+
+                //create token
+
+                $upToken = md5(rand(1000000001, 9999999999));
+
+                $where_upToken['u_token'] = $upToken;
+                $ret_upToken = $this->mysqlEdit('idt_user', $where_upToken, "u_id='{$userInfo[0]['u_id']}'");
+
+                if ($ret_upToken != '1') {
+                    return [
+                        'state' => false,
+                        'code' => 500,
+                        'msg' => 'token出错'
+                    ];
+                }
+
+                //get company name
+                if ($userInfo[0]['cpy_id'] !== 0) {
+                    $sql = "SELECT cpy_cname FROM idatadb.idt_company WHERE 1=1 AND cpy_id = '{$userInfo[0]['cpy_id']}'";
+                    $getCpyInfo = $this->mysqlQuery($sql, 'all');
+
+                    if (!empty($getCpyInfo)) {
+                        $getCpyInfo = $getCpyInfo[0]['cpy_cname'];
+                    } else {
+                        $getCpyInfo = null;
+                    }
+
+                }
+
+                $rs = [
+                    'headImg' => $userInfo[0]['u_head'], //avatar
+                    'mobile' => $userInfo[0]['u_mobile'],
+                    'companyID' => $userInfo[0]['cpy_id'],
+                    'companyName' => $getCpyInfo,
+                    'permissions' => $userInfo[0]['u_permissions'], //用户身份 0游客 1企业用户 2企业管理员
+                    'productKey' => $userInfo[0]['u_product_key'], //老产品id
+                    'token' => $upToken,
+                    'uname' => $userInfo[0]['u_name'],
+                    'userID' => $userInfo[0]['u_id'],
+                ];
+
+                return [
+                    'state' => true,
+                    'code' => 200,
+                    'msg' => '登入成功',
+                    'userInfo' => $rs,
+                    'irUserInfo' => $this->getIrUser($userInfo[0]['u_product_key']) //get ir product list
+                ];
+
+            } else {
+                //no product key
+                return [
+                    'state' => false,
+                    'code' => 404,
+                    'msg' => '没有绑定老产品'
+                ];
+
+            }
+        } else {
+            return [
+                'state' => false,
+                'code' => 500,
+                'msg' => '提交数据不匹配'
+            ];
+        }
+    }
+
+    /**
+     * check pdt permissions
+     *
+     * @param $pdtID
+     * @param $ppList
+     * @return bool
+     */
+    public function checkPdtPermissions($pdtID, $ppList)
+    {
+        if (empty($ppList)) {
+            return false;
+        }
+
+        if (empty($pdtID)) {
+            return false;
+        }
+
+        $ppId = $this->__getPPID($pdtID);
+
+        if (!empty($ppId)) {
+            $ppId = $ppId[0]['pp_id'];
+
+            if (is_array($ppList)) {
+                if (count($ppList) > 0) {
+                    $checkStatus = false;
+                    pr($ppList);
+                    foreach ($ppList as $pp) {
+
+                        if ($pp['ppid'] == $ppId) {
+                            $checkStatus = true;
+                        }
+
+                    }
+
+                    return $checkStatus;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+
+        } else {
+            return false;
+        }
+
+    }
+
+    /**
      * 用户注册且绑定微信
      *
      * @param $data
@@ -291,17 +492,17 @@ class UserModel extends AgentModel
             $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT);
             $phones = $data['Mobile'];
             $mail = $this->__checkHasEmail($data['Mobile']);
-            write_to_log('the mobile: '.$data['Mobile'].'ready to send mail: ' . $mail, '_mail');
+            write_to_log('the mobile: ' . $data['Mobile'] . 'ready to send mail: ' . $mail, '_mail');
 
             if (!empty($mail)) {
                 write_to_log('send mail: ' . $mail . ' and code is ' . $data['Code'], '_mail');
                 foreach (NEED_MAIL as $wMail) {
-                    $t = strpos($mail,$wMail);
-                    if ( $t !== false) {
-                        write_to_log('the mail in need send mail list : '.$mail.','.$wMail,'_mail');
+                    $t = strpos($mail, $wMail);
+                    if ($t !== false) {
+                        write_to_log('the mail in need send mail list : ' . $mail . ',' . $wMail, '_mail');
                         $this->__sendCode($mail, $data['Code']);
-                    } else{
-                        write_to_log('the mail not in need send mail list : '.$mail.','.$wMail,'_mail');
+                    } else {
+                        write_to_log('the mail not in need send mail list : ' . $mail . ',' . $wMail, '_mail');
                     }
                 }
             } else {
@@ -667,6 +868,10 @@ class UserModel extends AgentModel
 
     }
 
+    public function getIrUser($irUserID)
+    {
+        return $this->__getIRUserList($irUserID);
+    }
 
 
     ######################################################################################
@@ -717,7 +922,7 @@ class UserModel extends AgentModel
             $where['mik_type'] = 0;//验证类型(0.登录 1.注册 2.找回密码)
             $where['mik_key'] = $data['Code'];//验证码
             $where['mik_cdate'] = $upTimes;//创建时间
-            if ($this->mysqlInsert('idt_mobilekey', $where)){
+            if ($this->mysqlInsert('idt_mobilekey', $where)) {
                 return $data;
             } else {
                 return false;
@@ -969,6 +1174,104 @@ class UserModel extends AgentModel
         return $this->mysqlInsert('idt_user', $addUser);
     }
 
+    /**
+     * get user info by irUserID
+     *
+     * @param $irUserID
+     * @return array|string
+     */
+    private function __getUserInfo($irUserID)
+    {
+        $sql = "SELECT * FROM idatadb.idt_user WHERE u_product_key='{$irUserID}'";
+        return $this->mysqlQuery($sql, 'all');
+    }
+
+    /**
+     * get ir user product list
+     *
+     * @param $irUserID
+     * @return mixed
+     */
+    private function __getIRUserList($irUserID)
+    {
+        $irUserID = ['iUserID' => $irUserID];
+        $ret = $this->request()->_curlRADPost(IRD_SERVER_URL, ['v' => fnEncrypt(json_encode($irUserID), KEY)]);
+        return json_decode($ret, true);
+    }
+
+    /**
+     *
+     * verify key for ir login
+     *
+     * @param $data
+     * @return bool
+     */
+    private function __verifyKeyForIRLogin($data)
+    {
+        if (is_array($data)) {
+
+            if (
+                !isset($data['pdtID']) ||
+                !isset($data['irUserID']) ||
+                !isset($data['date']) ||
+                !isset($data['key'])
+            ) {
+                return false;
+            }
+
+            if (
+                empty($data['pdtID']) ||
+                empty($data['irUserID']) ||
+                empty($data['date']) ||
+                empty($data['key'])
+            ) {
+                return false;
+            }
+
+            $clientDate = new DateTime($data['date']);
+            $dateObj = new DateTime();
+            if ($dateObj->format('Ymd') !== $clientDate->format('Ymd')) {
+                return false;
+            }
+
+            $key = md5(KEY . $data['irUserID'] . $data['pdtID'] . $dateObj->format('Ymd'));
+
+            return $key == $data['key'];
+
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * get pdtID
+     *
+     * @param $ppID
+     * @return array|string
+     */
+    private function __getPdtID($ppID)
+    {
+        $sql = "SELECT pdt_id FROM idt_ircp_con_idatap WHERE pp_id='{$ppID}'";
+        return $this->mysqlQuery($sql, 'all');
+    }
+
+    /**
+     * get ppid
+     * @param $pdtID
+     * @return array|string
+     */
+    private function __getPPID($pdtID)
+    {
+        $sql = "SELECT pp_id FROM idt_ircp_con_idatap WHERE pdt_id='{$pdtID}'";
+        return $this->mysqlQuery($sql, 'all');
+    }
+
+    /**
+     * send code mail
+     *
+     * @param $sender
+     * @param $code
+     */
     private function __sendCode($sender, $code)
     {
         $phpMail = new PHPMailer;
