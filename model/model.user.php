@@ -58,20 +58,55 @@ class UserModel extends AgentModel
             return ['code' => '500', 'state' => false, 'msg' => '参数不能为空'];
         }
 
-        $hasMobileSQL = "SELECT COUNT(*) as cc FROM idatadb.idt_user WHERE u_wxunid='{$uuid}' OR u_mobile='{$u_mobile}'";
+        $hasMWSQL = "SELECT COUNT(*) as cc FROM idatadb.idt_user WHERE u_wxunid='{$uuid}' AND u_mobile='{$u_mobile}'";
 
-        $ret = $this->mysqlQuery($hasMobileSQL, 'all');
+        $hasMobileSQL = "SELECT u_id FROM idatadb.idt_user WHERE u_wxunid=NULL AND u_mobile='{$u_mobile}'";
 
+        $ret = $this->mysqlQuery($hasMWSQL, 'all');
+        write_to_log('has mwsql :'.json_encode($ret),'_app');
         if ((int)$ret[0]['cc'] == 0) {
-            $insertRet = $this->mysqlInsert('idt_user', ['cpy_id' => 0, 'u_mobile' => $u_mobile, 'u_wxuuid' => $uuid]);
+            //当前时间
+            $upTimes = date("Y-m-d H:i:s");
+            //创建TOKEN
+            $upToken = md5(rand(1000000001, 9999999999));
+            $insertRet = $this->mysqlInsert('idt_user', [
+                'u_id' => getGUID(),
+                'u_mobile' => $u_mobile,
+                'u_wxunid' => $uuid,
+                'u_permissions' => 0,
+                'u_token' => $upToken,
+                'u_cdate' => $upTimes,
+                'u_edate' => $upTimes
+            ]);
 
             if ($insertRet) {
                 return ['code' => '200', 'state' => true, 'msg' => '绑定成功'];
             } else {
                 return ['code' => '500', 'state' => false, 'msg' => '绑定失败'];
             }
+
         } else {
-            return ['code' => '500', 'state' => false, 'msg' => '想要绑定的手机或是微信号，库里已经存在!'];
+            $mRet = $this->mysqlQuery($hasMobileSQL, 'all');
+
+            write_to_log('has mobile sql'.json_encode($mRet),'_app');
+
+            if (count($mRet) > 0) {
+
+                if (!empty($mRet[0]['u_id'])) {
+                    $updateWx = $this->mysqlEdit('idt_user', ['u_wxunid' => $uuid], "u_id='{$mRet[0]['u_id']}'");
+                    if($updateWx){
+                        return ['code'=>'200','state'=>true, 'msg'=> '绑定成功'];
+                    } else{
+                        return ['code'=>'500','state'=>false, 'msg'=> '绑定失败'];
+                    }
+                }else{
+                    return ['code'=>'500','state'=>false, 'msg'=> '绑定失败,查询不到用户ID'];
+                }
+
+            } else {
+                return ['code' => '500', 'state' => false, 'msg' => '想要绑定的微信号，库里已经存在!'];
+            }
+
         }
 
     }
