@@ -69,7 +69,9 @@ class PermissionsController extends Controller
     }
 
     /**
+     *
      * 根据token，以及产品验证用户是否可以使用改产品
+     *
      * http://iutmain.itracker.cn/NLogin.aspx?
      * guid=8fc6ed3b-8ce5-40a2-b0b5-5281cec92a01&
      * irv_callback=http://10.10.21.163/iResearchDataWeb/?m=irdata&
@@ -226,8 +228,9 @@ class PermissionsController extends Controller
         }
 
         $ret = $this->model->checkCode($data);
+
         if ($ret) {
-            _SUCCESS('20000','验证通过');
+            _SUCCESS('20000','验证通过,我们的销售会在三个工作日内联系您.');
         }else{
             _ERROR('40000','验证失败');
         }
