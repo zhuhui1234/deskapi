@@ -19,7 +19,7 @@ class UserModel extends AgentModel
     }
 
     /**
-     * app login
+     * app login for wechat
      * @param $uuid
      * @return array
      */
@@ -36,10 +36,38 @@ class UserModel extends AgentModel
 
             if ((int)$ret[0]['cu'] > 0) {
                 $mobileSQL = "SELECT u_mobile AS cu FROM idatadb.idt_user WHERE 1=1 AND u_wxunid='{$uuid}' AND u_state='0' ";
-                $mobile = $this->mysqlEdit($mobileSQL,'all');
+                $mobile = $this->mysqlQuery($mobileSQL,'all');
                 return ['code' => '200', 'state' => true, 'msg' => '验证成功','mobile'=>$mobile[0]];
             } else {
                 return ['code' => '404', 'state' => false, 'msg' => '微信号不存在'];
+            }
+
+        }
+    }
+
+    /**
+     * app login for mobile
+     *
+     * @param $mobile
+     * @return array
+     */
+    public function appMobileLogin($mobile)
+    {
+        if (empty($mobile)) {
+
+            return ['code' => '500', 'state' => false, 'msg' => 'uuid不能为空'];
+
+        } else {
+            $sql = "SELECT count(u_wxunid) AS cu FROM idatadb.idt_user WHERE 1=1 AND u_mobile='{$mobile}' AND u_state='0' ";
+
+            $ret = $this->mysqlQuery($sql, 'all');
+
+            if ((int)$ret[0]['cu'] > 0) {
+                $wxSQL = "SELECT u_wxunid AS cu FROM idatadb.idt_user WHERE 1=1 AND u_mobile='{$mobile}' AND u_state='0' ";
+                $u_wxunid = $this->mysqlQuery($wxSQL,'all');
+                return ['code' => '200', 'state' => true, 'msg' => '验证成功','uuid'=>$u_wxunid[0]];
+            } else {
+                return ['code' => '404', 'state' => false, 'msg' => '手机号不存在'];
             }
 
         }

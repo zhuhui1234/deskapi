@@ -238,26 +238,63 @@ class UserController extends Controller
     public function appLogin()
     {
         $data = _POST();
-        if (!isset($data['key']) or !isset($data['uuid'])) {
+        if (!isset($data['type'])) {
             header('Content-Type: application/json');
             echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
-            exit();
+        }else {
+            if ($data['type'] == 'wechat') {
+                //wechat login
+                if (!isset($data['key']) or !isset($data['uuid'])) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
+                    exit();
+                }
+
+                if ($data['key'] != md5($data['uuid'] . KEY)) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['code' => '500', 'state' => false, 'msg' => '验证码失败']);
+                    exit();
+                }
+
+                if (!empty($data['key']) and !empty($data['uuid'])) {
+                    $ret = $this->model->appLogin($data['uuid']);
+                    header('Content-Type: application/json');
+                    echo json_encode($ret);
+                } else {
+                    header('Content-Type: application/json');
+                    echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
+                }
+            } else if ($data['type'] == 'mobile') {
+                //mobile login
+                if (!isset($data['key']) or !isset($data['mobile'])) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
+                    exit();
+                }
+
+                if ($data['key'] != md5($data['mobile'] . KEY)) {
+
+                    header('Content-Type: application/json');
+                    echo json_encode(['code' => '500', 'state' => false, 'msg' => '验证码失败']);
+                    exit();
+                }
+
+                if (!empty($data['key']) and !empty($data['mobile'])) {
+                    $ret = $this->model->appMobileLogin($data['mobile']);
+                    header('Content-Type: application/json');
+                    echo json_encode($ret);
+                } else {
+                    header('Content-Type: application/json');
+                    echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
+                }
+            }else{
+                //error login
+                header('Content-Type: application/json');
+                echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
+            }
         }
 
-        if ($data['key'] != md5($data['uuid'] . KEY)) {
-            header('Content-Type: application/json');
-            echo json_encode(['code' => '500', 'state' => false, 'msg' => '验证码失败']);
-            exit();
-        }
 
-        if (!empty($data['key']) and !empty($data['uuid'])) {
-            $ret = $this->model->appLogin($data['uuid']);
-            header('Content-Type: application/json');
-            echo json_encode($ret);
-        } else {
-            header('Content-Type: application/json');
-            echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
-        }
     }
 
 
