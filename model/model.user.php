@@ -35,7 +35,9 @@ class UserModel extends AgentModel
             $ret = $this->mysqlQuery($sql, 'all');
 
             if ((int)$ret[0]['cu'] > 0) {
-                return ['code' => '200', 'state' => true, 'msg' => '验证成功'];
+                $mobileSQL = "SELECT u_mobile AS cu FROM idatadb.idt_user WHERE 1=1 AND u_wxunid='{$uuid}' AND u_state='0' ";
+                $mobile = $this->mysqlEdit($mobileSQL,'all');
+                return ['code' => '200', 'state' => true, 'msg' => '验证成功','mobile'=>$mobile[0]];
             } else {
                 return ['code' => '404', 'state' => false, 'msg' => '微信号不存在'];
             }
@@ -373,7 +375,9 @@ class UserModel extends AgentModel
             if (is_array($ppList)) {
                 if (count($ppList) > 0) {
                     $checkStatus = false;
-                    pr($ppList);
+
+//                    pr($ppList);
+
                     foreach ($ppList as $pp) {
 
                         if ($pp['ppid'] == $ppId) {
@@ -383,11 +387,15 @@ class UserModel extends AgentModel
                     }
 
                     return $checkStatus;
+
                 } else {
+
                     return false;
                 }
             } else {
+
                 return false;
+
             }
 
         } else {

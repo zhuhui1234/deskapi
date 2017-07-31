@@ -225,7 +225,8 @@ class UserController extends Controller
                 //不匹配
             }
         }
-        pr($ret);
+//        pr($ret);
+        var_dump($cp);
         return $ret;
     }
 
@@ -239,7 +240,7 @@ class UserController extends Controller
         $data = _POST();
         if (!isset($data['key']) or !isset($data['uuid'])) {
             header('Content-Type: application/json');
-            json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
+            echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
             exit();
         }
 
@@ -262,7 +263,28 @@ class UserController extends Controller
 
     public function appBindingAccount()
     {
+        $data = _POST();
 
+        if (!isset($data['key']) or !isset($data['uuid']) or !isset($data['u_mobile'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
+            exit();
+        }
+
+        if ($data['key'] != md5($data['uuid'] . $data['u_mobile'] . KEY)) {
+            header('Content-Type: application/json');
+            echo json_encode(['code' => '500', 'state' => false, 'msg' => '验证码失败']);
+            exit();
+        }
+
+        if (!empty($data['key']) and !empty($data['uuid']) and !empty($data['u_mobile'])) {
+            $ret = $this->model->appBindAccount($data['u_mobile'],$data['uuid']);
+            header('Content-Type: application/json');
+            echo json_encode($ret);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
+        }
     }
 
 }

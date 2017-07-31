@@ -227,6 +227,8 @@ class Request
             OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'checkMail')
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'ircLogin')
             OR (strtolower($_GET['m']) == 'logs' AND $_GET['a'] == 'pushLog')
+            OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'appLogin')
+            OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'appBindingAccount')
         ) {
             //不作任何操作
         } else {
