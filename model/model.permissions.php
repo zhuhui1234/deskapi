@@ -413,7 +413,7 @@ class PermissionsModel extends AgentModel
     public function getPermissionInfo($data)
     {
         $userInfo = Model::instance('user')->_getUserInfoByToken($data);
-        if (OPEN_ME AND $userInfo['companyID'] == 1) {
+        if ((OPEN_ME AND $userInfo['companyID'] == 1) and $data['pdt_id'] !== 38) {
             return $this->getPdtInfo($data['pdt_id']);
         } else {
             if (!empty($userInfo['uid']) AND !empty($userInfo['companyID']) AND !empty($data['pdt_id'])) {
@@ -437,7 +437,7 @@ class PermissionsModel extends AgentModel
     public function getPermissionInfoByUserID($data)
     {
         $userInfo = Model::instance('user')->getUserInfoByUserID($data['userID']);
-        if (OPEN_ME AND $userInfo['companyID'] == 1) {
+        if ((OPEN_ME AND $userInfo['companyID'] == 1) and $data['pdt_id'] !== 38) {
             return $this->getPdtInfo($data['pdt_id']);
         } else {
             if (!empty($userInfo['u_id']) AND !empty($userInfo['cpy_id']) AND !empty($data['pdt_id'])) {
@@ -462,7 +462,7 @@ class PermissionsModel extends AgentModel
     public function getPermissionInfoByURI($data)
     {
         $userInfo = Model::instance('user')->_getUserInfoByToken($data);
-        if (OPEN_ME AND $userInfo['companyID'] == 1) {
+        if ((OPEN_ME AND $userInfo['companyID'] == 1 ) and $data['pdt_id'] !== 38) {
             if (!empty($data['uri'])) {
                 $pdt = $this->getPdtInfoByURI($data['uri']);
                 return $this->getPdtInfo($pdt['pdt_id']);
@@ -674,7 +674,7 @@ class PermissionsModel extends AgentModel
 
         if (!empty($getNumberSQL)) {
 
-        }else{
+        } else {
 
         }
     }
