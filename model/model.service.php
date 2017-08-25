@@ -151,7 +151,7 @@ class ServiceModel extends AgentModel
         $countUnReadMsg = 0;
         if (is_array($ret) and count($ret) > 0) {
             foreach ($ret as $v) {
-                if ($v['state'] == 0) {
+                if ($v['msg_state'] == 0) {
                     $countUnReadMsg = $countUnReadMsg + 1;
                 }
             }
