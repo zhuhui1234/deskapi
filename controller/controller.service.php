@@ -57,11 +57,110 @@ class ServiceController extends Controller
             _ERROR('000001', '微信Openid不能为空');
         }
         //验证参数-微信Unionid
-        if (empty($data['wxUnionid'] )) {
+        if (empty($data['wxUnionid'])) {
             _ERROR('000001', '微信Unionid不能为空');
         }
 
         //绑定成功,,并返回响应结果
         $this->model->setWxService($data);
+    }
+
+    /*
+    ==============================
+           MSG SERVICE
+
+           - msg_type:
+             1: all, just public msg list
+             2: only user msg
+             3: product msg
+             4: product msg without user
+
+    ==============================
+    */
+
+    public function msgList()
+    {
+        $data = _POST();
+
+        if (!is_array($data) or empty($data)) {
+            _ERROR('000001', '参数错误');
+        }
+
+
+        if ((empty($data['userID']) and empty($data['pdtID'])) or empty($data['type'])) {
+            _ERROR('000001', '缺少参数');
+        }
+
+        $this->model->msgList($data);
+
+    }
+
+    public function countUnMsg()
+    {
+        $data = _POST();
+
+        if (!is_array($data) or empty($data)) {
+            _ERROR('000001', '参数错误');
+        }
+
+
+        if ((empty($data['userID']) and empty($data['pdtID'])) or empty($data['type'])) {
+            _ERROR('000001', '缺少参数');
+        }
+
+        $this->model->countUnMsg($data);
+    }
+
+    public function msgDetail()
+    {
+        $data = _POST();
+        if (empty($data['msgID'])) {
+            _ERROR('000001', '缺少参数');
+        }
+
+        if (empty($data['userID'])) {
+            _ERROR('000001', '缺少参数');
+        }
+
+        $this->model->readMsg($data['msgID'], $data['userID']);
+
+    }
+
+    /**
+     * remove msg for user
+     *
+     */
+    public function rmMsgForUser()
+    {
+        $data = _POST();
+
+
+        if (empty($data['msgID']) or empty($data['userID'])) {
+            _ERROR('000001', '不能为空');
+        }
+
+        $this->model->rmMsg($data['msgID'], $data['userID']);
+
+    }
+
+    /**
+     * create single msg
+     */
+    public function createSingleMsg()
+    {
+        $data = _POST();
+
+        if (
+            !empty($data['title']) and
+            !empty($data['content']) and
+            !empty($data['auth']) and
+            !empty($data['userID']) and
+            !empty($data['pdtID'])
+        ) {
+            $this->model->createSingleMsg($data['title'], $data['content'], $data['auth'], $data['userID'], $data['pdtID']);
+        } else {
+            _ERROR('000001', '缺少参数');
+        }
+
     }
 }
