@@ -236,10 +236,9 @@ class ServiceModel extends AgentModel
 
         if (count($msgType) > 0) {
   
-            if ($msgType[0]['msg_type'] == 0) {
+            if ($msgType[0]['msg_type'] == 0 or $msgType[0]['msg_type'] == 5) {
                 $ret = $this->mysqlQuery("SELECT * FROM idt_msgs 
                                                WHERE 1=1 AND msg_id='{$msgID}'", 'all');
-
 
                 if (count($ret) > 0) {
                     _SUCCESS('0000000', 'ok', $ret);
@@ -276,6 +275,8 @@ class ServiceModel extends AgentModel
     ######################################################################################
 
     /**
+     * get mst list
+     *
      * @param $data
      * @return array|string
      *
@@ -355,7 +356,7 @@ class ServiceModel extends AgentModel
     }
 
     /**
-     * user msgs without public msgs
+     * user msgs without public msg
      *
      * @param $userID
      * @return array|string
@@ -370,7 +371,7 @@ class ServiceModel extends AgentModel
     }
 
     /**
-     * for pdt msgs
+     * for pdt msg
      *
      * @param $uid
      * @param $pdtID
