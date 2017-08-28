@@ -404,7 +404,6 @@ class ServiceModel extends AgentModel
         return $this->mysqlQuery($sql, 'all');
     }
 
-
     private function __getMsgType($msgID)
     {
         $sql = "SELECT msg_type FROM idt_msgs WHERE msg_id='{$msgID}'";
