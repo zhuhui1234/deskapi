@@ -189,6 +189,24 @@ class ServiceModel extends AgentModel
         }
     }
 
+    public function createPdtMsg($title, $content, $auth,  $pdtID)
+    {
+        $ret = $this->mysqlInsert('idt_msgs', [
+            'msg_title' => $title,
+            'msg_content' => $content,
+            'msg_auth' => $auth,
+            'msg_type' => 0,
+            'msg_uid' => null,
+            'msg_pdt_id' => $pdtID
+        ]);
+
+        if ($ret) {
+            _SUCCESS('000000', '添加成功' . $ret);
+        } else {
+            _ERROR('000001', '添加失败', $ret);
+        }
+    }
+
     /**
      * remove user msg
      *
@@ -303,6 +321,13 @@ class ServiceModel extends AgentModel
 
                 return $this->__pdtMsgWithoutUserMsg($data['pdtID']);
                 break;
+
+            case '5':
+                if (empty($data['pdtID'])) {
+                    _ERROR('000001', '缺少参数');
+                }
+                return $this->__industryMsg($data);
+                break;
         }
     }
 
@@ -365,6 +390,15 @@ class ServiceModel extends AgentModel
         $sql = "SELECT msg_id,  msg_title, msg_cdate, msg_state,msg_udate 
                 FROM idt_msgs 
                 WHERE 1=1 AND msg_state>=0 AND msg_pdt_id='{$pdtID}' AND mst_type='0'";
+
+        return $this->mysqlQuery($sql, 'all');
+    }
+
+    private function __industryMsg($pdtID)
+    {
+        $sql = "SELECT msg_id,  msg_title, msg_cdate, msg_state,msg_udate 
+                FROM idt_msgs 
+                WHERE 1=1 AND msg_state>=0 AND msg_pdt_id='{$pdtID}' AND mst_type='5'";
 
         return $this->mysqlQuery($sql, 'all');
     }
