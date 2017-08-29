@@ -67,3 +67,34 @@ ALTER TABLE idt_msgs
 
 ALTER TABLE idt_msgs
   ADD msg_auth VARCHAR(50) NULL;
+
+DROP TABLE `idt_devs`;
+DROP TABLE `idt_points`;
+
+CREATE TABLE `idt_devs` (
+  `dev_id` int(11) NOT NULL,
+  `dev_name` varchar(255) NULL DEFAULT '主部门',
+  `dev_ename` varchar(255) NULL DEFAULT 'master',
+  `dev_state` int(3) NULL DEFAULT 0,
+  `cpy_id` int(11) NOT NULL,
+  `auther` varchar(255) NULL,
+  `cdate` datetime NULL,
+  `udate` timestamp NULL,
+  PRIMARY KEY (`dev_id`)
+);
+
+CREATE TABLE `idt_points` (
+  `point_id` int(11) NOT NULL,
+  `cpy_id` int(11) NULL,
+  `dev_id` int(11) NULL,
+  `u_id` varchar(255) NULL,
+  `explain` varchar(255) NULL,
+  `cdate` datetime NULL DEFAULT NOW(),
+  `state` int(11) NULL,
+  `type` int(5) NULL,
+  `point_value` int(255) NULL,
+  `pdt_id` int(11) NULL,
+  `update` timestamp NULL,
+  PRIMARY KEY (`point_id`)
+);
+
