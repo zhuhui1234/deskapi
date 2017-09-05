@@ -656,8 +656,10 @@ class UserModel extends AgentModel
     public function _getUserInfoByToken($data)
     {
         $sql = "SELECT dbb.cpy_cname,dbb.cpy_id,dba.u_mail,dba.u_head,
-                dba.u_mobile,dba.u_position,dba.u_name,dba.u_id 
-                FROM idt_user dba LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
+                dba.u_mobile,dba.u_position,dba.u_name,dba.u_id ,devdb.dev_name, dba.dev_id
+                FROM idt_user dba 
+                LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
+                LEFT JOIN idt_devs devdb on (dba.dev_id = devdb.dev_id)
                 WHERE dba.u_token='{$data['token']}'";
 
         $ret = $this->mysqlQuery($sql, "all");
@@ -671,7 +673,9 @@ class UserModel extends AgentModel
             'mobile' => $ret[0]['u_mobile'],
             'position' => $ret[0]['u_position'],
             'uname' => $ret[0]['u_name'],
-            'uid' => $ret[0]['u_id']
+            'uid' => $ret[0]['u_id'],
+            'devID' => $ret[0]['dev_id'],
+            'devName' => $ret[0]['dev_name']
         ];
     }
 
