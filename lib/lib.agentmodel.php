@@ -73,15 +73,16 @@ class AgentModel extends Model
     protected function mysqlInsert($tab, $arr = array(), $type = 'single', $lastid = false, $db = '', $showsql = false)
     {
 
-//        if (DEBUG) {
-//            $showsql = true;
-//        }
+        if (DEBUG) {
+            $showsql = true;
+        }
         $res = $this->mydb($db, $this->opr)->insert($tab, $arr, $type, $showsql);
 
         //只有执行成功才执行返回最后id的操作
         if ($res) {
             $lastid && $res = $this->mydb($db, $this->opr)->last_insert_id();
         }
+
         $this->data_unset();
 
         return $res;

@@ -66,4 +66,22 @@ class PointsController extends Controller
         $this->model->cancel($data);
     }
 
+    /**
+     * point list
+     */
+    public function pointList()
+    {
+        $data = _POST();
+        $this->model->poinList($data);
+    }
+
+    /**
+     * get point
+     */
+    public function getPoint()
+    {
+        $data = _POST();
+        $this->model->computePoint($data);
+    }
+
 }

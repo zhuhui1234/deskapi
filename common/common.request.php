@@ -230,6 +230,7 @@ class Request
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'appLogin')
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'appBindingAccount')
             OR (strtolower($_GET['m']) == 'service' AND $_GET['a'] == 'createSingleMsg')
+            OR (strtolower($_GET['m']) == 'points')
             OR (strtolower($_GET['m']) == 'service')
         ) {
             //不作任何操作

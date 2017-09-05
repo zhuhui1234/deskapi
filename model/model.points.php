@@ -41,9 +41,27 @@ class PointsModel extends AgentModel
                 _ERROR('000002', 'no department id');
             }
 
+            if (empty($data['pdt_id'])) {
+                _ERROR('000002', 'NO Product id');
+            }
+
             $data['balance'] = $this->__computingBalancePoint($data['dev_id']);
-            $ret = $this->__insertRow($data);
-            _SUCCESS('000000', 'ok', $ret);
+
+            if ($data['balance'] - $data['point_value'] >= 0) {
+                $ret = $this->__insertRow($data);
+
+                if ($ret) {
+                    $lastSql = "SELECT point_id FROM idt_points
+                                WHERE dev_id='{$data['dev_id']}' AND point_explain='{$data['point_explain']}'
+                                ORDER BY point_id DESC ";
+                    $last = $this->mysqlQuery($lastSql, 'all');
+                    $last = $last[0]['point_id'];
+                }
+
+                _SUCCESS('000000', 'ok', ['point_id' => $last]);
+            } else {
+                _ERROR('0000002', '余额积分不足');
+            }
 
         } else {
 
@@ -51,8 +69,37 @@ class PointsModel extends AgentModel
         }
     }
 
+    /**
+     * @param $data
+     */
     public function pointList($data)
-    {}
+    {
+        if (is_array($data)) {
+
+            if (empty($data['dev_id'])) {
+                _ERROR('000002', '缺少参数');
+            }
+
+            $sql = "SELECT
+                        point_id,
+                        idt_company.cpy_cname,
+                        idt_user.u_name,
+                        point_explain,
+                        state,
+                        type,
+                        balance,
+                        idt_product.pdt_name,
+                        idt_points.cdate 
+                    FROM
+                        idt_points
+                        LEFT JOIN idt_company ON idt_company.cpy_id = idt_points.cpy_id
+                        LEFT JOIN idt_user ON idt_user.u_id = idt_points.u_id
+                        LEFT JOIN idt_product ON idt_product.pdt_id = idt_points.pdt_id 
+                    WHERE
+	                    idt_points.dev_id = {$data['dev_id']} ";
+            $ret = $this->mysqlQuery($sql, 'all');
+        }
+    }
 
     /**
      * cancel customization report
@@ -62,6 +109,10 @@ class PointsModel extends AgentModel
     public function cancelCustomizationReport($data)
     {
         if (is_array($data)) {
+            if ($data['key'] !== KEY) {
+                _ERROR('000005', 'ERROR KEY');
+            }
+
             $data['type'] = 2;
             if (empty($data['dev_id'])) {
                 _ERROR('000002', 'no department id');
@@ -113,7 +164,7 @@ class PointsModel extends AgentModel
                     $data['sub_point_id'] = $data['pointID'];
                     $checkPoint = $this->__checkPoint($data['pointID']);
                     if (!$checkPoint) {
-                        _ERROR('0000002','该ID已撤回过了');
+                        _ERROR('0000002', '该ID已撤回过了');
                     }
                     unset($data['pointID']);
                     if ($ret[0]['type'] <= 5 and $ret[0]['type'] != 2 and $ret[0]['type'] != 7 and $ret[0]['type'] > 0) {
@@ -167,6 +218,21 @@ class PointsModel extends AgentModel
         }
     }
 
+    /**
+     * compute point for dev id
+     * @param $data
+     * @return array
+     */
+
+    public function computePoint($data)
+    {
+        if (empty($data['dev_id'])) {
+            _ERROR('000002', '参数错误');
+        }
+        _SUCCESS('000000', 'ok', ['getValue' => $this->__computingBalancePoint($data['dev_id'])]);
+    }
+
+
     ######################################################################################
     ##################################                     ###############################
     #################################   PRIVATE METHODS   ################################
@@ -181,7 +247,7 @@ class PointsModel extends AgentModel
      */
     private function __insertRow(array $data)
     {
-
+        unset($data['token']);
         if (empty($data['cpy_id'])) {
             _ERROR('000002', 'no company id');
         }
@@ -203,7 +269,6 @@ class PointsModel extends AgentModel
         }
 
         $ret = $this->mysqlInsert('idt_points', $data);
-
         if ($ret) {
             return $ret;
         } else {
