@@ -327,7 +327,7 @@ class ServiceModel extends AgentModel
                 if (empty($data['pdtID'])) {
                     _ERROR('000001', '缺少参数');
                 }
-                return $this->__industryMsg($data);
+                return $this->__industryMsg($data['pdtID']);
                 break;
         }
     }
