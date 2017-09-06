@@ -114,25 +114,40 @@ class PointsModel extends AgentModel
             }
 
             $data['type'] = 2;
-            if (empty($data['dev_id'])) {
-                _ERROR('000002', 'no department id');
-            }
-            $data['balance'] = $this->__computingBalancePoint($data['dev_id']);
 
-            if (empty($data['pointID'])) {
-                _ERROR('000002', '缺少参数');
+            if (empty($data['dev_id'])) {
+
+
+                if (empty($data['pointID'])) {
+                    _ERROR('000002', '缺少参数');
+                }
+
+                $pointInfo = $this->__getPointInfoForPointID($data['pointID']);
+
+
+
+                if ($pointInfo) {
+                    $data['dev_id'] = $pointInfo['dev_id'];
+                    $data['cpy_id'] = $pointInfo['cpy_id'];
+                    $data['u_id'] = $pointInfo['u_id'];
+                    $data['point_value'] = $pointInfo['point_value'];
+                    $data['sub_point_id'] = $data['pointID'];
+                } else {
+                    _ERROR('000002', 'not found dev id');
+                }
             }
+
+            if (!$this->__checkPoint($data['pointID'])) {
+                _ERROR('000004', '已经被处理过');
+            }
+
+            $data['balance'] = $this->__computingBalancePoint($data['dev_id']);
 
             //get point value
 
-            $pointValue = $this->__getPointValue($data['pointID']);
 
-            if ($pointValue) {
-                $data['point_value'] = $pointValue;
-            } else {
-                _ERROR('0000002', 'pointID出错');
-            }
-
+            unset($data['pointID']);
+            unset($data['key']);
             $ret = $this->__insertRow($data);
 
             _SUCCESS('000000', 'ok', $ret);
@@ -311,6 +326,24 @@ class PointsModel extends AgentModel
     }
 
     /**
+     * get dev id
+     *
+     * @param $pointID
+     * @return bool
+     */
+    private function __getPointInfoForPointID($pointID)
+    {
+        $sql = "SELECT dev_id,u_id, cpy_id, point_value FROM idt_points WHERE  point_id='{$pointID}'";
+        $ret = $this->mysqlQuery($sql, 'all');
+        if ($ret) {
+            return $ret[0];
+        } else {
+            return false;
+        }
+
+    }
+
+    /**
      * check point
      * @param $subPointID
      * @return bool
@@ -320,7 +353,7 @@ class PointsModel extends AgentModel
         $sql = "SELECT count(sub_point_id) as has_spi FROM idt_points WHERE sub_point_id='{$subPointID}'";
         $ret = $this->mysqlQuery($sql, 'all');
         if ($ret) {
-            return $ret[0]['sub_point_id'] == 0;
+            return (int)$ret[0]['has_spi'] == 0;
         } else {
             return false;
         }
