@@ -11,9 +11,9 @@
 class IndustryModel extends AgentModel
 {
 
-    public function __consturct()
+    public function __construct($classname)
     {
-
+        parent::__construct($classname);
     }
 
     //查询大行业LIST
