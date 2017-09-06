@@ -275,7 +275,7 @@ class ServiceModel extends AgentModel
     ######################################################################################
 
     /**
-     * get mst list
+     * get msg list
      *
      * @param $data
      * @return array|string
@@ -390,7 +390,7 @@ class ServiceModel extends AgentModel
     {
         $sql = "SELECT msg_id,  msg_title, msg_cdate, msg_state,msg_udate 
                 FROM idt_msgs 
-                WHERE 1=1 AND msg_state>=0 AND msg_pdt_id='{$pdtID}' AND mst_type='0'";
+                WHERE 1=1 AND msg_state>=0 AND msg_pdt_id='{$pdtID}' AND msg_type='0'";
 
         return $this->mysqlQuery($sql, 'all');
     }
@@ -399,7 +399,7 @@ class ServiceModel extends AgentModel
     {
         $sql = "SELECT msg_id,  msg_title, msg_cdate, msg_state,msg_udate 
                 FROM idt_msgs 
-                WHERE 1=1 AND msg_state>=0 AND msg_pdt_id='{$pdtID}' AND mst_type='5'";
+                WHERE 1=1 AND msg_state>=0 AND msg_pdt_id='{$pdtID}' AND msg_type='5'";
 
         return $this->mysqlQuery($sql, 'all');
     }
