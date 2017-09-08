@@ -70,6 +70,8 @@ class PointsModel extends AgentModel
     }
 
     /**
+     * point list
+     *
      * @param $data
      */
     public function pointList($data)
@@ -86,6 +88,7 @@ class PointsModel extends AgentModel
                         idt_user.u_name,
                         point_explain,
                         state,
+                        point_value,
                         type,
                         balance,
                         idt_product.pdt_name,
@@ -96,8 +99,17 @@ class PointsModel extends AgentModel
                         LEFT JOIN idt_user ON idt_user.u_id = idt_points.u_id
                         LEFT JOIN idt_product ON idt_product.pdt_id = idt_points.pdt_id 
                     WHERE
-	                    idt_points.dev_id = {$data['dev_id']} ";
+	                    idt_points.dev_id = {$data['dev_id']} 
+	                    ORDER BY idt_points.cdate DESC ";
             $ret = $this->mysqlQuery($sql, 'all');
+            if ($ret) {
+                if (empty($ret)) {
+                    $ret = [];
+                }
+                _SUCCESS('000000', 'ok', $ret);
+            } else {
+                _ERROR('000002', 'error');
+            }
         }
     }
 
@@ -123,7 +135,6 @@ class PointsModel extends AgentModel
                 }
 
                 $pointInfo = $this->__getPointInfoForPointID($data['pointID']);
-
 
 
                 if ($pointInfo) {
@@ -238,13 +249,14 @@ class PointsModel extends AgentModel
      * @param $data
      * @return array
      */
-
     public function computePoint($data)
     {
         if (empty($data['dev_id'])) {
             _ERROR('000002', '参数错误');
         }
-        _SUCCESS('000000', 'ok', ['getValue' => $this->__computingBalancePoint($data['dev_id'])]);
+        _SUCCESS('000000', 'ok', [
+            'getValue' => $this->__computingBalancePoint($data['dev_id'])
+        ]);
     }
 
 
@@ -358,6 +370,5 @@ class PointsModel extends AgentModel
             return false;
         }
     }
-
 
 }

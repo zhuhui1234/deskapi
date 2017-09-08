@@ -36,8 +36,8 @@ class UserModel extends AgentModel
 
             if ((int)$ret[0]['cu'] > 0) {
                 $mobileSQL = "SELECT u_mobile AS cu FROM idatadb.idt_user WHERE 1=1 AND u_wxunid='{$uuid}' AND u_state='0' ";
-                $mobile = $this->mysqlQuery($mobileSQL,'all');
-                return ['code' => '200', 'state' => true, 'msg' => '验证成功','mobile'=>$mobile[0]];
+                $mobile = $this->mysqlQuery($mobileSQL, 'all');
+                return ['code' => '200', 'state' => true, 'msg' => '验证成功', 'mobile' => $mobile[0]];
             } else {
                 return ['code' => '404', 'state' => false, 'msg' => '微信号不存在'];
             }
@@ -64,8 +64,8 @@ class UserModel extends AgentModel
 
             if ((int)$ret[0]['cu'] > 0) {
                 $wxSQL = "SELECT u_wxunid AS cu FROM idatadb.idt_user WHERE 1=1 AND u_mobile='{$mobile}' AND u_state='0' ";
-                $u_wxunid = $this->mysqlQuery($wxSQL,'all');
-                return ['code' => '200', 'state' => true, 'msg' => '验证成功','uuid'=>$u_wxunid[0]];
+                $u_wxunid = $this->mysqlQuery($wxSQL, 'all');
+                return ['code' => '200', 'state' => true, 'msg' => '验证成功', 'uuid' => $u_wxunid[0]];
             } else {
                 return ['code' => '404', 'state' => false, 'msg' => '手机号不存在'];
             }
@@ -93,7 +93,7 @@ class UserModel extends AgentModel
         $hasMobileSQL = "SELECT u_id FROM idatadb.idt_user WHERE u_wxunid=NULL AND u_mobile='{$u_mobile}'";
 
         $ret = $this->mysqlQuery($hasMWSQL, 'all');
-        write_to_log('has mwsql :'.json_encode($ret),'_app');
+        write_to_log('has mwsql :' . json_encode($ret), '_app');
         if ((int)$ret[0]['cc'] == 0) {
             //当前时间
             $upTimes = date("Y-m-d H:i:s");
@@ -118,19 +118,19 @@ class UserModel extends AgentModel
         } else {
             $mRet = $this->mysqlQuery($hasMobileSQL, 'all');
 
-            write_to_log('has mobile sql'.json_encode($mRet),'_app');
+            write_to_log('has mobile sql' . json_encode($mRet), '_app');
 
             if (count($mRet) > 0) {
 
                 if (!empty($mRet[0]['u_id'])) {
                     $updateWx = $this->mysqlEdit('idt_user', ['u_wxunid' => $uuid], "u_id='{$mRet[0]['u_id']}'");
-                    if($updateWx){
-                        return ['code'=>'200','state'=>true, 'msg'=> '绑定成功'];
-                    } else{
-                        return ['code'=>'500','state'=>false, 'msg'=> '绑定失败'];
+                    if ($updateWx) {
+                        return ['code' => '200', 'state' => true, 'msg' => '绑定成功'];
+                    } else {
+                        return ['code' => '500', 'state' => false, 'msg' => '绑定失败'];
                     }
-                }else{
-                    return ['code'=>'500','state'=>false, 'msg'=> '绑定失败,查询不到用户ID'];
+                } else {
+                    return ['code' => '500', 'state' => false, 'msg' => '绑定失败,查询不到用户ID'];
                 }
 
             } else {
@@ -178,7 +178,7 @@ class UserModel extends AgentModel
                 }
             }
 
-            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,
                     dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
                     dba.u_state u_state 
@@ -189,7 +189,7 @@ class UserModel extends AgentModel
                     AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5";
 
         } else if ($data['LoginType'] === 'weixin') {
-            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,
                     dba.u_permissions permissions,dba.u_token token,
                     dba.u_state u_state 
@@ -268,6 +268,7 @@ class UserModel extends AgentModel
                         'companyName' => $ret[0]['cpy_cname'],
                         'permissions' => $ret[0]['permissions'], //用户身份 0游客 1企业用户 2企业管理员
                         'productKey' => $productKey, //老产品id
+                        'dev_id' => $ret[0]['dev_id'],
                         'token' => $upToken,
                         'uname' => $ret[0]['uname'],
                         'userID' => $ret[0]['userid'],
@@ -663,6 +664,28 @@ class UserModel extends AgentModel
                 WHERE dba.u_token='{$data['token']}'";
 
         $ret = $this->mysqlQuery($sql, "all");
+
+        if (!empty($data['productID'])) {
+
+            $getExpDateSQL = "SELECT end_date 
+                              FROM idt_permissions_number 
+                              WHERE cpy_id='{$ret[0]['cpy_id']}' AND pdt_id='{$data['productID']}'";
+            $getExpDate = $this->mysqlQuery($getExpDateSQL, 'all');
+
+            if ($getExpDate) {
+
+                $getExpDate = $getExpDate[0]['end_date'];
+            } else {
+                if ($ret[0]['cpy_id'] == 1) {
+                    $getExpDate = '无限';
+                }else{
+                    $getExpDate = '已';
+                }
+            }
+        } else {
+            $getExpDate = '已';
+        }
+
 //        write_to_log(json_encode($ret),'_test');
         //返回用户信息
         return [
@@ -675,7 +698,9 @@ class UserModel extends AgentModel
             'uname' => $ret[0]['u_name'],
             'uid' => $ret[0]['u_id'],
             'devID' => $ret[0]['dev_id'],
-            'devName' => $ret[0]['dev_name']
+            'devName' => $ret[0]['dev_name'],
+            'expDate' => $getExpDate
+
         ];
     }
 

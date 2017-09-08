@@ -72,7 +72,7 @@ class PointsController extends Controller
     public function pointList()
     {
         $data = _POST();
-        $this->model->poinList($data);
+        $this->model->pointList($data);
     }
 
     /**
