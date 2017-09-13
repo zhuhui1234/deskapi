@@ -108,7 +108,7 @@ class PointsModel extends AgentModel
                 }
                 _SUCCESS('000000', 'ok', $ret);
             } else {
-                _ERROR('000002', 'error');
+                _ERROR('000002', 'error', []);
             }
         }
     }
