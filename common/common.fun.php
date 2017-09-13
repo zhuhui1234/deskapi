@@ -992,7 +992,7 @@ function _ERROR($resCode = '999999', $resMsg = '处理失败', $data = '')
         'resTime' => time() . '',
         'resCode' => $resCode,
         'resMsg' => $resMsg,
-        'data' => empty($data) ? null : $data
+        'data' => empty($data) ? [] : $data
     );
     if (!DEBUG) {
         @ob_clean();
