@@ -462,7 +462,7 @@ class PermissionsModel extends AgentModel
     public function getPermissionInfoByURI($data)
     {
         $userInfo = Model::instance('user')->_getUserInfoByToken($data);
-        if ((OPEN_ME AND $userInfo['companyID'] == 1 ) and $data['pdt_id'] !== 38) {
+        if ((OPEN_ME AND $userInfo['companyID'] == 1) and $data['pdt_id'] !== 38) {
             if (!empty($data['uri'])) {
                 $pdt = $this->getPdtInfoByURI($data['uri']);
                 return $this->getPdtInfo($pdt['pdt_id']);
@@ -664,27 +664,86 @@ class PermissionsModel extends AgentModel
         }
     }
 
-    public function verifyPermissionsForIR($userID, $cpyID, $pdtID)
+    public function tranIRDPdtName($ird_p_name)
     {
-        $countNumberSQL = "SELECT count(prs_id) as countNum FROM idatadb.idt_permissions WHERE 1=1 AND cpy_id='{$cpyID}' AND pdt_id='{$pdtID}'";
-        $countNumer = $this->mysqlQuery($countNumberSQL, 'all');
+        $sql = "SELECT idt_pdt_id FROM idt_irdp_con_irvp WHERE ird_pdt_name='{$ird_p_name}'";
+        $ret = $this->mysqlQuery($sql, 'all');
+        write_to_log('tran ird pdt:' . $sql, '_from_ird');
+        write_to_log('tran ird return ' . json_encode($ret), '_from_ird');
 
-        $getNumberSQL = "SELECT pnum_number FROM idatadb.idt_permissions_number WHERE 1=1 AND cpy_id='{$cpyID}' AND  pdt_id='{$pdtID}'";
-        $getNumber = $this->mysqlQuery($getNumberSQL, 'all');
+        if (!empty($ret[0]['idt_pdt_id'])) {
 
-        if (!empty($getNumberSQL)) {
+            write_to_log('get pdt id: ' . $ret[0]['idt_pdt_id'], '_from_ird');
+            return $ret[0]['idt_pdt_id'];
 
         } else {
 
+            write_to_log('no pdt id', '_from_ird');
+            return false;
+
         }
+
     }
 
+    /**
+     * add permission
+     * @param $pp_list
+     * @param $user_obj
+     * @param $ird_user_id
+     * @return bool
+     */
+    public function addPermission($pp_list, $user_obj, $ird_user_id)
+    {
+        if (!empty($pp_list)) {
+            foreach ($pp_list as $pp) {
+                $pdt = $this->tranIRDPdtName($pp['ppname']);
+                if ($pdt) {
+                    $checkPermission = $this->checkPermission($user_obj['cpy_id'], $pdt);
+                    write_to_log('check permission'. json_encode($checkPermission), '_from_ird');
+                    if ($checkPermission) {
+                        $this->__addPdtPermission($pdt, $user_obj['userid'], $user_obj['cpy_id'], $ird_user_id);
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+
+    }
+
+    public function checkPermission($cpy_id, $pdtID)
+    {
+        $sql = "SELECT COUNT(pdt_id) as co_pdt FROM idt_permissions_number where cpy_id='{$cpy_id}' and pdt_id='{$pdtID}'";
+        $ret = $this->mysqlQuery($sql, 'all');
+        return $ret[0]['co_pdt'] > 0;
+    }
 
     ######################################################################################
     ##################################                     ###############################
     #################################   PRIVATE METHODS   ################################
     ################################                     #################################
     ######################################################################################
+
+    private function __addPdtPermission($pdtId, $userID, $cpy_id, $ird_user_id)
+    {
+        $upTimes = date("Y-m-d H:i:s");
+        $insert_data = [
+            'u_id' => $userID,
+            'cpy_id' => $cpy_id,
+            'pdt_id' => $pdtId,
+            'prs_author_uid' => '8cbd411a-28ae-11e7-8cab-0017fa012439',
+            'prs_identity' => 9,
+            'prs_cdate' => $upTimes,
+            'prs_edate' => $upTimes,
+            'prs_state' => 1,
+            'prs_comment' => 'from ird ' . $ird_user_id,
+            'meu_id' => 0
+        ];
+        write_to_log('add Pdt permission: ' . json_encode($insert_data), '_from_ird');
+        $ret = $this->mysqlInsert('idt_permissions', $insert_data);
+        write_to_log('ret: ' . json_encode($ret), '_from_ird');
+        return $ret !== '1';
+    }
 
     /**
      * get apply information for user

@@ -160,20 +160,24 @@ class UserModel extends AgentModel
         $upTimes = date("Y-m-d H:i:s");
         //创建TOKEN
         $upToken = md5(rand(1000000001, 9999999999));
+        $permission_model = Model::instance('Permissions');
 
         //登录方式
         if ($data['LoginType'] === 'mobile') {
             //游客注册
-//            $sql_chkMUser = "SELECT COUNT(1) mobile_num FROM idt_user WHERE u_mobile='{$data['loginMobile']}'";
-//            $ret_chkMUser = $this->mysqlQuery($sql_chkMUser, "all");
+
             $ret_checkMUser = $this->checkMobile($data['loginMobile']);
 
             if ($ret_checkMUser) {
                 //创建游客
+                if (!empty($data['ird_guid'])) {
+                    //ird create user
+                    $ret_addUser = $this->__addUserFromIrd($data, $upToken, $upTimes, 'mobile');
+                } else {
+                    $ret_addUser = $this->__addGuest($data, $upToken, $upTimes, 'mobile');
+                }
 
-                $ret_addMUser = $this->__addGuest($data, $upToken, $upTimes, 'mobile');
-
-                if ($ret_addMUser != '1') {
+                if ($ret_addUser != '1') {
                     _ERROR('000002', '登录失败,创建游客失败');
                 }
             }
@@ -257,9 +261,12 @@ class UserModel extends AgentModel
                     //产品权限
                     if ($ret[0]['productkey'] == 0 OR $ret[0]['productkey'] == null OR $ret[0]['productkey'] == "") {
                         $productKey = 0;
+                        $ird_ua_id = null;
                     } else {
                         $productKey = 1;
+                        $ird_ua_id = $ret[0]['productkey'];
                     }
+
                     //返回用户信息
                     $rs = [
                         'headImg' => $ret[0]['headimg'], //avatar
@@ -267,13 +274,48 @@ class UserModel extends AgentModel
                         'companyID' => $ret[0]['cpy_id'],
                         'companyName' => $ret[0]['cpy_cname'],
                         'permissions' => $ret[0]['permissions'], //用户身份 0游客 1企业用户 2企业管理员
-                        'productKey' => $productKey, //老产品id
+                        'productKey' => $productKey, //ird_user_id
                         'dev_id' => $ret[0]['dev_id'],
                         'token' => $upToken,
                         'uname' => $ret[0]['uname'],
                         'userID' => $ret[0]['userid'],
+                        'ird_user_id' => $ird_ua_id,
                         'validity' => $ret[0]['validity'] //账号有效期
                     ];
+
+                    //judge binding
+                    if ($ret[0]['u_permissions'] == 0) {
+                        //guest if the data has ird guid
+                        if (!empty($data['ird_user'])) {
+                            if ((int)$data['ird_user']['iUserID'] > 0) {
+                                //nobody binding this id
+                                $cpy_id = $this->__getCpyFromIRD($data['ird_user']['CompanyID']);
+                                if ($cpy_id) {
+                                    $binding_ird = $this->__bindingIRD($ret[0]['userid'], $data['ird_user']);
+                                    if ($binding_ird) {
+                                        $change_member = $this->__changeToMember($ret[0]['userid'], $cpy_id['cpy_id']);
+                                        if ($change_member) {
+                                            $rs['permissions'] = 1;
+                                            $rs['productKey'] = 1;
+                                            $rs['ird_user_id'] = $data['ird_user']['iUserID'];
+                                            $rs['companyName'] = $cpy_id['cpy_cname'];
+                                            $rs['dev_id'] = $cpy_id['cpy_id'];
+                                            $rs['ird'] = 'add permission';
+                                            $permission_model->addPermission($data['ird_user']['pplist'], $ret[0], $data['ird_user']['iUserID']);
+                                        }
+                                    }
+
+                                }
+
+                            } else {
+                                write_to_log(json_encode($data['ird_user']), '_from_ird');
+                                write_to_log('iuser id 非法', '_from_ird');
+                            }
+
+                        }
+                    }
+
+
                     _SUCCESS('000000', '登录成功', $rs);
 
                 } else {
@@ -445,6 +487,8 @@ class UserModel extends AgentModel
         //创建token
         $upToken = md5(rand(1000000001, 9999999999));
 
+        $permission_model = Model::instance('Permissions');
+
         //验证手机验证码
         $sql_resCode = "SELECT COUNT(1) chk_codenum FROM idt_mobilekey WHERE mik_mobile='{$data['loginMobile']}' 
                         AND mik_type=0 AND mik_state=0 AND mik_key='{$data['loginKey']}' 
@@ -476,6 +520,8 @@ class UserModel extends AgentModel
 
             $id_editwx = " u_mobile='" . $data['loginMobile'] . "'";//用户帐号
             $ret_chk = $this->mysqlEdit('idt_user', $where_editwx, $id_editwx);
+
+
         } else {
             //创建用户
 //            $where_addWMuser = [
@@ -491,7 +537,15 @@ class UserModel extends AgentModel
 //            ];
 //
 //            $ret_chk = $this->mysqlInsert('idt_user', $where_addWMuser);
-            $ret_chk = $this->__addGuest($data, $upToken, $upTimes, 'wechat');
+
+            if (!empty($data['ird_guid'])) {
+                //ird create user
+                $ret_chk = $this->__addUserFromIrd($data, $upToken, $upTimes, 'wechat');
+            } else {
+                $ret_chk = $this->__addGuest($data, $upToken, $upTimes, 'wechat');
+            }
+
+//            $ret_chk = $this->__addGuest($data, $upToken, $upTimes, 'wechat');
         }
 
         //获取用户
@@ -542,6 +596,42 @@ class UserModel extends AgentModel
             $rs['uname'] = $ret[0]['uname']; //用户姓名
             $rs['userID'] = $ret[0]['userid']; //用户GUID
             $rs['validity'] = $ret[0]['validity']; //账号有效期
+
+
+            //judge binding
+            if ($ret[0]['u_permissions'] == 0) {
+                //guest if the data has ird guid
+                if (!empty($data['ird_user'])) {
+                    if ((int)$data['ird_user']['iUserID'] > 0) {
+                        //nobody binding this id
+                        $cpy_id = $this->__getCpyFromIRD($data['ird_user']['CompanyID']);
+                        if ($cpy_id) {
+                            $binding_ird = $this->__bindingIRD($ret[0]['userid'], $data['ird_user']);
+                            if ($binding_ird) {
+                                $change_member = $this->__changeToMember($ret[0]['userid'], $cpy_id['cpy_id']);
+                                if ($change_member) {
+                                    write_to_log(' chenge to member is success', '_from_ird');
+                                    $rs['permissions'] = 1;
+                                    $rs['productKey'] = 1;
+                                    $rs['ird_user_id'] = $data['ird_user']['iUserID'];
+                                    $rs['companyName'] = $cpy_id['cpy_cname'];
+                                    $rs['dev_id'] = $cpy_id['cpy_id'];
+                                    $rs['ird'] = 'add permission';
+                                    $permission_model->addPermission($data['ird_user']['pplist'], $ret[0], $data['ird_user']['iUserID']);
+                                }
+                            }
+
+                        }
+
+                    } else {
+                        write_to_log(json_encode($data['ird_user']), '_from_ird');
+                        write_to_log('iuser id 非法', '_from_ird');
+                    }
+
+                }
+            }
+
+
             _SUCCESS('000000', '登录成功', $rs);
         } else {
             _ERROR('000002', '登录失败');
@@ -678,7 +768,7 @@ class UserModel extends AgentModel
             } else {
                 if ($ret[0]['cpy_id'] == 1) {
                     $getExpDate = '无限';
-                }else{
+                } else {
                     $getExpDate = '已';
                 }
             }
@@ -1275,6 +1365,84 @@ class UserModel extends AgentModel
     }
 
     /**
+     * ird 添加用户
+     * @param $data
+     * @param $upToken
+     * @param $upTimes
+     * @param string $type
+     * @return array|int|string
+     */
+    private function __addUserFromIrd($data, $upToken, $upTimes, $type = 'mobile')
+    {
+        if (!empty($data['ird_user'])) {
+
+            if (!empty($data['ird_user']['iUserID'])) {
+
+                //判断是否绑定成功
+                $sql_keyNum = "SELECT COUNT(1) keyNum FROM idt_user WHERE u_product_key='{$data['ird_user']['iUserID']}'";
+                $ret_keyNum = $this->mysqlQuery($sql_keyNum, "row");
+
+                //绑定失败,该产品KEY已绑定其它账号
+                if ($ret_keyNum[0] > 0) {
+                    _ERROR('000002', '绑定失败,该用户已绑定其它账号');
+                }
+
+                if (empty($data['ird_user']['CompanyID'])) {
+                    $this->__addGuest($data, $upToken, $upTimes, $type);
+                } else {
+                    $find_cpy_sql = "SELECT ird_ca_id,cpy_id FROM idt_company WHERE idt_company.ird_ca_id = '{$data['ird_user']['CompanyID']}'";
+                    $cpy_id = $this->mysqlQuery($find_cpy_sql, 'all');
+                    if (!empty($cpy_id) and !empty($cpy_id[0]['cpy_id'])) {
+
+                        //find cpy id
+                        if ($type == 'mobile') {
+                            $add_user = [
+                                'u_id' => getGUID(),
+                                'cpy_id' => $cpy_id[0]['cpy_id'],
+                                'u_mobile' => $data['loginMobile'],
+                                'u_permissions' => 0,//用户身份(0游客 1公司用户)
+                                'u_token' => $upToken,
+                                'u_cdate' => $upTimes,
+                                'u_edate' => $upTimes,
+//                                'u_product_key' => $data['ird_user']['iUserID']
+                            ];
+                        } else {
+                            $add_user = [
+                                'u_id' => getGUID(),
+                                'u_mobile' => $data['loginMobile'],
+                                'cpy_id' => $cpy_id[0]['cpy_id'],
+                                'u_wxname' => $data['wxName'],
+                                'u_wxopid' => $data['wxOpenid'],
+                                'u_wxunid' => $data['wxUnionid'],
+                                'u_permissions' => 0, //用户身份(0游客 1公司用户)
+                                'u_token' => $upToken,
+                                'u_cdate' => $upTimes,
+                                'u_edate' => $upTimes,
+//                                'u_product_key' => $data['ird_user']['iUserID']
+                            ];
+                        }
+
+                        return $this->mysqlInsert('idt_user', $add_user);
+
+                    } else {
+
+                        //没有找到对应公司，当作游客处理
+                        $this->__addGuest($data, $upToken, $upTimes);
+                    }
+
+                }
+
+            } else {
+                //没有ird user id 当作游客处理
+                $this->__addGuest($data, $upToken, $upTimes);
+            }
+
+        }
+
+    }
+
+
+    /**
      * get user info by irUserID
      *
      * @param $irUserID
@@ -1393,5 +1561,93 @@ class UserModel extends AgentModel
             write_to_log("{$sender} is sent!", '_mail');
         }
     }
+
+    /**
+     * binding ird when ird to irv
+     *
+     * @param $u_id
+     * @param $ird_user
+     * @return bool
+     */
+    private function __bindingIRD($u_id, $ird_user)
+    {
+        //
+        if (!$this->__checkIRDBinding($ird_user['iUserID'])) {
+            write_to_log('[binding fails] u_id:' . $u_id . ' ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
+            return false;
+        } else {
+            write_to_log('[binding SUCCESS]  u_id ' . $u_id . ', ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
+            return $this->mysqlEdit('idt_user', ['u_product_key' => $ird_user['iUserID']], "u_id='{$u_id}'");
+        }
+
+
+    }
+
+    /**
+     * change to member
+     *
+     * @param $u_id
+     * @param $cpy_id
+     * @return array|bool|string
+     */
+    private function __changeToMember($u_id, $cpy_id)
+    {
+        //check is member
+        $sql = "SELECT COUNT(*) AS co FROM idt_user WHERE u_permissions=1 AND u_id='{$u_id}'";
+        $get_value = $this->mysqlQuery($sql, 'all');
+        write_to_log('chang to member sql : ' . $sql, '_from_ird');
+        write_to_log(json_encode('get result: ' . $get_value, '_from_id'));
+
+        if ($get_value[0]['co'] <= 0) {
+            $update_data = [
+                'u_permissions' => '1',
+                'cpy_id' => $cpy_id,
+                'dev_id' => $cpy_id];
+
+            write_to_log('CHANGE TO MEMBER check return: ' . json_encode($update_data), '_from_ird');
+            return $this->mysqlEdit('idt_user', $update_data, "u_id='{$u_id}'");
+        } else {
+            //已经正式用户
+            return false;
+        }
+
+
+    }
+
+    /**
+     * get cpy id from ird
+     *
+     * @param $ird_cpy_id
+     * @return bool
+     */
+    private function __getCpyFromIRD($ird_cpy_id)
+    {
+        $sql = "SELECT cpy_id, cpy_cname FROM idatadb.idt_company WHERE ird_ca_id='{$ird_cpy_id}'";
+        $cpy_id = $this->mysqlQuery($sql, 'all');
+        write_to_log('get cpy from ird sql: ' . $sql, '_from_ird');
+        if (!empty($cpy_id[0]['cpy_id'])) {
+            write_to_log('get cpy id: ' . json_encode($cpy_id[0]), '_from_ird');
+            return $cpy_id[0];
+        } else {
+            write_to_log('get cpy id: ' . 'false', '_from_ird');
+            return false;
+        }
+    }
+
+    /**
+     * check ird binding for ird_user_id
+     *
+     * @param $ca_id
+     * @return bool
+     */
+    private function __checkIRDBinding($ca_id)
+    {
+        $sql = "SELECT count(*) AS ca FROM idt_user WHERE u_product_key='{$ca_id}'";
+        write_to_log('check binding sql: ' . $sql, '_from_ird');
+        $ret = $this->mysqlQuery($sql, 'all');
+        write_to_log('check return: ' . json_encode($ret), '_from_ird');
+        return $ret[0]['ca'] <= 0;
+    }
+
 
 }
