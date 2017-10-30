@@ -573,24 +573,25 @@ class PermissionsModel extends AgentModel
             //is guest
             if ($this->__checkVerifyMail($data['mail'])) {
                 //no same mail then  send mail
-                $saveData['check_mail'] = 0;
+                $saveData['check_mail'] = 1;
                 $pi = $this->__enCode($data['userID'], $data['mail'], $data['pdt_id']);
                 $cd = $this->__en($pi);
-                $url = 'http://localhost/iData/?m=index&a=checkMail&pi=' . $pi . '&cd=' . $cd;
-                $this->__sendMail($data['mail'], "
-                    您好，</br></br>
-                    感谢您申请使用艾瑞数据产品，请点击以下链接，验证您的邮箱：{$data['mail']} 
-                    </br></br>
-                    
-                    <a href='{$url}' >点击链接验证</a> </br></br>
-                  
-                    如果你无法点击链接，可以复制改链接，访问：</br>
-                    {$url} </br>
-                    
-                    </br></br>
-                    艾瑞数据产品组
-                    
-                ", "邮箱验证邮件【系统邮件】");
+//                $url = 'http://irv.iresearch.com.cn/iResearchDataWeb/?m=index&a=checkMail&pi=' . $pi . '&cd=' . $cd;
+//                $this->__sendMail($data['mail'], "
+//                    您好，</br></br>
+//                    感谢您申请使用艾瑞数据产品，请点击以下链接，验证您的邮箱：{$data['mail']}
+//                    </br></br>
+//
+//                    <a href='{$url}' >点击链接验证</a> </br></br>
+//
+//                    如果你无法点击链接，可以复制改链接，访问：</br>
+//                    {$url} </br>
+//
+//                    </br></br>
+//                    艾瑞数据产品组
+//
+//                ", "邮箱验证邮件【系统邮件】");
+                return true;
             } else {
                 return false;
             }
@@ -599,7 +600,8 @@ class PermissionsModel extends AgentModel
             if (!$this->__isYourMail($data['userID'], $data['mail'])) {
                 write_to_log('not your mail', 'check_mail');
                 write_to_log('userID: ' . $data['userID'] . ' , ' . 'mail: ' . $data['mail']);
-                return false;
+                $saveData['check_mail'] = 1;
+		        return true;
             } else {
                 $saveData['check_mail'] = 1;
             }

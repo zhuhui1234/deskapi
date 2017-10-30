@@ -322,6 +322,37 @@ class UserModel extends AgentModel
                     _ERROR('000005', '登录失败,更新token失败');
                 }
             } else {
+                //for JAPANESE Values Inc.
+                $sqlb = "SELECT *
+                        FROM idt_user WHERE u_mobile='{$data['loginMobile']}' and u_auth_type='{$data['LoginKey']}'";
+
+                $sp_ret = $this->mysqlQuery($sqlb, 'all');
+
+                write_to_log('sp sql: '. $sqlb, '_sp');
+                write_to_log('sp_ret'. json_encode($sp_ret), '_sp');
+
+                if (!empty($sp_ret)) {
+                    $this->redisHere(VERSION . '_' . $ret[0]['userid'] . '_ird', true);
+                    $where_upToken['u_token'] = $upToken;//更新TOKEN
+                    $id_upToken = " u_id='" . $sp_ret[0]['u_id'] . "'";//用户GUID
+                    $ret_upToken = $this->mysqlEdit('idt_user', $where_upToken, $id_upToken);
+                    if ($ret_upToken == '1') {
+                        $rs = [
+                            'headImg' => $sp_ret[0]['headimg'], //avatar
+                            'mobile' => $sp_ret[0]['u_mobile'],
+                            'companyID' => $sp_ret[0]['cpy_id'],
+                            'permissions' => $sp_ret[0]['permissions'], //用户身份 0游客 1企业用户 2企业管理员
+                            'productKey' => 0, //ird_user_id
+                            'dev_id' => $sp_ret[0]['dev_id'],
+                            'token' => $upToken,
+                            'uname' => $sp_ret[0]['uname'],
+                            'userID' => $sp_ret[0]['u_id'],
+                            'ird_user_id' => null,
+                        ];
+                        _SUCCESS('000000', '登录成功', $rs);
+                    }
+                }
+
                 _ERROR('000002', '登录失败,账号不存在或验证码失效');
             }
         }
