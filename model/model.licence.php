@@ -83,7 +83,7 @@ class LicenceModel extends AgentModel
             _ERROR('002', '许可证Key不能为空');
         }
         $where_editUser['u_id'] = $data['userID']; //姓名
-        $where_editUser['lic_author_uid'] = $data['p_author']; //最后更新时间
+        $where_editUser['lic_author_uid'] = $data['uid']; //最后更新时间
         $where_editUser['lic_edate'] = $upTimes; //最后更新时间
         $where_editUser['lic_comment'] = $data['remark']; //备注
         $id_editUser = " licence_key='" . $data['licenceKey'] . "'";//用户GUID
@@ -103,7 +103,7 @@ class LicenceModel extends AgentModel
         if(empty($data['licenceKey'])){
             _ERROR('002', '许可证Key不能为空');
         }
-        $sql = "update idt_licence set u_id = null,lic_author_uid = '{$data['p_author']}' where licence_key = '{$data['licenceKey']}'";
+        $sql = "update idt_licence set u_id = null,lic_edate = $upTimes,lic_author_uid = '{$data['uid']}' where licence_key = '{$data['licenceKey']}'";
         $ret = $this->mysqlQuery($sql, "all");
 
         //验证并返回响应结果
@@ -111,105 +111,6 @@ class LicenceModel extends AgentModel
             _SUCCESS('000', '修改成功');
         } else {
             _ERROR('003', '修改失败');
-        }
-    }
-
-    public function setSubProductPermissionsByLicenceKey($data)
-    {
-        $sql = "select * from idt_subproduct where licence_key = '{$data['licenceKey']}' and pdt_id = 42";
-        $ret = $this->mysqlQuery($sql, "all");
-        if(count($ret) >0){
-            if(!empty($data['time']['mobile'])){
-                $mobile = "mobile_start_time = '{$data['time']['mobile'][0]}',mobile_due_time = '{$data['time']['mobile'][1]}'";
-            }else{
-                $mobile = "mobile_start_time = null,mobile_due_time = null";
-            }
-            if(!empty($data['time']['pc'])){
-                $pc = "pc_start_time = '{$data['time']['pc'][0]}',pc_due_time = '{$data['time']['pc'][1]}'";
-            }else{
-                $pc = "pc_start_time = null,pc_due_time = null";
-            }
-            $sql = "update idt_subproduct set {$mobile},{$pc} where licence_key = '{$data['licenceKey']}' and pdt_id = 42";
-            $ret = $this->mysqlQuery($sql, "all");
-        }else{
-            $where1 = [
-                'licence_key' => $data['licenceKey'],
-                'pdt_id' => 42,
-                'mobile_due_time' => empty($data['time']['mobile'])?null:$data['time']['mobile'][1],
-                'pc_due_time' => empty($data['time']['pc'])?null:$data['time']['pc'][1],
-                'mobile_start_time' => empty($data['time']['mobile'])?null:$data['time']['mobile'][0],
-                'pc_start_time' => empty($data['time']['pc'])?null:$data['time']['pc'][0],
-            ];
-            $ret = $this->mysqlInsert('idt_subproduct',$where1);
-        }
-
-        if($ret){
-            _SUCCESS('000000','设置成功',$ret);
-        }else{
-            _ERROR('000002', '设置失败');
-        }
-    }
-
-    public function topUp($data)
-    {
-        if (is_array($data)) {
-            $data = [
-                'type' => 1,
-                'licence_key' => $data['licenceKey'],
-                'point_explain' => "充值".$data['points']."积分",
-                'point_value' => $data['points'],
-                'u_id' => "11111111-1111-1111-1111-111111111111"
-            ];
-            if (is_numeric($data['point_value'])){
-                if($data['point_value']>=0){
-                    if(floor($data['point_value']) == $data['point_value']){
-
-                    }else{
-                        _ERROR('001', '积分格式错误');
-                    }
-                }else{
-                    _ERROR('001', '积分格式错误');
-                }
-            }else{
-                _ERROR('001', '积分格式错误');
-            }
-
-            $data['balance'] = $this->__computingBalancePoint($data['licenceKey']);
-
-            $ret = $this->__insertRow($data);
-            _SUCCESS('000', 'ok', $ret);
-        } else {
-            _ERROR('001', '参数不对');
-        }
-    }
-
-    public function newtopUp($data)
-    {
-        if (is_array($data)) {
-            $data = [
-                'type' => 1,
-                'licence_key' => $data['licenceKey'],
-                'point_explain' => "充值" . $data['points'] . "积分",
-                'point_value' => $data['points'],
-                'u_id' => "11111111-1111-1111-1111-111111111111"
-            ];
-            if (is_numeric($data['point_value'])) {
-                if ($data['point_value'] >= 0) {
-                    if (floor($data['point_value']) == $data['point_value']) {
-
-                    } else {
-                        _ERROR('001', '积分格式错误');
-                    }
-                } else {
-                    _ERROR('001', '积分格式错误');
-                }
-            } else {
-                _ERROR('001', '积分格式错误');
-            }
-
-            $data['balance'] = $this->__computingBalancePoint($data['licenceKey']);
-
-            $this->__insertRow($data);
         }
     }
 
@@ -291,36 +192,4 @@ class LicenceModel extends AgentModel
         return $ret;
     }
 
-    /**
-     * insert row data
-     *
-     * @param array $data
-     * @return array|int|string
-     */
-    private function __insertRow(array $data)
-    {
-        unset($data['token']);
-        if (empty($data['u_id'])) {
-            _ERROR('002', 'no user id');
-        }
-
-        if (empty($data['type'])) {
-            _ERROR('002', 'no point type');
-        }
-
-        if (empty($data['point_explain'])) {
-            _ERROR('002', 'no comment');
-        }
-
-//        if (empty($data['point_value'])) {
-//            _ERROR('002', 'no point value');
-//        }
-
-        $ret = $this->mysqlInsert('idt_points', $data);
-        if ($ret) {
-            return $ret;
-        } else {
-            _ERROR('002', $data);
-        }
-    }
 }

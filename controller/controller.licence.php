@@ -8,6 +8,7 @@
 class LicenceController extends Controller
 {
     private $model;
+    private $u_id;
     const M = "Licence";
 
     public function __construct()
@@ -21,6 +22,7 @@ class LicenceController extends Controller
                 _ERROR('000002', '无操作权限');
             }
         }
+        $this->u_id = $rs['uid'];
         $this->model = Model::instance(self::M);
     }
 
@@ -56,6 +58,7 @@ class LicenceController extends Controller
         //获取POST请求数据
         $data = _POST();
 
+        $data['uid'] = $this->u_id;
         //查询成功,并返回响应结果
         $this->model->editLicencesByUserID($data);
     }
@@ -68,32 +71,9 @@ class LicenceController extends Controller
         //获取POST请求数据
         $data = _POST();
 
+        $data['uid'] = $this->u_id;
         //查询成功,并返回响应结果
         $this->model->removeLicencesByLicenceKey($data);
-    }
-
-    /**
-     * 设置许可证子产品到期时间
-     */
-    public function setSubProductPermissionsByLicenceKey()
-    {
-        //获取POST请求数据
-        $data = _POST();
-
-        //查询成功,并返回响应结果
-        $this->model->setSubProductPermissionsByLicenceKey($data);
-    }
-
-    /**
-     * 设置许积分充值
-     */
-    public function topUp()
-    {
-        //获取POST请求数据
-        $data = _POST();
-
-        //查询成功,并返回响应结果
-        $this->model->topUp($data);
     }
 
     /**
