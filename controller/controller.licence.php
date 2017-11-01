@@ -8,21 +8,10 @@
 class LicenceController extends Controller
 {
     private $model;
-    private $u_id;
     const M = "Licence";
 
     public function __construct()
     {
-        session_start();
-        if(empty($_SESSION['idexuserInfo']['token'])){
-            _ERROR('000001', '登录超时');
-        }else{
-            $rs = Model::instance("user")->_getUserInfoByToken($_SESSION['idexuserInfo']['token']);
-            if($rs['permissions'] != 2){
-                _ERROR('000002', '无操作权限');
-            }
-        }
-        $this->u_id = $rs['uid'];
         $this->model = Model::instance(self::M);
     }
 
