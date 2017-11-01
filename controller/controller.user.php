@@ -206,6 +206,30 @@ class UserController extends Controller
     }
 
     /**
+     * 获取产品List
+     */
+    public function getProductsByCompanyFullNameID()
+    {
+        //获取POST请求数据
+        $data = _POST();
+
+        //查询成功,并返回响应结果
+        $this->model->getProductsByCompanyFullNameID($data);
+    }
+
+    /**
+     * 移出用户
+     */
+    public function removeUser()
+    {
+        //获取POST请求数据
+        $data = _POST();
+
+        //查询成功,并返回响应结果
+        $this->model->removeUser($data);
+    }
+
+    /**
      * irc 客户端登入
      *
      * @return mixed

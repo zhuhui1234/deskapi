@@ -16,40 +16,79 @@ class LicenceModel extends AgentModel
     public function getLicencesByCompanyFullNameID($data)
     {
         if(empty($data['companyFullNameID'])){
-            _ERROR('002', '公司ID不能为空');
+            _ERROR('000002', '公司ID不能为空');
         }
         if(empty($data['productID'])){
-            _ERROR('002', '产品ID不能为空');
+            _ERROR('000002', '产品ID不能为空');
         }
         $data['keyword'] == null ? $keyword = '' : $keyword = " AND (idt_user.u_mobile LIKE '%" . $data['keyword'] . "%' or idt_user.u_mobile LIKE '%" . $data['keyword'] . "%')"; //查询条件
-        $sql = "select licence_id,licence_key,idt_licence.cpy_id,idt_licence.u_id,idt_licence.pdt_id,points,lic_cdate,lic_edate,lic_comment,u_mobile,u_name,pdt_ename 
+        $sql = "select licence_id,idt_licence.licence_key,idt_licence.cpy_id,idt_licence.u_id,idt_licence.pdt_id,points,lic_cdate,lic_edate,lic_comment,u_mobile,u_name,pdt_ename,
+                pc_due_time,mobile_due_time 
                 from idt_licence
                 left join idt_product on idt_product.pdt_id = idt_licence.pdt_id
                 left join idt_user on idt_user.u_id = idt_licence.u_id
-                where idt_licence.state = 1 and idt_licence.cpy_id = {$data['companyFullNameID']} and idt_licence.pdt_id = {$data['productID']}{$keyword} order by lic_edate desc,lic_cdate desc";
+                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                where idt_licence.state = 1 and idt_licence.cpy_id = {$data['companyFullNameID']} and idt_licence.pdt_id = {$data['productID']}{$keyword} order by points desc";
         $ret = $this->mysqlQuery($sql, "all");
         foreach($ret as $key => $value){
-            $rs[$key]['licenceID'] = $ret[$key]['licence_id'];
-            $rs[$key]['licenceKey'] = $ret[$key]['licence_key'];
-            $rs[$key]['companyFullNameID'] = $ret[$key]['cpy_id'];
-            $rs[$key]['userID'] = $ret[$key]['u_id'];
-            $rs[$key]['userName'] = $ret[$key]['u_name'];
-            $rs[$key]['productID'] = $ret[$key]['pdt_id'];
-            $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
-            $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
-            $rs[$key]['initial_points'] = $ret[$key]['points'];
-            $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['licence_key']); //剩余积分
-            $rs[$key]['createTime'] = $ret[$key]['lic_cdate'];
-            $rs[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
-            $rs[$key]['remark'] = $ret[$key]['lic_comment'];
+            if($ret[$key]['u_id'] == $data['userID']){
+                $own[$key]['licenceID'] = $ret[$key]['licence_id'];
+                $own[$key]['licenceKey'] = $ret[$key]['licence_key'];
+                $own[$key]['companyFullNameID'] = $ret[$key]['cpy_id'];
+                $own[$key]['userID'] = $ret[$key]['u_id'];
+                $own[$key]['userName'] = $ret[$key]['u_name'];
+                $own[$key]['productID'] = $ret[$key]['pdt_id'];
+                $own[$key]['productName'] = $ret[$key]['pdt_ename'];
+                $own[$key]['mobile'] = $ret[$key]['u_mobile'];
+                $own[$key]['initial_points'] = $ret[$key]['points'];
+                $own[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['licence_key']); //剩余积分
+                if(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['mobile_due_time'])){
+                    $own[$key]['terminal'] = "PC、Mobile";
+                }elseif(!empty($ret[$key]['pc_due_time']) && empty($ret[$key]['mobile_due_time'])){
+                    $own[$key]['terminal'] = "PC";
+                }elseif(!empty($ret[$key]['mobile_due_time'])){
+                    $own[$key]['terminal'] = "Mobile";
+                }else{
+                    $own[$key]['terminal'] = null;
+                }
+                $own[$key]['createTime'] = $ret[$key]['lic_cdate'];
+                $own[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
+                $own[$key]['remark'] = $ret[$key]['lic_comment'];
+            }else{
+                $rs[$key]['licenceID'] = $ret[$key]['licence_id'];
+                $rs[$key]['licenceKey'] = $ret[$key]['licence_key'];
+                $rs[$key]['companyFullNameID'] = $ret[$key]['cpy_id'];
+                $rs[$key]['userID'] = $ret[$key]['u_id'];
+                $rs[$key]['userName'] = $ret[$key]['u_name'];
+                $rs[$key]['productID'] = $ret[$key]['pdt_id'];
+                $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
+                $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
+                $rs[$key]['initial_points'] = $ret[$key]['points'];
+                $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['licence_key']); //剩余积分
+                if(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['mobile_due_time'])){
+                    $rs[$key]['terminal'] = "PC、Mobile";
+                }elseif(!empty($ret[$key]['pc_due_time']) && empty($ret[$key]['mobile_due_time'])){
+                    $rs[$key]['terminal'] = "PC";
+                }elseif(!empty($ret[$key]['mobile_due_time'])){
+                    $rs[$key]['terminal'] = "Mobile";
+                }else{
+                    $rs[$key]['terminal'] = null;
+                }
+                $rs[$key]['createTime'] = $ret[$key]['lic_cdate'];
+                $rs[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
+                $rs[$key]['remark'] = $ret[$key]['lic_comment'];
+            }
         }
-        _SUCCESS('000', '查询成功', $rs);
+        if(!empty($own)){
+            $rs = array_merge($own,$rs);
+        }
+        _SUCCESS('000000', '查询成功', $rs);
     }
 
     public function getLicencesByUserID($data)
     {
         if(empty($data['userID'])){
-            _ERROR('002', '用户ID不能为空');
+            _ERROR('000002', '用户ID不能为空');
         }
         $data['keyword'] == null ? $keyword = '' : $keyword = " AND (idt_product.pdt_ename LIKE '%" . $data['keyword'] . "%' or idt_product.pdt_id LIKE '%" . $data['keyword'] . "%')"; //查询条件
         $sql = "select licence_id,licence_key,idt_licence.cpy_id,idt_licence.u_id,idt_licence.pdt_id,points,lic_cdate,lic_edate,lic_comment,u_mobile,u_name,pdt_ename 
@@ -73,14 +112,19 @@ class LicenceModel extends AgentModel
             $rs[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
             $rs[$key]['remark'] = $ret[$key]['lic_comment'];
         }
-        _SUCCESS('000', '查询成功', $rs);
+        _SUCCESS('000000', '查询成功', $rs);
     }
 
     public function editLicencesByUserID($data)
     {
         $upTimes = date("Y-m-d H:i:s");
         if(empty($data['licenceKey'])){
-            _ERROR('002', '许可证Key不能为空');
+            _ERROR('000002', '许可证Key不能为空');
+        }
+        $sql = "select licence_id from idt_licence where u_id = '{$data['userID']}' and pdt_id = {$data['productID']}";
+        $ret = $this->mysqlQuery($sql, "all");
+        if(count($ret) >0 ){
+            _ERROR('000001', '该用户已绑定许可证');
         }
         $where_editUser['u_id'] = $data['userID']; //姓名
         $where_editUser['lic_author_uid'] = $data['uid']; //最后更新时间
@@ -91,9 +135,9 @@ class LicenceModel extends AgentModel
 
         //验证并返回响应结果
         if ($ret == 1) {
-            _SUCCESS('000', '修改成功');
+            _SUCCESS('000000', '修改成功');
         } else {
-            _ERROR('003', '修改失败');
+            _ERROR('000001', '修改失败');
         }
     }
 
@@ -101,16 +145,16 @@ class LicenceModel extends AgentModel
     {
         $upTimes = date("Y-m-d H:i:s");
         if(empty($data['licenceKey'])){
-            _ERROR('002', '许可证Key不能为空');
+            _ERROR('000002', '许可证Key不能为空');
         }
         $sql = "update idt_licence set u_id = null,lic_edate = $upTimes,lic_author_uid = '{$data['uid']}' where licence_key = '{$data['licenceKey']}'";
         $ret = $this->mysqlQuery($sql, "all");
 
         //验证并返回响应结果
         if ($ret == 1) {
-            _SUCCESS('000', '修改成功');
+            _SUCCESS('000000', '修改成功');
         } else {
-            _ERROR('003', '修改失败');
+            _ERROR('000001', '修改失败');
         }
     }
 
@@ -120,7 +164,7 @@ class LicenceModel extends AgentModel
     public function getPointLogByLicenceKey($data)
     {
         if (empty($data['licenceKey'])) {
-            _ERROR('002', '缺少参数');
+            _ERROR('000002', '缺少参数');
         }
         $sql = "SELECT
                     point_id,
@@ -170,9 +214,9 @@ class LicenceModel extends AgentModel
                     }
                 }
             }
-            _SUCCESS('000', 'ok', $rs);
+            _SUCCESS('000000', 'ok', $rs);
         } else {
-            _ERROR('002', 'error');
+            _ERROR('000001', 'error');
         }
     }
 

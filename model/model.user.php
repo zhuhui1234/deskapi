@@ -919,9 +919,10 @@ class UserModel extends AgentModel
 
         //执行查询
         $sql = "SELECT dba.u_id,dba.u_head,dba.u_mobile mobile,dba.u_mail,dba.u_name,dba.u_permissions permissions,
-            dba.u_state,dba.u_edate logindate 
+            dba.u_state,dba.u_edate logindate ,IFNULL(dbc.pcount,0) power
             FROM idt_user dba 
             LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id AND dba.cpy_id={$ret_companyID[0]['cpy_id']}) 
+            LEFT JOIN (SELECT u_id,COUNT(1) pcount FROM idt_licence where state = 1 GROUP BY u_id) dbc ON (dba.u_id=dbc.u_id)
             WHERE 1=1 AND dba.u_state=0 
             AND dbb.cpy_state=0 
             AND (dba.u_permissions=1 OR dba.u_permissions=2) 
@@ -939,6 +940,7 @@ class UserModel extends AgentModel
             $rs[$a]['userID'] = $v['u_id']; //用户GUID
             $rs[$a]['head'] = $v['u_head']; //头像
             $rs[$a]['mobile'] = $v['mobile']; //手机
+            $rs[$a]['power'] = $v['power']; //被分配许可证数
             $rs[$a]['mail'] = $v['u_mail']; //邮箱
             $rs[$a]['name'] = $v['u_name']; //姓名
             $rs[$a]['permissions'] = (int)$v['permissions']; //用户身份
@@ -1073,7 +1075,7 @@ class UserModel extends AgentModel
     /**
      * get user info by userID
      *
-     * @param $data
+     * @param $userID
      *
      * @return mixed
      */
@@ -1092,6 +1094,72 @@ class UserModel extends AgentModel
     public function getIrUser($irUserID)
     {
         return $this->__getIRUserList($irUserID);
+    }
+
+    /**
+     * getProductsByCompanyFullNameID
+     *
+     * @param $data
+     */
+    public function getProductsByCompanyFullNameID($data)
+    {
+        if($data['keyword'] == '正式'){
+            $state = " and idt_permissions_number.pnum_type = 0";
+        }elseif($data['keyword'] == '试用'){
+            $state = " and idt_permissions_number.pnum_type = 1";
+        }elseif($data['keyword'] == '无权限'){
+            $state = " and idt_permissions_number.pnum_type = -1";
+        }else{
+            $state = "";
+            $data['keyword'] == null ? $keyword = '' : $keyword = " AND (idt_product.pdt_ename LIKE '%" . $data['keyword'] . "%')"; //查询条件
+        }
+        $sql = "select idt_product.pdt_id,pdt_name,pdt_ename,IFNULL(pnum_number,0) pnum_number,start_date,end_date,IFNULL(pnum_type,-1) pnum_type from idt_permissions_number
+                left join idt_product on idt_permissions_number.pdt_id = idt_product.pdt_id
+                where idt_product.pdt_vtype = 1 {$state}{$keyword} and pdt_sid<>0 and idt_product.pdt_id <> 38 and cpy_id = {$data['companyFullNameID']} and meu_id = 0 order by pdt_ename asc";
+        $ret = $this->mysqlQuery($sql, "all");
+        if (count($ret) <= 0) {
+            _SUCCESS('000000', '查询成功',null);
+        }else{
+            foreach ($ret as $key => $value){
+                $sql = "SELECT IFNULL(COUNT(1),0) have_pnum 
+                FROM idt_licence WHERE 1=1 AND state=1 AND cpy_id={$data['companyFullNameID']} AND pdt_id={$ret[$key]['pdt_id']}";
+                $have_pnum = $this->mysqlQuery($sql, "all");
+                $rs['list'][$key]['productID'] = $ret[$key]['pdt_id'];
+                $rs['list'][$key]['productName'] = $ret[$key]['pdt_ename'];
+                $rs['list'][$key]['totalLicenseNumber'] = $ret[$key]['pnum_number'];
+                $rs['list'][$key]['usedLicenseNumber'] = $have_pnum[0]['have_pnum'];
+                $rs['list'][$key]['startDate'] = $ret[$key]['start_date'];
+                $rs['list'][$key]['endDate'] = $ret[$key]['end_date'];
+                if($ret[$key]['pnum_type'] == 0){
+                    $rs['list'][$key]['accountType'] = '正式';
+                }elseif($ret[$key]['pnum_type'] == 1){
+                    $rs['list'][$key]['accountType'] = '试用';
+                }else{
+                    $rs['list'][$key]['accountType'] = '无权限';
+                }
+            }
+        }
+
+        //查询成功,返回响应结果
+        _SUCCESS('000000', '查询成功', $rs);
+    }
+
+    /**
+     * removeUser
+     *
+     * @param $data
+     */
+    public function removeUser($data)
+    {
+        $sql = "update idt_licence set u_id = null where u_id = '{$data['userID']}'";
+        $ret = $this->mysqlQuery($sql, "all");
+        $sql = "update idt_user set cpy_id = null,u_permissions = 0 where u_id = '{$data['userID']}'";
+        $rs = $this->mysqlQuery($sql, "all");
+        if($ret && $rs){
+            _SUCCESS('000000', '移出成功');
+        }else{
+            _ERROR('000001', '移出失败');
+        }
     }
 
 
