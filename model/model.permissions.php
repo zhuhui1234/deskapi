@@ -891,9 +891,9 @@ class PermissionsModel extends AgentModel
         $now = date('Y-m-d');
 
         //判断用户是否有这个权限的产品
-        $sql = "SELECT COUNT(*) co FROM idt_permissions 
+        $sql = "SELECT COUNT(*) co FROM idt_licence
                 WHERE u_id='{$userID}' 
-                AND pdt_id='{$pdt_id}' AND prs_state='1' ";
+                AND pdt_id='{$pdt_id}' AND state='1' ";
 
         //权限是否过期
         $numSql = "SELECT COUNT(*) co FROM idt_permissions_number 
