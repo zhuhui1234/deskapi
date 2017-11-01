@@ -758,7 +758,7 @@ class UserModel extends AgentModel
     public function getUserInfo($data)
     {
         //查询产品Key
-        $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,dba.u_mobile,dba.u_position,dba.u_name
+        $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                 WHERE dba.u_id='{$data['userID']}'";
@@ -772,6 +772,7 @@ class UserModel extends AgentModel
         $rs['mobile'] = $ret[0]['u_mobile']; //手机
         $rs['position'] = $ret[0]['u_position']; //职位
         $rs['uname'] = $ret[0]['u_name']; //姓名
+        $rs['permissions'] = $ret[0]['u_permissions']; //姓名
         _SUCCESS('000000', '获取成功', $rs);
     }
 
