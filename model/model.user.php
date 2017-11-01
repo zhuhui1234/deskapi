@@ -938,15 +938,15 @@ class UserModel extends AgentModel
         $rs = array();
         //返回参数-执行结果
         foreach ($ret as $a => $v) {
-            $rs[$a]['userID'] = $v['u_id']; //用户GUID
-            $rs[$a]['head'] = $v['u_head']; //头像
-            $rs[$a]['mobile'] = $v['mobile']; //手机
-            $rs[$a]['power'] = $v['power']; //被分配许可证数
-            $rs[$a]['mail'] = $v['u_mail']; //邮箱
-            $rs[$a]['name'] = $v['u_name']; //姓名
-            $rs[$a]['permissions'] = (int)$v['permissions']; //用户身份
-            $rs[$a]['state'] = (int)$v['u_state']; //用户状态
-            $rs[$a]['loginDate'] = $v['logindate']; //最后登录时间
+            $rs['list'][$a]['userID'] = $v['u_id']; //用户GUID
+//            $rs['list'][$a]['head'] = $v['u_head']; //头像
+            $rs['list'][$a]['mobile'] = $v['mobile']; //手机
+            $rs['list'][$a]['power'] = $v['power']; //被分配许可证数
+            $rs['list'][$a]['mail'] = $v['u_mail']; //邮箱
+            $rs['list'][$a]['name'] = $v['u_name']; //姓名
+            $rs['list'][$a]['permissions'] = (int)$v['permissions']; //用户身份
+            $rs['list'][$a]['state'] = (int)$v['u_state']; //用户状态
+            $rs['list'][$a]['loginDate'] = $v['logindate']; //最后登录时间
         }
 
         //返回参数-执行总数
@@ -1152,7 +1152,7 @@ class UserModel extends AgentModel
      */
     public function removeUser($data)
     {
-        $sql = "update idt_licence set u_id = null where u_id = '{$data['userID']}'";
+        $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['lic_author_uid']}'  where u_id = '{$data['userID']}'";
         $ret = $this->mysqlQuery($sql, "all");
         $sql = "update idt_user set cpy_id = null,u_permissions = 0 where u_id = '{$data['userID']}'";
         $rs = $this->mysqlQuery($sql, "all");
