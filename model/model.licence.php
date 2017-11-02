@@ -148,10 +148,13 @@ class LicenceModel extends AgentModel
             _ERROR('000002', '许可证Key不能为空');
         }
         $sql = "update idt_licence set u_id = null,lic_edate = $upTimes,lic_author_uid = '{$data['userID']}' where licence_key = '{$data['licenceKey']}'";
-        $ret = $this->mysqlQuery($sql, "all");
-
-        //验证并返回响应结果
-        _SUCCESS('000000', '修改成功');
+        $ret = $this->mysqlQuery($sql);
+        if($ret){
+            //验证并返回响应结果
+            _SUCCESS('000000', '修改成功');
+        }else{
+            _ERROR('000001','修改失败');
+        }
     }
 
     /**

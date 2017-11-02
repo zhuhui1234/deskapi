@@ -1201,10 +1201,14 @@ class UserModel extends AgentModel
     public function removeUser($data)
     {
         $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['lic_author_uid']}'  where u_id = '{$data['toUserID']}'";
-        $ret = $this->mysqlQuery($sql, "all");
+        $ret = $this->mysqlQuery($sql);
         $sql = "update idt_user set cpy_id = null,u_permissions = 0 where u_id = '{$data['toUserID']}'";
-        $rs = $this->mysqlQuery($sql, "all");
-        _SUCCESS('000000', '移出成功');
+        $rs = $this->mysqlQuery($sql);
+        if($ret && $rs){
+            _SUCCESS('000000', '移出成功');
+        }else{
+            _ERROR('000001','移出失败');
+        }
     }
 
 
