@@ -250,7 +250,7 @@ class UserController extends Controller
             }
         }
 //        pr($ret);
-        var_dump($cp);
+        //var_dump($cp);
         return $ret;
     }
 
@@ -346,6 +346,20 @@ class UserController extends Controller
             header('Content-Type: application/json');
             echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
         }
+    }
+
+    public function addMyEmployee()
+    {
+        $data = _POST();
+
+        $this->model->addMyEmployee($data);
+    }
+
+    public function sendKey()
+    {
+        $data = _POST();
+//        var_dump($data);
+        $this->model->sendKey($data);
     }
 
 }

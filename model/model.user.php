@@ -328,8 +328,8 @@ class UserModel extends AgentModel
 
                 $sp_ret = $this->mysqlQuery($sqlb, 'all');
 
-                write_to_log('sp sql: '. $sqlb, '_sp');
-                write_to_log('sp_ret'. json_encode($sp_ret), '_sp');
+                write_to_log('sp sql: ' . $sqlb, '_sp');
+                write_to_log('sp_ret' . json_encode($sp_ret), '_sp');
 
                 if (!empty($sp_ret)) {
                     $this->redisHere(VERSION . '_' . $ret[0]['userid'] . '_ird', true);
@@ -676,13 +676,61 @@ class UserModel extends AgentModel
         $upTimes = date("Y-m-d H:i:s");
 
 
-        $ret_codeSend = $this->__setMobileKey($data, $upTimes);
+        $ret_codeSend = $this->__setMobileKey($data, $upTimes,0);
 
 
         if ($ret_codeSend) {
             $data = $ret_codeSend;
             //调用SMS,发送验证码
             $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT);
+            $phones = $data['Mobile'];
+            $mail = $this->__checkHasEmail($data['Mobile']);
+            write_to_log('the mobile: ' . $data['Mobile'] . 'ready to send mail: ' . $mail, '_mail');
+
+            if (!empty($mail)) {
+                write_to_log('send mail: ' . $mail . ' and code is ' . $data['Code'], '_mail');
+                foreach (NEED_MAIL as $wMail) {
+                    $t = strpos($mail, $wMail);
+                    if ($t !== false) {
+                        write_to_log('the mail in need send mail list : ' . $mail . ',' . $wMail, '_mail');
+                        $this->__sendCode($mail, $data['Code']);
+                    } else {
+                        write_to_log('the mail not in need send mail list : ' . $mail . ',' . $wMail, '_mail');
+                    }
+                }
+            } else {
+                write_to_log('no email send ', '_mail');
+                //var_dump('no mail');
+            }
+
+            $sms = Sms::instance()->sendSms($content, $phones);
+            if ($sms == '发送成功') {
+                _SUCCESS('000000', '发送成功');
+            } else {
+                _ERROR('000002', '发送失败,SMS错误');
+            }
+
+        } else {
+
+            _ERROR('000002', '发送失败,数据异常');
+        }
+    }
+
+
+    //发送验证码
+    public function sendKey($data)
+    {
+        //当前时间
+        $upTimes = date("Y-m-d H:i:s");
+
+
+        $ret_codeSend = $this->__setMobileKey($data, $upTimes,3);
+
+
+        if ($ret_codeSend) {
+            $data = $ret_codeSend;
+            //调用SMS,发送验证码
+            $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT_CHECK);
             $phones = $data['Mobile'];
             $mail = $this->__checkHasEmail($data['Mobile']);
             write_to_log('the mobile: ' . $data['Mobile'] . 'ready to send mail: ' . $mail, '_mail');
@@ -1104,13 +1152,13 @@ class UserModel extends AgentModel
      */
     public function getProductsByCompanyFullNameID($data)
     {
-        if($data['keyword'] == '正式'){
+        if ($data['keyword'] == '正式') {
             $state = " and idt_permissions_number.pnum_type = 0";
-        }elseif($data['keyword'] == '试用'){
+        } elseif ($data['keyword'] == '试用') {
             $state = " and idt_permissions_number.pnum_type = 1";
-        }elseif($data['keyword'] == '无权限'){
+        } elseif ($data['keyword'] == '无权限') {
             $state = " and idt_permissions_number.pnum_type = -1";
-        }else{
+        } else {
             $state = "";
             $data['keyword'] == null ? $keyword = '' : $keyword = " AND (idt_product.pdt_ename LIKE '%" . $data['keyword'] . "%')"; //查询条件
         }
@@ -1119,9 +1167,9 @@ class UserModel extends AgentModel
                 where idt_product.pdt_vtype = 1 {$state}{$keyword} and pdt_sid<>0 and idt_product.pdt_id <> 38 and cpy_id = {$data['companyFullNameID']} and meu_id = 0 order by pdt_ename asc";
         $ret = $this->mysqlQuery($sql, "all");
         if (count($ret) <= 0) {
-            _SUCCESS('000000', '查询成功',null);
-        }else{
-            foreach ($ret as $key => $value){
+            _SUCCESS('000000', '查询成功', null);
+        } else {
+            foreach ($ret as $key => $value) {
                 $sql = "SELECT IFNULL(COUNT(1),0) have_pnum 
                 FROM idt_licence WHERE 1=1 AND state=1 AND cpy_id={$data['companyFullNameID']} AND pdt_id={$ret[$key]['pdt_id']}";
                 $have_pnum = $this->mysqlQuery($sql, "all");
@@ -1131,11 +1179,11 @@ class UserModel extends AgentModel
                 $rs['list'][$key]['usedLicenseNumber'] = $have_pnum[0]['have_pnum'];
                 $rs['list'][$key]['startDate'] = $ret[$key]['start_date'];
                 $rs['list'][$key]['endDate'] = $ret[$key]['end_date'];
-                if($ret[$key]['pnum_type'] == 0){
+                if ($ret[$key]['pnum_type'] == 0) {
                     $rs['list'][$key]['accountType'] = '正式';
-                }elseif($ret[$key]['pnum_type'] == 1){
+                } elseif ($ret[$key]['pnum_type'] == 1) {
                     $rs['list'][$key]['accountType'] = '试用';
-                }else{
+                } else {
                     $rs['list'][$key]['accountType'] = '无权限';
                 }
             }
@@ -1152,13 +1200,13 @@ class UserModel extends AgentModel
      */
     public function removeUser($data)
     {
-        $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['lic_author_uid']}'  where u_id = '{$data['userID']}'";
+        $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['lic_author_uid']}'  where u_id = '{$data['toUserID']}'";
         $ret = $this->mysqlQuery($sql, "all");
-        $sql = "update idt_user set cpy_id = null,u_permissions = 0 where u_id = '{$data['userID']}'";
+        $sql = "update idt_user set cpy_id = null,u_permissions = 0 where u_id = '{$data['toUserID']}'";
         $rs = $this->mysqlQuery($sql, "all");
-        if($ret && $rs){
+        if ($ret && $rs) {
             _SUCCESS('000000', '移出成功');
-        }else{
+        } else {
             _ERROR('000001', '移出失败');
         }
     }
@@ -1175,10 +1223,10 @@ class UserModel extends AgentModel
      *
      * @param $data
      * @param $upTimes
-     *
+     * @param  $keyType
      * @return array|int|string
      */
-    private function __setMobileKey($data, $upTimes)
+    private function __setMobileKey($data, $upTimes, $keyType = 0)
     {
         //验证短信30内秒不可重复操作
         $sql_codeTime = "SELECT mik_key 
@@ -1209,7 +1257,7 @@ class UserModel extends AgentModel
 
             //发送验证码
             $where['mik_mobile'] = $data['Mobile'];//手机号码
-            $where['mik_type'] = 0;//验证类型(0.登录 1.注册 2.找回密码)
+            $where['mik_type'] = $keyType;//验证类型(0.登录 1.注册 2.找回密码,3 验证手机)
             $where['mik_key'] = $data['Code'];//验证码
             $where['mik_cdate'] = $upTimes;//创建时间
             if ($this->mysqlInsert('idt_mobilekey', $where)) {
@@ -1749,5 +1797,9 @@ class UserModel extends AgentModel
         return $ret[0]['ca'] <= 0;
     }
 
-
+    private function __checkMobileKey($mobile, $key)
+    {
+//        $sql = "SELECT  WHERE dba.u_mobile="{$mobile}' AND dbb.mik_key='{$key}'
+//                    AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5\";
+    }
 }
