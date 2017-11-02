@@ -151,11 +151,7 @@ class LicenceModel extends AgentModel
         $ret = $this->mysqlQuery($sql, "all");
 
         //验证并返回响应结果
-        if ($ret == 1) {
-            _SUCCESS('000000', '修改成功');
-        } else {
-            _ERROR('000001', '修改失败');
-        }
+        _SUCCESS('000000', '修改成功');
     }
 
     /**

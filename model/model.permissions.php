@@ -729,22 +729,22 @@ class PermissionsModel extends AgentModel
     private function __addPdtPermission($pdtId, $userID, $cpy_id, $ird_user_id)
     {
         $upTimes = date("Y-m-d H:i:s");
-        $insert_data = [
-            'u_id' => $userID,
-            'cpy_id' => $cpy_id,
-            'pdt_id' => $pdtId,
-            'prs_author_uid' => '8cbd411a-28ae-11e7-8cab-0017fa012439',
-            'prs_identity' => 9,
-            'prs_cdate' => $upTimes,
-            'prs_edate' => $upTimes,
-            'prs_state' => 1,
-            'prs_comment' => 'from ird ' . $ird_user_id,
-            'meu_id' => 0
-        ];
-        write_to_log('add Pdt permission: ' . json_encode($insert_data), '_from_ird');
-        $ret = $this->mysqlInsert('idt_permissions', $insert_data);
-        write_to_log('ret: ' . json_encode($ret), '_from_ird');
-        return $ret !== '1';
+        $sql = "select licence_key from idt_licence where cpy_id = $cpy_id and pdt_id = $pdtId and u_id is null and state = 1 limit 1";
+        $rs = $this->mysqlQuery($sql, 'all');
+        if(count($rs)>0){
+            $update_data = [
+                'u_id' => $userID,
+                'lic_author_uid' => '8cbd411a-28ae-11e7-8cab-0017fa012439',
+                'lic_edate' => $upTimes,
+                'lic_comment' => 'from ird ' . $ird_user_id,
+            ];
+            write_to_log('add Pdt licence: ' . json_encode($update_data), '_from_ird');
+            $ret = $this->mysqlEdit('idt_licence', $update_data, ['licence_key' => $rs[0]['liceence_key']]);
+            write_to_log('ret: ' . json_encode($ret), '_from_ird');
+            return $ret !== '1';
+        }else{
+            return false;
+        }
     }
 
     /**
