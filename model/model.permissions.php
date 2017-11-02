@@ -177,7 +177,7 @@ class PermissionsModel extends AgentModel
                                     if ($ret_irdKey_format['iadt']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
 //                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iadt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://iadt.itracker.cn/ws_login.aspx?ProductSelection=ProductSelection&guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://madt.irs01.net/ProductSelection.aspx?guid=" . $ret_irdKey['iRGuid'];
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
