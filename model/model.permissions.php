@@ -195,7 +195,7 @@ class PermissionsModel extends AgentModel
                                     if ($ret_irdKey_format['mut']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
 //                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mut']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://mut-test.chinacloudsites.cn/LLogin.aspx?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://musertracker.itracker.cn/LLogin.aspx?guid=" . $ret_irdKey['iRGuid'];
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
