@@ -121,13 +121,13 @@ class LicenceModel extends AgentModel
         if(empty($data['licenceKey'])){
             _ERROR('000002', '许可证Key不能为空');
         }
-        $sql = "select licence_id from idt_licence where u_id = '{$data['userID']}' and pdt_id = {$data['productID']}";
+        $sql = "select licence_id from idt_licence where u_id = '{$data['licenceUserID']}' and pdt_id = {$data['productID']}";
         $ret = $this->mysqlQuery($sql, "all");
         if(count($ret) >0 ){
             _ERROR('000001', '该用户已绑定许可证');
         }
-        $where_editUser['u_id'] = $data['userID']; //姓名
-        $where_editUser['lic_author_uid'] = $data['uid']; //最后更新时间
+        $where_editUser['u_id'] = $data['licenceUserID']; //姓名
+        $where_editUser['lic_author_uid'] = $data['userID']; //最后更新时间
         $where_editUser['lic_edate'] = $upTimes; //最后更新时间
         $where_editUser['lic_comment'] = $data['remark']; //备注
         $id_editUser = " licence_key='" . $data['licenceKey'] . "'";//用户GUID
@@ -147,7 +147,7 @@ class LicenceModel extends AgentModel
         if(empty($data['licenceKey'])){
             _ERROR('000002', '许可证Key不能为空');
         }
-        $sql = "update idt_licence set u_id = null,lic_edate = $upTimes,lic_author_uid = '{$data['uid']}' where licence_key = '{$data['licenceKey']}'";
+        $sql = "update idt_licence set u_id = null,lic_edate = $upTimes,lic_author_uid = '{$data['userID']}' where licence_key = '{$data['licenceKey']}'";
         $ret = $this->mysqlQuery($sql, "all");
 
         //验证并返回响应结果

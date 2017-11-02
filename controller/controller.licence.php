@@ -47,7 +47,6 @@ class LicenceController extends Controller
         //获取POST请求数据
         $data = _POST();
 
-        $data['uid'] = $this->u_id;
         //查询成功,并返回响应结果
         $this->model->editLicencesByUserID($data);
     }
@@ -60,7 +59,6 @@ class LicenceController extends Controller
         //获取POST请求数据
         $data = _POST();
 
-        $data['uid'] = $this->u_id;
         //查询成功,并返回响应结果
         $this->model->removeLicencesByLicenceKey($data);
     }
