@@ -1204,11 +1204,7 @@ class UserModel extends AgentModel
         $ret = $this->mysqlQuery($sql, "all");
         $sql = "update idt_user set cpy_id = null,u_permissions = 0 where u_id = '{$data['toUserID']}'";
         $rs = $this->mysqlQuery($sql, "all");
-        if ($ret && $rs) {
-            _SUCCESS('000000', '移出成功');
-        } else {
-            _ERROR('000001', '移出失败');
-        }
+        _SUCCESS('000000', '移出成功');
     }
 
 
