@@ -175,7 +175,7 @@ class MyDb{
 
             $sql='insert into '.$tab.'('.$ret['feild'].') values ('.$ret['values'].')';
         }
-
+        write_to_log($sql, '_sql');
         if($showsql){
             echo $sql;
         }else{
@@ -208,7 +208,7 @@ class MyDb{
         if(is_string($where) && !empty($where)) {
             $sql .= " where 1=1 and ".$where;
         }
-
+        write_to_log($sql, '_sql');
         if($showsql){
             echo $sql;
         }else{
@@ -288,5 +288,3 @@ class MyDb{
         return $version;
     }
 }
-
-?>

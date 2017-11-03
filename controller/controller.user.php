@@ -362,4 +362,11 @@ class UserController extends Controller
         $this->model->sendKey($data);
     }
 
+    public function addEmployee()
+    {
+        $data = _POST();
+        $this->model->addEmployee($data);
+    }
+
+
 }

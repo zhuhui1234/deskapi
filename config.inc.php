@@ -2,7 +2,7 @@
 /**
  * config.inc.php 网站配置文件
  */
-date_default_timezone_set("PRC");
+date_default_timezone_set("Asia/Shanghai");
 session_set_cookie_params(0);
 //    set_time_limit(0);
 //问卷接口key
@@ -42,6 +42,7 @@ define('SMS_ACCOUNT', 'data5');
 define('SMS_PWD', '82D05B779D9301FBB9D3BB1D46C6181F29DC0323');
 define('SMS_SIGNATURE', '【艾瑞数据】');
 define('SMS_CONTENT', '您的注册验证码为(CODE)，该验证码5分钟内有效。如非本人操作请忽略此短信！');
+define('SMS_CONTENT_CHECK', '您的手机验证码为(CODE)，该验证码5分钟内有效。如非本人操作请忽略此短信！');
 //******************************************************************
 //站点配置
 //	define('WEBSITE','http://localhost');
@@ -81,7 +82,7 @@ define('DEBUG_LOG', TRUE); //记录日志
 define('START_TIME', microtime(true));
 define('OPEN_ME', true);
 
-define('NEED_MAIL',['wanghaiyan@iresearch.com.cn','cswdc@icloud.com']);
+define('NEED_MAIL',['wanghaiyan@iresearch.com.cn','cswdc@icloud.com','rai@valuesccg.com','hank@iresearch.com.cn']);
 
 define('NOW', date('Y-m-d H:i:s'));
 if (DEBUG) {

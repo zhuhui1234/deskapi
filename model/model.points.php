@@ -37,22 +37,29 @@ class PointsModel extends AgentModel
     {
         if (is_array($data)) {
             $data['type'] = 6;
-            if (empty($data['dev_id'])) {
-                _ERROR('000002', 'no department id');
-            }
 
             if (empty($data['pdt_id'])) {
                 _ERROR('000002', 'NO Product id');
             }
 
-            $data['balance'] = $this->__computingBalancePoint($data['dev_id']);
+            if (empty($data['u_id'])) {
+                _ERROR('000002', 'NO User id');
+            }
+            $sql = "select licence_key from idt_licence where u_id = '{$data['u_id']}' and pdt_id = {$data['pdt_id']}";
+            $ret = $this->mysqlQuery($sql, 'all');
+            if(count($ret)>0){
+                $data['licence_key'] = $ret[0]['licence_key'];
+                $data['balance'] = $this->__computingBalancePoint($data['licence_key']);
+            }else{
+                _ERROR('000001', '无许可证');
+            }
 
             if ($data['balance'] - $data['point_value'] >= 0) {
                 $ret = $this->__insertRow($data);
 
                 if ($ret) {
                     $lastSql = "SELECT point_id FROM idt_points
-                                WHERE dev_id='{$data['dev_id']}' AND point_explain='{$data['point_explain']}'
+                                WHERE licence_key='{$data['licence_key']}' AND point_explain='{$data['point_explain']}'
                                 ORDER BY point_id DESC ";
                     $last = $this->mysqlQuery($lastSql, 'all');
                     $last = $last[0]['point_id'];
@@ -70,50 +77,6 @@ class PointsModel extends AgentModel
     }
 
     /**
-     * point list
-     *
-     * @param $data
-     */
-    public function pointList($data)
-    {
-        if (is_array($data)) {
-
-            if (empty($data['dev_id'])) {
-                _ERROR('000002', '缺少参数');
-            }
-
-            $sql = "SELECT
-                        point_id,
-                        idt_company.cpy_cname,
-                        idt_user.u_name,
-                        point_explain,
-                        state,
-                        point_value,
-                        type,
-                        balance,
-                        idt_product.pdt_name,
-                        idt_points.cdate 
-                    FROM
-                        idt_points
-                        LEFT JOIN idt_company ON idt_company.cpy_id = idt_points.cpy_id
-                        LEFT JOIN idt_user ON idt_user.u_id = idt_points.u_id
-                        LEFT JOIN idt_product ON idt_product.pdt_id = idt_points.pdt_id 
-                    WHERE
-	                    idt_points.dev_id = {$data['dev_id']} 
-	                    ORDER BY idt_points.cdate DESC ";
-            $ret = $this->mysqlQuery($sql, 'all');
-            if ($ret) {
-                if (empty($ret)) {
-                    $ret = [];
-                }
-                _SUCCESS('000000', 'ok', $ret);
-            } else {
-                _ERROR('000002', 'error', []);
-            }
-        }
-    }
-
-    /**
      * cancel customization report
      *
      * @param $data
@@ -127,32 +90,26 @@ class PointsModel extends AgentModel
 
             $data['type'] = 2;
 
-            if (empty($data['dev_id'])) {
+            if (empty($data['pointID'])) {
+                _ERROR('000002', '缺少参数');
+            }
 
+            $pointInfo = $this->__getPointInfoForPointID($data['pointID']);
 
-                if (empty($data['pointID'])) {
-                    _ERROR('000002', '缺少参数');
-                }
-
-                $pointInfo = $this->__getPointInfoForPointID($data['pointID']);
-
-
-                if ($pointInfo) {
-                    $data['dev_id'] = $pointInfo['dev_id'];
-                    $data['cpy_id'] = $pointInfo['cpy_id'];
-                    $data['u_id'] = $pointInfo['u_id'];
-                    $data['point_value'] = $pointInfo['point_value'];
-                    $data['sub_point_id'] = $data['pointID'];
-                } else {
-                    _ERROR('000002', 'not found dev id');
-                }
+            if ($pointInfo) {
+                $data['licence_key'] = $pointInfo['licence_key'];
+                $data['u_id'] = $pointInfo['u_id'];
+                $data['point_value'] = $pointInfo['point_value'];
+                $data['sub_point_id'] = $data['pointID'];
+            } else {
+                _ERROR('000002', 'not found licence key');
             }
 
             if (!$this->__checkPoint($data['pointID'])) {
                 _ERROR('000004', '已经被处理过');
             }
 
-            $data['balance'] = $this->__computingBalancePoint($data['dev_id']);
+            $data['balance'] = $this->__computingBalancePoint($data['licence_key']);
 
             //get point value
 
@@ -221,42 +178,28 @@ class PointsModel extends AgentModel
     }
 
     /**
-     * top up
-     *
-     * @param $data
-     */
-    public function topUp($data)
-    {
-        if (is_array($data)) {
-            $data['type'] = 1;
-
-            if (empty($data['dev_id'])) {
-                _ERROR('000002', 'no department id');
-            }
-
-            $data['balance'] = $this->__computingBalancePoint($data['dev_id']);
-
-            $ret = $this->__insertRow($data);
-            _SUCCESS('000000', 'OK', $ret);
-
-        } else {
-            _ERROR('000003', '参数不对');
-        }
-    }
-
-    /**
      * compute point for dev id
      * @param $data
      * @return array
      */
     public function computePoint($data)
     {
-        if (empty($data['dev_id'])) {
+        if (empty($data['u_id'])) {
             _ERROR('000002', '参数错误');
         }
-        _SUCCESS('000000', 'ok', [
-            'getValue' => $this->__computingBalancePoint($data['dev_id'])
-        ]);
+        if (empty($data['pdt_id'])) {
+            _ERROR('000002', '参数错误');
+        }
+        $sql = "select licence_key from idt_licence where u_id = '{$data['u_id']}' and pdt_id = {$data['pdt_id']}";
+        $ret = $this->mysqlQuery($sql, 'all');
+        if(count($ret)>0){
+            $licenceKey = $ret[0]['licence_key'];
+            _SUCCESS('000000', 'ok', [
+                'getValue' => $this->__computingBalancePoint($licenceKey)
+            ]);
+        }else{
+            _ERROR('000001', '无许可证');
+        }
     }
 
 
@@ -275,10 +218,9 @@ class PointsModel extends AgentModel
     private function __insertRow(array $data)
     {
         unset($data['token']);
-        if (empty($data['cpy_id'])) {
-            _ERROR('000002', 'no company id');
+        if (empty($data['licence_key'])) {
+            _ERROR('000002', 'no licence key');
         }
-
         if (empty($data['u_id'])) {
             _ERROR('000002', 'no user id');
         }
@@ -306,13 +248,13 @@ class PointsModel extends AgentModel
     /**
      * computing balance point
      *
-     * @param $devID
+     * @param $licenceKey
      * @return array
      */
-    private function __computingBalancePoint($devID)
+    private function __computingBalancePoint($licenceKey)
     {
-        $positiveNumSQL = "SELECT sum(point_value) as positiveNum FROM idt_points WHERE type <= 5 AND dev_id='{$devID}'";
-        $negativeNumSQL = "SELECT sum(point_value) as negativeNum FROM idt_points WHERE type > 5 AND dev_id='{$devID}'";
+        $positiveNumSQL = "SELECT sum(point_value) as positiveNum FROM idt_points WHERE type <= 5 AND licence_key='{$licenceKey}'";
+        $negativeNumSQL = "SELECT sum(point_value) as negativeNum FROM idt_points WHERE type > 5 AND licence_key='{$licenceKey}'";
         $positiveNum = $this->mysqlQuery($positiveNumSQL, 'all');
         $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
         $ret = (int)$positiveNum[0]['positivenum'] - (int)$negativeNum[0]['negativenum'];
@@ -345,7 +287,7 @@ class PointsModel extends AgentModel
      */
     private function __getPointInfoForPointID($pointID)
     {
-        $sql = "SELECT dev_id,u_id, cpy_id, point_value FROM idt_points WHERE  point_id='{$pointID}'";
+        $sql = "SELECT licence_key,u_id,point_value FROM idt_points WHERE  point_id='{$pointID}'";
         $ret = $this->mysqlQuery($sql, 'all');
         if ($ret) {
             return $ret[0];
