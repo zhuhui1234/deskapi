@@ -974,7 +974,7 @@ class UserModel extends AgentModel
             LEFT JOIN (SELECT u_id,COUNT(1) pcount FROM idt_licence where state = 1 GROUP BY u_id) dbc ON (dba.u_id=dbc.u_id)
             WHERE 1=1 AND dba.u_state=0 
             AND dbb.cpy_state=0 
-            AND (dba.u_permissions=1 OR dba.u_permissions=2) 
+            AND (dba.u_permissions=1 OR dba.u_permissions=2) {$keyword}
             ORDER BY {$orderByColumn} {$orderByType} LIMIT {$pageNo},{$pageSize}";
 
         $ret = $this->mysqlQuery($sql, "all");
