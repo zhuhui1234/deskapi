@@ -185,7 +185,7 @@ class UserModel extends AgentModel
             $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,
                     dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state 
+                    dba.u_state u_state , dba.u_department department 
                     FROM idt_user dba 
                     LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
                     LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
@@ -196,7 +196,7 @@ class UserModel extends AgentModel
             $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,
                     dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state 
+                    dba.u_state u_state, dba.u_department department 
                     FROM idt_user dba 
                     LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                     WHERE dba.u_wxopid='{$data['Account']}' AND dba.u_wxunid='{$data['LoginKey']}'";
@@ -347,6 +347,7 @@ class UserModel extends AgentModel
                             'token' => $upToken,
                             'uname' => $sp_ret[0]['uname'],
                             'userID' => $sp_ret[0]['u_id'],
+                            'department' => $sp_ret[0]['u_department'],
                             'ird_user_id' => null,
                         ];
                         _SUCCESS('000000', '登录成功', $rs);
@@ -422,6 +423,7 @@ class UserModel extends AgentModel
                     'permissions' => $userInfo[0]['u_permissions'], //用户身份 0游客 1企业用户 2企业管理员
                     'productKey' => $userInfo[0]['u_product_key'], //老产品id
                     'token' => $upToken,
+                    'department' => $userInfo[0]['u_department'],
                     'uname' => $userInfo[0]['u_name'],
                     'userID' => $userInfo[0]['u_id'],
                 ];
@@ -676,7 +678,7 @@ class UserModel extends AgentModel
         $upTimes = date("Y-m-d H:i:s");
 
 
-        $ret_codeSend = $this->__setMobileKey($data, $upTimes,0);
+        $ret_codeSend = $this->__setMobileKey($data, $upTimes, 0);
 
 
         if ($ret_codeSend) {
@@ -724,7 +726,7 @@ class UserModel extends AgentModel
         $upTimes = date("Y-m-d H:i:s");
 
 
-        $ret_codeSend = $this->__setMobileKey($data, $upTimes,3);
+        $ret_codeSend = $this->__setMobileKey($data, $upTimes, 3);
 
 
         if ($ret_codeSend) {
@@ -974,7 +976,7 @@ class UserModel extends AgentModel
             LEFT JOIN (SELECT u_id,COUNT(1) pcount FROM idt_licence where state = 1 GROUP BY u_id) dbc ON (dba.u_id=dbc.u_id)
             WHERE 1=1 AND dba.u_state=0 
             AND dbb.cpy_state=0 
-            AND (dba.u_permissions=1 OR dba.u_permissions=2) 
+            AND (dba.u_permissions=1 OR dba.u_permissions=2) {$keyword}
             ORDER BY {$orderByColumn} {$orderByType} LIMIT {$pageNo},{$pageSize}";
 
         $ret = $this->mysqlQuery($sql, "all");
@@ -1200,11 +1202,25 @@ class UserModel extends AgentModel
      */
     public function removeUser($data)
     {
-        $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['lic_author_uid']}'  where u_id = '{$data['toUserID']}'";
-        $ret = $this->mysqlQuery($sql, "all");
-        $sql = "update idt_user set cpy_id = null,u_permissions = 0 where u_id = '{$data['toUserID']}'";
-        $rs = $this->mysqlQuery($sql, "all");
-        _SUCCESS('000000', '移出成功');
+        if ($data['lic_author_uid'] != $data['toUserID']) {
+            $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['lic_author_uid']}'  where u_id = '{$data['toUserID']}'";
+            $ret = $this->mysqlQuery($sql, "all");
+            $sql = "update idt_user set cpy_id = null,u_permissions = 0 where u_id = '{$data['toUserID']}'";
+            $rs = $this->mysqlQuery($sql, "all");
+            if ($ret && $rs) {
+                _SUCCESS('000000', '移除成功');
+            } else {
+                _ERROR('000001', '移除失败');
+            }
+        } else {
+            _ERROR('000001', '无法将自己移除');
+        }
+    }
+
+
+    public function addMyEmployee($data)
+    {
+        $this->__addEmployee($data);
     }
 
 
@@ -1227,7 +1243,7 @@ class UserModel extends AgentModel
         //验证短信30内秒不可重复操作
         $sql_codeTime = "SELECT mik_key 
                         FROM idt_mobilekey 
-                        WHERE mik_mobile='{$data['Mobile']}' AND mik_state='0' 
+                        WHERE mik_mobile='{$data['mobile']}' AND mik_state='0' 
                         AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=0.01 
                         ORDER BY mik_cdate DESC LIMIT 1";
 
@@ -1793,9 +1809,84 @@ class UserModel extends AgentModel
         return $ret[0]['ca'] <= 0;
     }
 
-    private function __checkMobileKey($mobile, $key)
+    private function __checkMobileKey($mobile, $key, $type = 0)
     {
-//        $sql = "SELECT  WHERE dba.u_mobile="{$mobile}' AND dbb.mik_key='{$key}'
-//                    AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5\";
+        $upTimes = date("Y-m-d H:i:s");
+        $sql = "SELECT mik_id FROM idt_mobilekey 
+            WHERE idt_mobilekey.mik_mobile='{$mobile}' AND idt_mobilekey.mik_key='{$key}' 
+            AND idt_mobilekey.mik_state=0 AND idt_mobilekey.mik_type='{$type}' AND 
+            ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5";
+
+        $ret = $this->mysqlQuery($sql, 'all');
+        return $ret;
+    }
+
+    private function __updateMobileKey($mik_id)
+    {
+        return $this->mysqlEdit('idt_mobilekey', ['mik_state' => '1'], ['mik_id' => $mik_id]);
+    }
+
+    private function __hasUser($mobile)
+    {
+        $sql = "SELECT * FROM idt_user WHERE u_mobile='{$mobile}'";
+        return $this->mysqlQuery($sql, 'all');
+
+    }
+
+    private function __addEmployee($data)
+    {
+        $hasUser = $this->__hasUser($data['mobile']);
+
+        $checkMobile = $this->__checkMobileKey($data['mobile'], $data['mobile_key'], 3);
+
+        if (!empty($checkMobile)) {
+
+            $this->__updateMobileKey($checkMobile[0]['mik_id']);
+
+            if (empty($hasUser)) {
+                //添加用户
+                $ret = $this->mysqlInsert('idt_user', [
+                        'u_id' => getGUID(),
+                        'u_name' => $data['uname'],
+                        'u_position' => $data['position'],
+                        'u_permissions' => '1',
+                        'u_state' => '0',
+                        'u_department' => $data['department'],
+                        'u_mobile' => $data['mobile'],
+                        'u_mail' => $data['companyEmail'],
+                        'cpy_id' => $data['cpy_id'],
+                        'u_cdate' => $upTimes = date("Y-m-d H:i:s")
+                    ]
+                );
+
+                if ($ret) {
+                    _SUCCESS('000000', 'ok');
+                } else {
+                    _ERROR('000001', 'add erro');
+                }
+
+            } else {
+                //修改用户
+                if ($hasUser[0]['cpy_id'] == $data['cpy_id']) {
+                    _ERROR('000001', '该公司下，此用户已存在');
+                }
+                $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['userID']}'  where u_id = '{$hasUser[0]['u_id']}'";
+                $ret = $this->mysqlQuery($sql);
+                if (!$ret) {
+                    _ERROR('000001', 'lic upload fails');
+                }
+                $updateUser = $this->mysqlEdit('idt_user', ['cpy_id' => $data['cpy_id'], 'u_permissions' => '1'], ['u_id' => $hasUser[0]['u_id']]);
+
+                if ($updateUser) {
+                    _SUCCESS('000000', 'ok');
+                } else {
+                    _ERROR('000001', 'error');
+                }
+
+            }
+        } else {
+            _ERROR('000001', '验证码失败');
+        }
+
     }
 }
