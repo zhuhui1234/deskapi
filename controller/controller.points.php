@@ -49,15 +49,6 @@ class PointsController extends Controller
     }
 
     /**
-     * 充值
-     */
-    public function topUp()
-    {
-        $data = _POST();
-        $this->model->topUp($data);
-    }
-
-    /**
      * cancel order
      */
     public function cancel()
@@ -66,14 +57,6 @@ class PointsController extends Controller
         $this->model->cancel($data);
     }
 
-    /**
-     * point list
-     */
-    public function pointList()
-    {
-        $data = _POST();
-        $this->model->pointList($data);
-    }
 
     /**
      * get point
