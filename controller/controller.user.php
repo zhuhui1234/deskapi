@@ -208,13 +208,13 @@ class UserController extends Controller
     /**
      * 获取产品List
      */
-    public function getProductsByCompanyFullNameID()
+    public function getProductList()
     {
         //获取POST请求数据
         $data = _POST();
 
         //查询成功,并返回响应结果
-        $this->model->getProductsByCompanyFullNameID($data);
+        $this->model->getProductList($data);
     }
 
     /**
