@@ -1162,7 +1162,7 @@ class UserModel extends AgentModel
      *
      * @param $data
      */
-    public function getProductsByCompanyFullNameID($data)
+    public function getProductList($data)
     {
         if ($data['keyword'] == '正式') {
             $state = " and idt_permissions_number.pnum_type = 0";
@@ -1176,14 +1176,14 @@ class UserModel extends AgentModel
         }
         $sql = "select idt_product.pdt_id,pdt_name,pdt_ename,IFNULL(pnum_number,0) pnum_number,start_date,end_date,IFNULL(pnum_type,-1) pnum_type from idt_permissions_number
                 left join idt_product on idt_permissions_number.pdt_id = idt_product.pdt_id
-                where idt_product.pdt_vtype = 1 {$state}{$keyword} and pdt_sid<>0 and idt_product.pdt_id <> 38 and cpy_id = {$data['companyFullNameID']} and meu_id = 0 order by pdt_ename asc";
+                where idt_product.pdt_vtype = 1 {$state}{$keyword} and pdt_sid<>0 and idt_product.pdt_id <> 38 and cpy_id = {$data['cpy_id']} and meu_id = 0 order by pdt_ename asc";
         $ret = $this->mysqlQuery($sql, "all");
         if (count($ret) <= 0) {
             _SUCCESS('000000', '查询成功', null);
         } else {
             foreach ($ret as $key => $value) {
                 $sql = "SELECT IFNULL(COUNT(1),0) have_pnum 
-                FROM idt_licence WHERE 1=1 AND state=1 AND cpy_id={$data['companyFullNameID']} AND pdt_id={$ret[$key]['pdt_id']}";
+                FROM idt_licence WHERE 1=1 AND state=1 AND cpy_id={$data['cpy_id']} AND pdt_id={$ret[$key]['pdt_id']}";
                 $have_pnum = $this->mysqlQuery($sql, "all");
                 $rs['list'][$key]['productID'] = $ret[$key]['pdt_id'];
                 $rs['list'][$key]['productName'] = $ret[$key]['pdt_ename'];
