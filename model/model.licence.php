@@ -53,7 +53,7 @@ class LicenceModel extends AgentModel
         }
         $data['keyword'] == null ? $keyword = '' : $keyword = " AND (idt_user.u_mobile LIKE '%" . $data['keyword'] . "%' or idt_user.u_mobile LIKE '%" . $data['keyword'] . "%')"; //查询条件
         $sql = "select licence_id,idt_licence.licence_key,idt_licence.cpy_id,idt_licence.u_id,idt_licence.pdt_id,points,lic_cdate,lic_edate,lic_comment,u_mobile,u_name,pdt_ename,
-                pc_due_time,mobile_due_time,ott_due_time 
+                pc_due_time,mobile_due_time,ott_due_time,pc_start_time,mobile_start_time,ott_start_time 
                 from idt_licence
                 left join idt_product on idt_product.pdt_id = idt_licence.pdt_id
                 left join idt_user on idt_user.u_id = idt_licence.u_id
@@ -72,23 +72,26 @@ class LicenceModel extends AgentModel
                 $own[$key]['mobile'] = $ret[$key]['u_mobile'];
                 $own[$key]['initial_points'] = $ret[$key]['points'];
                 $own[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['licence_key']); //剩余积分
-                if(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['mobile_due_time']) && !empty($ret[$key]['ott_due_time'])){
-                    $own[$key]['terminal'] = "PC、Mobile、OTT";
-                }elseif(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['mobile_due_time'])){
-                    $own[$key]['terminal'] = "PC、Mobile";
-                }elseif(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['ott_due_time'])){
-                    $own[$key]['terminal'] = "PC、OTT";
-                }elseif(!empty($ret[$key]['mobile_due_time']) && !empty($ret[$key]['ott_due_time'])){
-                    $own[$key]['terminal'] = "Mobile、OTT";
-                }elseif(!empty($ret[$key]['pc_due_time'])){
-                    $own[$key]['terminal'] = "PC";
-                }elseif(!empty($ret[$key]['mobile_due_time'])){
-                    $own[$key]['terminal'] = "Mobile";
-                }elseif(!empty($ret[$key]['ott_due_time'])){
-                    $own[$key]['terminal'] = "OTT";
-                }else{
-                    $own[$key]['terminal'] = null;
-                }
+//                if(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['mobile_due_time']) && !empty($ret[$key]['ott_due_time'])){
+//                    $own[$key]['terminal'] = "PC、Mobile、OTT";
+//                }elseif(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['mobile_due_time'])){
+//                    $own[$key]['terminal'] = "PC、Mobile";
+//                }elseif(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['ott_due_time'])){
+//                    $own[$key]['terminal'] = "PC、OTT";
+//                }elseif(!empty($ret[$key]['mobile_due_time']) && !empty($ret[$key]['ott_due_time'])){
+//                    $own[$key]['terminal'] = "Mobile、OTT";
+//                }elseif(!empty($ret[$key]['pc_due_time'])){
+//                    $own[$key]['terminal'] = "PC";
+//                }elseif(!empty($ret[$key]['mobile_due_time'])){
+//                    $own[$key]['terminal'] = "Mobile";
+//                }elseif(!empty($ret[$key]['ott_due_time'])){
+//                    $own[$key]['terminal'] = "OTT";
+//                }else{
+//                    $own[$key]['terminal'] = null;
+//                }
+                $rs['list'][$key]['terminal']['pc'] = array($ret[$key]['pc_start_time'],$ret[$key]['pc_due_time']);
+                $rs['list'][$key]['terminal']['mobile'] = array($ret[$key]['mobile_start_time'],$ret[$key]['mobile_due_time']);
+                $rs['list'][$key]['terminal']['ott'] = array($ret[$key]['ott_start_time'],$ret[$key]['ott_due_time']);
                 $own[$key]['createTime'] = $ret[$key]['lic_cdate'];
                 $own[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
                 $own[$key]['remark'] = $ret[$key]['lic_comment'];
