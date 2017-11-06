@@ -89,9 +89,16 @@ class LicenceModel extends AgentModel
 //                }else{
 //                    $own[$key]['terminal'] = null;
 //                }
-                $rs['list'][$key]['terminal']['pc'] = array($ret[$key]['pc_start_time'],$ret[$key]['pc_due_time']);
-                $rs['list'][$key]['terminal']['mobile'] = array($ret[$key]['mobile_start_time'],$ret[$key]['mobile_due_time']);
-                $rs['list'][$key]['terminal']['ott'] = array($ret[$key]['ott_start_time'],$ret[$key]['ott_due_time']);
+                $own[$key]['terminal'] = null;
+                if(!empty($ret[$key]['pc_due_time'])){
+                    $own[$key]['terminal']['pc'] = array($ret[$key]['pc_start_time'],$ret[$key]['pc_due_time']);
+                }
+                if(!empty($ret[$key]['mpbile_due_time'])){
+                    $own[$key]['terminal']['mobile'] = array($ret[$key]['mobile_start_time'],$ret[$key]['mobile_due_time']);
+                }
+                if(!empty($ret[$key]['ott_due_time'])){
+                    $own[$key]['terminal']['ott'] = array($ret[$key]['ott_start_time'],$ret[$key]['ott_due_time']);
+                }
                 $own[$key]['createTime'] = $ret[$key]['lic_cdate'];
                 $own[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
                 $own[$key]['remark'] = $ret[$key]['lic_comment'];
@@ -106,22 +113,32 @@ class LicenceModel extends AgentModel
                 $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
                 $rs[$key]['initial_points'] = $ret[$key]['points'];
                 $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['licence_key']); //剩余积分
-                if(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['mobile_due_time']) && !empty($ret[$key]['ott_due_time'])){
-                    $rs[$key]['terminal'] = "PC、Mobile、OTT";
-                }elseif(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['mobile_due_time'])){
-                    $rs[$key]['terminal'] = "PC、Mobile";
-                }elseif(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['ott_due_time'])){
-                    $rs[$key]['terminal'] = "PC、OTT";
-                }elseif(!empty($ret[$key]['mobile_due_time']) && !empty($ret[$key]['ott_due_time'])){
-                    $rs[$key]['terminal'] = "Mobile、OTT";
-                }elseif(!empty($ret[$key]['pc_due_time'])){
-                    $rs[$key]['terminal'] = "PC";
-                }elseif(!empty($ret[$key]['mobile_due_time'])){
-                    $rs[$key]['terminal'] = "Mobile";
-                }elseif(!empty($ret[$key]['ott_due_time'])){
-                    $rs[$key]['terminal'] = "OTT";
-                }else{
-                    $rs[$key]['terminal'] = null;
+//                if(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['mobile_due_time']) && !empty($ret[$key]['ott_due_time'])){
+//                    $rs[$key]['terminal'] = "PC、Mobile、OTT";
+//                }elseif(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['mobile_due_time'])){
+//                    $rs[$key]['terminal'] = "PC、Mobile";
+//                }elseif(!empty($ret[$key]['pc_due_time']) && !empty($ret[$key]['ott_due_time'])){
+//                    $rs[$key]['terminal'] = "PC、OTT";
+//                }elseif(!empty($ret[$key]['mobile_due_time']) && !empty($ret[$key]['ott_due_time'])){
+//                    $rs[$key]['terminal'] = "Mobile、OTT";
+//                }elseif(!empty($ret[$key]['pc_due_time'])){
+//                    $rs[$key]['terminal'] = "PC";
+//                }elseif(!empty($ret[$key]['mobile_due_time'])){
+//                    $rs[$key]['terminal'] = "Mobile";
+//                }elseif(!empty($ret[$key]['ott_due_time'])){
+//                    $rs[$key]['terminal'] = "OTT";
+//                }else{
+//                    $rs[$key]['terminal'] = null;
+//                }
+                $rs[$key]['terminal'] = null;
+                if(!empty($ret[$key]['pc_due_time'])){
+                    $rs[$key]['terminal']['pc'] = array($ret[$key]['pc_start_time'],$ret[$key]['pc_due_time']);
+                }
+                if(!empty($ret[$key]['mpbile_due_time'])){
+                    $rs[$key]['terminal']['mobile'] = array($ret[$key]['mobile_start_time'],$ret[$key]['mobile_due_time']);
+                }
+                if(!empty($ret[$key]['ott_due_time'])){
+                    $rs[$key]['terminal']['ott'] = array($ret[$key]['ott_start_time'],$ret[$key]['ott_due_time']);
                 }
                 $rs[$key]['createTime'] = $ret[$key]['lic_cdate'];
                 $rs[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
@@ -266,6 +283,39 @@ class LicenceModel extends AgentModel
         } else {
             _ERROR('000001', 'error');
         }
+    }
+
+    public function getUserList($data)
+    {
+        //查询初始化条件
+        $data['keyword'] == null ? $keyword = '' : $keyword = " AND (dba.u_mobile LIKE '%" . $data['keyword'] . "%' OR dba.u_name LIKE '%" . $data['keyword'] . "%')"; //查询条件
+
+        //获取当前用户所属公司ID
+        $sql_companyID = "SELECT cpy_id FROM idt_user WHERE 1=1 AND u_id='{$data['userID']}'";
+        $ret_companyID = $this->mysqlQuery($sql_companyID, "all");
+        if ($ret_companyID[0]['cpy_id'] == 0 OR $ret_companyID[0]['cpy_id'] == null OR $ret_companyID[0]['cpy_id'] == "") {
+            _ERROR('000002', '查询失败,非法用户');
+        }
+
+        //执行查询
+        $sql = "SELECT dba.u_id,dba.u_mobile mobile,dba.u_name
+            FROM idt_user dba 
+            LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id AND dba.cpy_id={$ret_companyID[0]['cpy_id']}) 
+            WHERE 1=1 AND dba.u_state=0 
+            AND dbb.cpy_state=0 
+            AND (dba.u_permissions=1 OR dba.u_permissions=2) {$keyword}";
+
+        $ret = $this->mysqlQuery($sql, "all");
+        //返回结果
+        $rs = array();
+        //返回参数-执行结果
+        foreach ($ret as $a => $v) {
+            $rs['list'][$a]['userID'] = $v['u_id']; //用户GUID
+            $rs['list'][$a]['mobile'] = $v['mobile']; //手机
+            $rs['list'][$a]['name'] = $v['u_name']; //姓名
+        }
+        //查询成功,返回响应结果
+        _SUCCESS('000000', '查询成功', $rs);
     }
 
     /**

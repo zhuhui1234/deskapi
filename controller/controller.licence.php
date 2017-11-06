@@ -72,4 +72,14 @@ class LicenceController extends Controller
 
         $this->model->getPointLogByLicenceKey($data);
     }
+
+    /**
+     * 用户列表
+     */
+    public function getUserList()
+    {
+        $data = _POST();
+
+        $this->model->getUserList($data);
+    }
 }
