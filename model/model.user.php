@@ -998,7 +998,9 @@ class UserModel extends AgentModel
             $rs['list'][$a]['state'] = (int)$v['u_state']; //用户状态
             $rs['list'][$a]['loginDate'] = $v['logindate']; //最后登录时间
         }
-
+        foreach ($rs['list'] as $k => $v){
+            $rs['list'][$k]['index'] = ($k+1) * ($pageNo+1);
+        }
         //返回参数-执行总数
         $rs['totalSize'] = $ret_count[0]['count_num'];
 
