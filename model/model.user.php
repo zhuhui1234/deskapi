@@ -808,7 +808,8 @@ class UserModel extends AgentModel
     public function getUserInfo($data)
     {
         //查询产品Key
-        $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions
+        $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,
+                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                 WHERE dba.u_id='{$data['userID']}'";
@@ -818,6 +819,7 @@ class UserModel extends AgentModel
         //返回用户信息
         $rs['company'] = $ret[0]['cpy_cname']; //公司
         $rs['companyEmail'] = $ret[0]['u_mail']; //公司邮箱
+        $rs['department'] = $ret[0]['u_department']; //公司邮箱
         $rs['headImg'] = "upload/head/" . $ret[0]['u_head']; //头像
         $rs['mobile'] = $ret[0]['u_mobile']; //手机
         $rs['position'] = $ret[0]['u_position']; //职位
@@ -897,12 +899,18 @@ class UserModel extends AgentModel
         if ($data['position'] === "") {
             $where['u_position'] = " ";
         } //处理空
+
+        if ($data['department'] === '') {
+            $where['u_department'] = ' ';
+        }
         //修改用户头像
         if ($data['headImg'] !== null) { //处理NULL
             //图片存储
             $imgName = $data['userID'] . '.png';//头像名称
             $imgPath = 'upload/head/' . $imgName;//头像路径
             $imgVal = base64_decode($data['headImg']);//头像格式化
+            write_to_log($data['headImg'],'_conapi');
+            write_to_log($imgVal,'_conapi');
             file_put_contents($imgPath, $imgVal);//返回的是字节数
             //保存头像
             $where['u_head'] = $imgName; //用户头像
@@ -911,6 +919,8 @@ class UserModel extends AgentModel
             $where['u_head'] = "head.png";
         } //处理空
         //修改用户
+
+
         $id = " u_id='" . $data['userID'] . "'";//用户GUID
         if (isset($where)) {
             $ret = $this->mysqlEdit('idt_user', $where, $id);
@@ -970,7 +980,7 @@ class UserModel extends AgentModel
 
         //执行查询
         $sql = "SELECT dba.u_id,dba.u_head,dba.u_mobile mobile,dba.u_mail,dba.u_name,dba.u_permissions permissions,
-            dba.u_state,dba.u_edate logindate ,IFNULL(dbc.pcount,0) power
+            dba.u_state,dba.u_edate logindate ,IFNULL(dbc.pcount,0) power, u_position, u_department
             FROM idt_user dba 
             LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id AND dba.cpy_id={$ret_companyID[0]['cpy_id']}) 
             LEFT JOIN (SELECT u_id,COUNT(1) pcount FROM idt_licence where state = 1 GROUP BY u_id) dbc ON (dba.u_id=dbc.u_id)
@@ -994,6 +1004,8 @@ class UserModel extends AgentModel
             $rs['list'][$a]['power'] = $v['power']; //被分配许可证数
             $rs['list'][$a]['mail'] = $v['u_mail']; //邮箱
             $rs['list'][$a]['name'] = $v['u_name']; //姓名
+            $rs['list'][$a]['position'] = $v['u_position'];
+            $rs['list'][$a]['department'] = $v['u_department'];
             $rs['list'][$a]['permissions'] = (int)$v['permissions']; //用户身份
             $rs['list'][$a]['state'] = (int)$v['u_state']; //用户状态
             $rs['list'][$a]['loginDate'] = $v['logindate']; //最后登录时间
@@ -1773,7 +1785,6 @@ class UserModel extends AgentModel
             return false;
         }
 
-
     }
 
     /**
@@ -1811,6 +1822,14 @@ class UserModel extends AgentModel
         return $ret[0]['ca'] <= 0;
     }
 
+    /**
+     * check mobile key
+     *
+     * @param $mobile
+     * @param $key
+     * @param int $type
+     * @return array|string
+     */
     private function __checkMobileKey($mobile, $key, $type = 0)
     {
         $upTimes = date("Y-m-d H:i:s");
@@ -1823,11 +1842,22 @@ class UserModel extends AgentModel
         return $ret;
     }
 
+    /**
+     * update mobile key
+     *
+     * @param $mik_id
+     * @return array|string
+     */
     private function __updateMobileKey($mik_id)
     {
         return $this->mysqlEdit('idt_mobilekey', ['mik_state' => '1'], ['mik_id' => $mik_id]);
     }
 
+    /**
+     * has the user?
+     * @param $mobile
+     * @return array|string
+     */
     private function __hasUser($mobile)
     {
         $sql = "SELECT * FROM idt_user WHERE u_mobile='{$mobile}'";
@@ -1835,11 +1865,20 @@ class UserModel extends AgentModel
 
     }
 
+    /**
+     * add employee
+     *
+     * @param $data
+     */
     private function __addEmployee($data)
     {
         $hasUser = $this->__hasUser($data['mobile']);
 
         $checkMobile = $this->__checkMobileKey($data['mobile'], $data['mobile_key'], 3);
+
+        if (!$this->__check_mail_suffix($data)) {
+            _ERROR('000001', '所填写邮箱不包好在预设的邮箱域名范围之内');
+        }
 
         if (!empty($checkMobile)) {
 
@@ -1855,7 +1894,7 @@ class UserModel extends AgentModel
                         'u_state' => '0',
                         'u_department' => $data['department'],
                         'u_mobile' => $data['mobile'],
-                        'u_mail' => $data['companyEmail'],
+                        'u_mail' => $data['u_mail'],
                         'cpy_id' => $data['cpy_id'],
                         'u_cdate' => $upTimes = date("Y-m-d H:i:s")
                     ]
@@ -1889,6 +1928,30 @@ class UserModel extends AgentModel
         } else {
             _ERROR('000001', '验证码失败');
         }
-
     }
+
+    /**
+     * check mail suffix
+     * @param $data
+     * @return bool
+     */
+    private function __check_mail_suffix($data)
+    {
+        if (empty($data['u_email'])) {
+            return true;
+        }
+        $sql = "select cpy_mail_suffix from idt_company where cpy_id='{$data['cpy_id']}'";
+        $cpy_mail_suffix = $this->mysqlQuery($sql, 'all');
+        $mail_suffix = explode(",", $cpy_mail_suffix[0]['cpy_mail_suffix']);
+        $array = explode("@", $data['email']);
+        $user_mail_suffix = "@" . $array[1];
+        $state = false;
+        foreach ($mail_suffix as $key => $value) {
+            if ($mail_suffix[$key] == $user_mail_suffix) {
+                $state = true;
+            }
+        }
+        return $state;
+    }
+
 }
