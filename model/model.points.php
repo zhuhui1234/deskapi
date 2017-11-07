@@ -287,7 +287,7 @@ class PointsModel extends AgentModel
      */
     private function __getPointInfoForPointID($pointID)
     {
-        $sql = "SELECT licence_key,u_id,point_value FROM idt_points WHERE  point_id='{$pointID}'";
+        $sql = "SELECT licence_key,u_id,point_value FROM idt_points WHERE point_id='{$pointID}'";
         $ret = $this->mysqlQuery($sql, 'all');
         if ($ret) {
             return $ret[0];
