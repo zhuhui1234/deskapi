@@ -821,6 +821,14 @@ class UserModel extends AgentModel
         $rs['companyEmail'] = $ret[0]['u_mail']; //公司邮箱
         $rs['department'] = $ret[0]['u_department']; //公司邮箱
         $rs['headImg'] = "upload/head/" . $ret[0]['u_head']; //头像
+        $base_image = base64_encode(file_get_contents(ROOT_PATH . 'upload/head/' . $ret[0]['u_head']));
+
+        if (!empty($base_image)) {
+            $rs['avatar_base64'] = 'data:image/png;base64,' . $base_image;
+        } else {
+            $rs['avatar_base64'] = null;
+        }
+
         $rs['mobile'] = $ret[0]['u_mobile']; //手机
         $rs['position'] = $ret[0]['u_position']; //职位
         $rs['uname'] = $ret[0]['u_name']; //姓名
@@ -909,8 +917,8 @@ class UserModel extends AgentModel
             $imgName = $data['userID'] . '.png';//头像名称
             $imgPath = 'upload/head/' . $imgName;//头像路径
             $imgVal = base64_decode($data['headImg']);//头像格式化
-            write_to_log($data['headImg'],'_conapi');
-            write_to_log($imgVal,'_conapi');
+            write_to_log($data['headImg'], '_conapi');
+            write_to_log($imgVal, '_conapi');
             file_put_contents($imgPath, $imgVal);//返回的是字节数
             //保存头像
             $where['u_head'] = $imgName; //用户头像
@@ -929,7 +937,7 @@ class UserModel extends AgentModel
         //返回响应结果
         if (isset($ret)) {
             if ($ret == '1') {
-                _SUCCESS('000000', '修改成功');
+                _SUCCESS('000000', '修改成功', $this->getUserInfo($data));
             } else {
                 _ERROR('000002', '修改失败');
             }
@@ -1010,7 +1018,9 @@ class UserModel extends AgentModel
             $rs['list'][$a]['state'] = (int)$v['u_state']; //用户状态
             $rs['list'][$a]['loginDate'] = $v['logindate']; //最后登录时间
         }
-
+        foreach ($rs['list'] as $k => $v) {
+            $rs['list'][$k]['index'] = ($k + 1) * ($pageNo + 1);
+        }
         //返回参数-执行总数
         $rs['totalSize'] = $ret_count[0]['count_num'];
 
