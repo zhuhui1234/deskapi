@@ -889,24 +889,75 @@ class PermissionsModel extends AgentModel
     private function __checkPermission($userID, $pdt_id, $cpy_id)
     {
         $now = date('Y-m-d');
-
-        //判断用户是否有这个权限的产品
-        $sql = "SELECT COUNT(*) co FROM idt_licence
-                WHERE u_id='{$userID}' 
+        $sql_parent = "select pdt_label from idt_product where pdt_id = {$pdt_id}";
+        $ret_parent = $this->mysqlQuery($sql_parent, 'all');
+        if(empty($ret_parent[0]['pdt_label'])){
+            $rq = json_decode($ret_parent[0]['pdt_label'],true);
+            //判断用户是否有这个权限的产品
+            $sql = "SELECT licece_key FROM idt_licence
+                WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
+                AND pdt_id='{$rq['parentID']}' AND state='1' ";
+            $res = $this->mysqlQuery($sql, 'all');
+            write_to_log($sql, '_test');
+            write_to_log(json_encode($res), '_test');
+            if(count($res) >0){
+                //权限是否过期
+                $numSql = "SELECT COUNT(*) co FROM idt_permissions_number 
+                    WHERE cpy_id='{$cpy_id}' 
+                    AND pdt_id='{$rq['parentID']}'
+                    AND end_date>='{$now}' AND start_date<='{$now}'";
+                $num = $this->mysqlQuery($numSql, 'all');
+                write_to_log($numSql, '_test');
+                write_to_log(json_encode($num), '_test');
+                if($num[0]['co'] > 0){
+                    if($rq['terminal'] == 'pc'){
+                        //终端权限是否过期
+                        $terminalSql = "SELECT COUNT(*) co FROM idt_subproduct 
+                                        WHERE licence_key='{$res[0]['licence_key']}' AND pdt_id = {$rq['parentID']}
+                                        AND pc_due_time>='{$now}' AND pc_start_time<='{$now}'";
+                    }elseif($rq['terminal'] == 'mobile'){
+                        $terminalSql = "SELECT COUNT(*) co FROM idt_subproduct 
+                                        WHERE licence_key='{$res[0]['licence_key']}' AND pdt_id = {$rq['parentID']}
+                                        AND mobile_due_time>='{$now}' AND mobile_start_time<='{$now}'";
+                    }elseif($rq['terminal'] == 'ott'){
+                        $terminalSql = "SELECT COUNT(*) co FROM idt_subproduct 
+                                        WHERE licence_key='{$res[0]['licence_key']}' AND pdt_id = {$rq['parentID']}
+                                        AND ott_due_time>='{$now}' AND ott_start_time<='{$now}'";
+                    }
+                    $terminal = $this->mysqlQuery($terminalSql, 'all');
+                    if($terminal[0]['co'] >0){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                }else{
+                    return false;
+                }
+            }else{
+                return false;
+            }
+        }else{
+            //判断用户是否有这个权限的产品
+            $sql = "SELECT COUNT(*) co FROM idt_licence
+                WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
                 AND pdt_id='{$pdt_id}' AND state='1' ";
-
-        //权限是否过期
-        $numSql = "SELECT COUNT(*) co FROM idt_permissions_number 
+            $res = $this->mysqlQuery($sql, 'all');
+            write_to_log($sql, '_test');
+            write_to_log(json_encode($res), '_test');
+            if($res[0]['co'] >0){
+                //权限是否过期
+                $numSql = "SELECT COUNT(*) co FROM idt_permissions_number 
                     WHERE cpy_id='{$cpy_id}' 
                     AND pdt_id='{$pdt_id}'
                     AND end_date>='{$now}' AND start_date<='{$now}'";
-        write_to_log($sql, '_test');
-        write_to_log($numSql, '_test');
-        $res = $this->mysqlQuery($sql, 'all');
-        $num = $this->mysqlQuery($numSql, 'all');
-        write_to_log(json_encode($res), '_test');
-        write_to_log(json_encode($num), '_test');
-        return $res[0]['co'] > 0 AND $num[0]['co'] > 0;
+                $num = $this->mysqlQuery($numSql, 'all');
+                write_to_log($numSql, '_test');
+                write_to_log(json_encode($num), '_test');
+                return $num[0]['co'] > 0;
+            }else{
+                return false;
+            }
+        }
     }
 
     /**
