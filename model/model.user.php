@@ -828,6 +828,14 @@ class UserModel extends AgentModel
         $rs['companyEmail'] = $ret[0]['u_mail']; //公司邮箱
         $rs['department'] = $ret[0]['u_department']; //公司邮箱
         $rs['headImg'] = "upload/head/" . $ret[0]['u_head']; //头像
+        $base_image = base64_encode(file_get_contents(ROOT_PATH . 'upload/head/' . $ret[0]['u_head']));
+
+        if (!empty($base_image)) {
+            $rs['avatar_base64'] = 'data:image/png;base64,' . $base_image;
+        } else {
+            $rs['avatar_base64'] = null;
+        }
+
         $rs['mobile'] = $ret[0]['u_mobile']; //手机
         $rs['position'] = $ret[0]['u_position']; //职位
         $rs['uname'] = $ret[0]['u_name']; //姓名
@@ -936,7 +944,7 @@ class UserModel extends AgentModel
         //返回响应结果
         if (isset($ret)) {
             if ($ret == '1') {
-                _SUCCESS('000000', '修改成功');
+                _SUCCESS('000000', '修改成功', $this->getUserInfo($data));
             } else {
                 _ERROR('000002', '修改失败');
             }
