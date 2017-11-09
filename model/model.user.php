@@ -787,11 +787,18 @@ class UserModel extends AgentModel
         };
 
         //查询产品Key
-        $sql_productkey = "SELECT u_product_key FROM idt_user WHERE u_id='{$data['userID']}'";
+        $sql_productkey = "SELECT u_product_key,u_mail FROM idt_user WHERE u_id='{$data['userID']}'";
         $ret_productkey = $this->mysqlQuery($sql_productkey, "all");
         if ($ret_productkey[0]['u_product_key'] != "" OR $ret_productkey[0]['u_product_key'] != null) {
             _ERROR('000002', '绑定失败,该产品KEY已绑定其它账号');
         }
+        if ($ret_productkey[0]['u_mail'] == "" OR $ret_productkey[0]['u_mail'] == null) {
+            $sql_mail = "update idt_user set u_mail = '{$data['account']}' where u_id = '{$data['userID']}'";
+            $this->mysqlQuery($sql_mail);
+        }else{
+            write_to_log(json_encode($data),'_diffmail');
+        }
+
 
         //绑定成功,更新产品KEY
         $where['u_product_key'] = $ret_irdKey['iUserID']; //产品Key
