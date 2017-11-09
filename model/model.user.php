@@ -937,7 +937,7 @@ class UserModel extends AgentModel
         //返回响应结果
         if (isset($ret)) {
             if ($ret == '1') {
-                _SUCCESS('000000', '修改成功');
+                _SUCCESS('000000', '修改成功', $this->getUserInfo($data));
             } else {
                 _ERROR('000002', '修改失败');
             }
