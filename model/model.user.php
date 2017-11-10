@@ -917,6 +917,8 @@ class UserModel extends AgentModel
 
         if ($data['department'] === '') {
             $where['u_department'] = ' ';
+        }else{
+            $where['u_department'] = $data['department'];
         }
         //修改用户头像
         if ($data['headImg'] !== null) { //处理NULL
