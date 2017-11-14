@@ -1197,7 +1197,7 @@ class UserModel extends AgentModel
         }
         $sql = "select idt_product.pdt_id,pdt_name,pdt_ename,IFNULL(pnum_number,0) pnum_number,start_date,end_date,IFNULL(pnum_type,-1) pnum_type from idt_permissions_number
                 left join idt_product on idt_permissions_number.pdt_id = idt_product.pdt_id
-                where idt_product.pdt_vtype = 1 {$state}{$keyword} and pdt_sid<>0 and idt_product.pdt_id <> 38 and cpy_id = {$data['cpy_id']} and meu_id = 0 order by pdt_ename asc";
+                where idt_product.pdt_vtype = 1 {$state}{$keyword} and pdt_sid<>0 and pdt_label is null and idt_product.pdt_state = 0 and cpy_id = {$data['cpy_id']} and meu_id = 0 order by pdt_ename asc";
         $ret = $this->mysqlQuery($sql, "all");
         if (count($ret) <= 0) {
             _SUCCESS('000000', '查询成功', null);
