@@ -67,6 +67,7 @@ define('SESSION_TIME_OUT', false);
 define('COOKIE_TIME_OUT', 7 * 24 * 3600);
 //redis 失效时间
 define('REDIS_TIME_OUT', 86400);
+define('TOKEN_TIME_OUT', 14400);
 define('VERSION', 'idata_desktop_api');
 //下拉框
 define('SELECT_HOUR', 24 * 3600);
@@ -82,7 +83,7 @@ define('DEBUG_LOG', TRUE); //记录日志
 define('START_TIME', microtime(true));
 define('OPEN_ME', true);
 
-define('NEED_MAIL',['wanghaiyan@iresearch.com.cn','cswdc@icloud.com','rai@valuesccg.com','hank@iresearch.com.cn']);
+define('NEED_MAIL', ['wanghaiyan@iresearch.com.cn', 'cswdc@icloud.com', 'rai@valuesccg.com', 'hank@iresearch.com.cn']);
 
 define('NOW', date('Y-m-d H:i:s'));
 if (DEBUG) {
@@ -92,7 +93,7 @@ if (DEBUG) {
     error_reporting(0);
 }
 
-require_once (ROOT_PATH.'vendor'.DS.'autoload.php');
+require_once(ROOT_PATH . 'vendor' . DS . 'autoload.php');
 
 //引用COMMON库类文件
 require_once(ROOT_PATH . COMMON . DS . COMMON . '.fun.php');
@@ -108,7 +109,6 @@ require_once(ROOT_PATH . COMMON . DS . COMMON . '.sms.php');//开启短信服务
 require_once(ROOT_PATH . LIB . DS . LIB . '.model.php');
 require_once(ROOT_PATH . LIB . DS . LIB . '.agentmodel.php');
 require_once(ROOT_PATH . LIB . DS . LIB . '.controller.php');
-
 
 
 //初始化方法

@@ -118,7 +118,7 @@ class PermissionsController extends Controller
 
                 $exp = (time() - strtotime($userInfoByToken['tokenDate'])) / (60 * 60);
 
-                if ($exp > 4) {
+                if ($exp > TOKEN_TIME_OUT) {
                     _ERROR('40004', 'TOKEN超时');
                 }
 
