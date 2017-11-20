@@ -111,8 +111,22 @@ class PermissionsController extends Controller
 //        write_to_log(json_encode($data),'_test');
         if (!empty($data['token'])) {
             $ret = $this->model->getPermissionInfo($data);
+
+
             if ($ret) {
-                _SUCCESS('20000', 'done', ['state' => 'allow', 'data' => $ret, 'userInfo' => Model::instance('user')->_getUserInfoByToken($data)]);
+                $userInfoByToken = Model::instance('user')->_getUserInfoByToken($data);
+
+                $exp = (time() - strtotime($userInfoByToken['tokenDate'])) / (60 * 60);
+
+                if ($exp > 4) {
+                    _ERROR('40004', 'TOKEN超时');
+                }
+
+                _SUCCESS('20000', 'done', [
+                    'state' => 'allow',
+                    'data' => $ret,
+                    'userInfo' => $userInfoByToken
+                ]);
             } else {
                 _ERROR('40000', '无权使用', [
                     'state' => 'deny', 'data' => $this->model->getPdtInfo($data['pdt_id'])]);
@@ -230,9 +244,9 @@ class PermissionsController extends Controller
         $ret = $this->model->checkCode($data);
 
         if ($ret) {
-            _SUCCESS('20000','验证通过,我们的销售会在三个工作日内联系您.');
-        }else{
-            _ERROR('40000','验证失败');
+            _SUCCESS('20000', '验证通过,我们的销售会在三个工作日内联系您.');
+        } else {
+            _ERROR('40000', '验证失败');
         }
 
     }
