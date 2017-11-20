@@ -697,13 +697,16 @@ class PermissionsModel extends AgentModel
     public function addPermission($pp_list, $user_obj, $ird_user_id)
     {
         if (!empty($pp_list)) {
+            foreach ($pp_list as $key => $value){
+                $pdtarr[] = $pp_list[$key]['ppname'];
+            }
             foreach ($pp_list as $pp) {
                 $pdt = $this->tranIRDPdtName($pp['ppname']);
                 if ($pdt) {
                     $checkPermission = $this->checkPermission($user_obj['cpy_id'], $pdt);
                     write_to_log('check permission'. json_encode($checkPermission), '_from_ird');
                     if ($checkPermission) {
-                        $this->__addPdtPermission($pdt, $user_obj['userid'], $user_obj['cpy_id'], $ird_user_id);
+                        $this->__addPdtPermission($pdtarr,$pdt, $user_obj['userid'], $user_obj['cpy_id'], $ird_user_id);
                     }
                 }
             }
@@ -726,12 +729,11 @@ class PermissionsModel extends AgentModel
     ################################                     #################################
     ######################################################################################
 
-    private function __addPdtPermission($pdtId, $userID, $cpy_id, $ird_user_id)
+    private function __addPdtPermission($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id)
     {
         $upTimes = date("Y-m-d H:i:s");
-        $sql = "select licence_key from idt_licence where cpy_id = $cpy_id and pdt_id = $pdtId and u_id is null and state = 1 limit 1";
-        $rs = $this->mysqlQuery($sql, 'all');
-        if(count($rs)>0){
+        $rs = $this->__getLicenceKey($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id);
+        if($rs && count($rs)>0){
             $update_data = [
                 'u_id' => $userID,
                 'lic_author_uid' => '8cbd411a-28ae-11e7-8cab-0017fa012439',
@@ -744,6 +746,109 @@ class PermissionsModel extends AgentModel
             return $ret !== '1';
         }else{
             return false;
+        }
+    }
+
+    /**
+     * @array $pdtarr 产品列表
+     * @param $pdtId 产品ID
+     * @param $userID 用户ID
+     * @param $cpy_id 公司ID
+     * @param $ird_user_id IRD用户ID
+     * @return array|bool|string
+     */
+    private function __getLicenceKey($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id)
+    {
+        $sql_parent = "select pdt_label from idt_product where pdt_id = {$pdtId}";
+        $ret_parent = $this->mysqlQuery($sql_parent, 'all');
+        if(!empty($ret_parent[0]['pdt_label'])){
+            $rq = json_decode($ret_parent[0]['pdt_label'],true);
+            //判断用户是否有这个权限的产品
+            $sql = "SELECT licece_key FROM idt_licence
+            WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
+            AND pdt_id='{$rq['parentID']}' AND state= 1";
+            $rs = $this->mysqlQuery($sql, 'all');
+            if(count($rs) >0){
+                return false;
+            }else {
+                if($pdtId == 12 ){
+                    if(in_array('mut',$pdtarr)){
+                        $terminalSql = "SELECT licence_key FROM idt_licence
+                                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                                WHERE idt_licence.pdt_id = {$rq['parentID']} and u_id is null AND pc_due_time is not null AND mobile_due_time is not null limit 1";
+                    }else{
+                        $terminalSql = "SELECT licence_key FROM idt_licence
+                                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                                WHERE idt_licence.pdt_id = {$rq['parentID']} and u_id is null AND pc_due_time is not null AND mobile_due_time is null limit 1";
+                    }
+                }elseif($pdtId == 37){
+                    if(in_array('iut',$pdtarr)){
+                        $terminalSql = "SELECT licence_key FROM idt_licence
+                                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                                WHERE idt_licence.pdt_id = {$rq['parentID']} and u_id is null AND pc_due_time is not null AND mobile_due_time is not null limit 1";
+                    }else{
+                        $terminalSql = "SELECT licence_key FROM idt_licence
+                                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                                WHERE idt_licence.pdt_id = {$rq['parentID']} and u_id is null AND pc_due_time is null AND mobile_due_time is not null limit 1";
+                    }
+                }elseif($pdtId == 45){
+                    $mvtSql = "select ird_tmp_id from ird_user_tmp where pdt_type = 'mvt' and ird_cu_id = '{$ird_user_id}' and idt_user_id is null";
+                    $ovtSql = "select ird_tmp_id from ird_user_tmp where pdt_type = 'ovt' and ird_cu_id = '{$ird_user_id}' and idt_user_id is null";
+                    $mvtret = $this->mysqlQuery($mvtSql,'all');
+                    $ovtret = $this->mysqlQuery($ovtSql,'all');
+                    if(count($mvtret) >0 && count($ovtret) >0){
+                        $this->mysqlEdit('ird_user_tmp',
+                            ['idt_user_Id' => $userID,'idt_cpy_id' => $cpy_id], ['ird_tmp_id' => $mvtret[0]['ird_tmp_id']]);
+                        $this->mysqlEdit('ird_user_tmp',
+                            ['idt_user_Id' => $userID,'idt_cpy_id' => $cpy_id], ['ird_tmp_id' => $ovtret[0]['ird_tmp_id']]);
+                        $terminalSql = "SELECT licence_key FROM idt_licence
+                                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                                WHERE idt_licence.pdt_id = {$rq['parentID']} and u_id is null AND pc_due_time is not null AND mobile_due_time is not null AND ott_due_time is not null limit 1";
+                    }elseif (count($mvtret) >0){
+                        $this->mysqlEdit('ird_user_tmp',
+                            ['idt_user_Id' => $userID,'idt_cpy_id' => $cpy_id], ['ird_tmp_id' => $mvtret[0]['ird_tmp_id']]);
+                        $terminalSql = "SELECT licence_key FROM idt_licence
+                                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                                WHERE idt_licence.pdt_id = {$rq['parentID']} and u_id is null AND pc_due_time is not null AND mobile_due_time is not null AND ott_due_time is null limit 1";
+                    }elseif (count($ovtret) >0){
+                        $this->mysqlEdit('ird_user_tmp',
+                            ['idt_user_Id' => $userID,'idt_cpy_id' => $cpy_id], ['ird_tmp_id' => $ovtret[0]['ird_tmp_id']]);
+                        $terminalSql = "SELECT licence_key FROM idt_licence
+                                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                                WHERE idt_licence.pdt_id = {$rq['parentID']} and u_id is null AND pc_due_time is not null AND mobile_due_time is null AND ott_due_time is not null limit 1";
+                    }else{
+                        $terminalSql = "SELECT licence_key FROM idt_licence
+                                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                                WHERE idt_licence.pdt_id = {$rq['parentID']} and u_id is null AND pc_due_time is not null AND mobile_due_time is null AND ott_due_time is null limit 1";
+                    }
+                }
+                return $this->mysqlQuery($terminalSql, 'all');
+            }
+        }else{
+            $sql = "select licence_key from idt_licence where cpy_id = $cpy_id and pdt_id = $pdtId and u_id = '{$userID}' and state = 1";
+            $rs = $this->mysqlQuery($sql, 'all');
+            if(count($rs) > 0){
+                return false;
+            }else{
+                if($pdtId == 42){
+                    if(in_array('iadt',$pdtarr) && in_array('madt',$pdtarr)){
+                        $sql = "SELECT licence_key FROM idt_licence
+                                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                                WHERE idt_licence.pdt_id = $pdtId and u_id is null AND pc_due_time is not null AND mobile_due_time is not null limit 1";
+                    }elseif(in_array('iadt',$pdtarr)){
+                        $sql = "SELECT licence_key FROM idt_licence
+                                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                                WHERE idt_licence.pdt_id = $pdtId and u_id is null AND pc_due_time is not null AND mobile_due_time is null limit 1";
+                    }elseif(in_array('madt',$pdtarr)){
+                        $sql = "SELECT licence_key FROM idt_licence
+                                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                                WHERE idt_licence.pdt_id = $pdtId and u_id is null AND pc_due_time is null AND mobile_due_time is not null limit 1";
+                    }
+                }else {
+                    $sql = "select licence_key from idt_licence where cpy_id = $cpy_id and pdt_id = $pdtId and u_id is null and state = 1 limit 1";
+                }
+                return $this->mysqlQuery($sql, 'all');
+            }
         }
     }
 
@@ -891,7 +996,7 @@ class PermissionsModel extends AgentModel
         $now = date('Y-m-d');
         $sql_parent = "select pdt_label from idt_product where pdt_id = {$pdt_id}";
         $ret_parent = $this->mysqlQuery($sql_parent, 'all');
-        if(empty($ret_parent[0]['pdt_label'])){
+        if(!empty($ret_parent[0]['pdt_label'])){
             $rq = json_decode($ret_parent[0]['pdt_label'],true);
             //判断用户是否有这个权限的产品
             $sql = "SELECT licece_key FROM idt_licence
