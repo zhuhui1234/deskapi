@@ -839,7 +839,7 @@ class UserModel extends AgentModel
     public function _getUserInfoByToken($data)
     {
         $sql = "SELECT dbb.cpy_cname,dbb.cpy_id,dba.u_mail,dba.u_head,
-                dba.u_mobile,dba.u_position,dba.u_permissions,dba.u_name,dba.u_id ,devdb.dev_name, dba.dev_id
+                dba.u_mobile,dba.u_position,dba.u_permissions,dba.u_name,dba.u_id ,devdb.dev_name, dba.dev_id,dba.u_edate
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                 LEFT JOIN idt_devs devdb on (dba.dev_id = devdb.dev_id)
@@ -878,6 +878,7 @@ class UserModel extends AgentModel
             'mobile' => $ret[0]['u_mobile'],
             'position' => $ret[0]['u_position'],
             'uname' => $ret[0]['u_name'],
+            'tokenDate' => $ret[0]['u_edate'],
             'uid' => $ret[0]['u_id'],
             'devID' => $ret[0]['dev_id'],
             'devName' => $ret[0]['dev_name'],
@@ -917,8 +918,8 @@ class UserModel extends AgentModel
             $imgName = $data['userID'] . '.png';//头像名称
             $imgPath = 'upload/head/' . $imgName;//头像路径
             $imgVal = base64_decode($data['headImg']);//头像格式化
-            write_to_log($data['headImg'],'_conapi');
-            write_to_log($imgVal,'_conapi');
+            write_to_log($data['headImg'], '_conapi');
+            write_to_log($imgVal, '_conapi');
             file_put_contents($imgPath, $imgVal);//返回的是字节数
             //保存头像
             $where['u_head'] = $imgName; //用户头像
@@ -1018,8 +1019,8 @@ class UserModel extends AgentModel
             $rs['list'][$a]['state'] = (int)$v['u_state']; //用户状态
             $rs['list'][$a]['loginDate'] = $v['logindate']; //最后登录时间
         }
-        foreach ($rs['list'] as $k => $v){
-            $rs['list'][$k]['index'] = ($k+1) * ($pageNo+1);
+        foreach ($rs['list'] as $k => $v) {
+            $rs['list'][$k]['index'] = ($k + 1) * ($pageNo + 1);
         }
         //返回参数-执行总数
         $rs['totalSize'] = $ret_count[0]['count_num'];
