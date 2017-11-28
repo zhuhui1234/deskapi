@@ -1205,7 +1205,7 @@ class UserModel extends AgentModel
         } else {
             foreach ($ret as $key => $value) {
                 $sql = "SELECT IFNULL(COUNT(1),0) have_pnum 
-                FROM idt_licence WHERE 1=1 AND state=1 AND cpy_id={$data['cpy_id']} AND pdt_id={$ret[$key]['pdt_id']}";
+                FROM idt_licence WHERE 1=1 AND state=1 AND cpy_id={$data['cpy_id']} AND pdt_id={$ret[$key]['pdt_id']} AND u_id is not null";
                 $have_pnum = $this->mysqlQuery($sql, "all");
                 $rs['list'][$key]['productID'] = $ret[$key]['pdt_id'];
                 $rs['list'][$key]['productName'] = $ret[$key]['pdt_ename'];
