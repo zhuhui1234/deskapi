@@ -999,7 +999,7 @@ class PermissionsModel extends AgentModel
         if(!empty($ret_parent[0]['pdt_label'])){
             $rq = json_decode($ret_parent[0]['pdt_label'],true);
             //判断用户是否有这个权限的产品
-            $sql = "SELECT licece_key FROM idt_licence
+            $sql = "SELECT licence_key FROM idt_licence
                 WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
                 AND pdt_id='{$rq['parentID']}' AND state='1' ";
             $res = $this->mysqlQuery($sql, 'all');
