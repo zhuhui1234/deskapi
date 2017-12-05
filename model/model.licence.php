@@ -24,11 +24,11 @@ class LicenceModel extends AgentModel
             _ERROR('000002', '产品ID不能为空');
         }
         if($data['state'] == 1){
-            $state = " and idt_licence.u_id is null";
+            $state = " and (idt_licence.u_id is null or idt_licence.u_id = '{$data['licenceUserID']}')";
         }elseif ($data['state'] == 2){
             $state = " and idt_licence.u_id is not null";
         }else{
-
+            $state = " and 1=1";
         }
         switch($data['terminal']){
             case 1:
@@ -63,7 +63,7 @@ class LicenceModel extends AgentModel
                 where idt_licence.state = 1 and idt_licence.cpy_id = {$data['companyFullNameID']} and idt_licence.pdt_id = {$data['productID']}{$keyword}{$state}{$terminal} order by points desc LIMIT {$pageNo},{$pageSize}";
         $ret = $this->mysqlQuery($sql, "all");
         foreach($ret as $key => $value){
-            if($ret[$key]['u_id'] == $data['userID']){
+            if($ret[$key]['u_id'] == $data['licenceUserID']){
                 $own[$key]['licenceID'] = $ret[$key]['licence_id'];
                 $own[$key]['licenceKey'] = $ret[$key]['licence_key'];
                 $own[$key]['companyFullNameID'] = $ret[$key]['cpy_id'];
@@ -194,7 +194,7 @@ class LicenceModel extends AgentModel
         if(empty($data['licenceKey'])){
             _ERROR('000002', '许可证Key不能为空');
         }
-        $sql = "update idt_licence set u_id = null,lic_edate = $upTimes,lic_author_uid = '{$data['userID']}' where licence_key = '{$data['licenceKey']}'";
+        $sql = "update idt_licence set u_id = null,lic_edate = '$upTimes',lic_author_uid = '{$data['userID']}' where licence_key = '{$data['licenceKey']}'";
         $ret = $this->mysqlQuery($sql);
         if($ret){
             //验证并返回响应结果
