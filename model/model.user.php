@@ -284,7 +284,7 @@ class UserModel extends AgentModel
                     ];
 
                     //judge binding
-                    if ($ret[0]['u_permissions'] == 0) {
+                    if ($ret[0]['u_permissions'] == 0 || $ret[0]['u_product_key'] == null) {
                         //guest if the data has ird guid
                         if (!empty($data['ird_user'])) {
                             if ((int)$data['ird_user']['iUserID'] > 0) {

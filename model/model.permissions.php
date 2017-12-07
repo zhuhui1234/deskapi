@@ -699,6 +699,7 @@ class PermissionsModel extends AgentModel
         if (!empty($pp_list)) {
             foreach ($pp_list as $key => $value){
                 $pdtarr[] = $pp_list[$key]['ppname'];
+                $pdttimearr[$pp_list[$key]['ppid']] = $pp_list[$key]['proexpire'];
             }
             foreach ($pp_list as $pp) {
                 $pdt = $this->tranIRDPdtName($pp['ppname']);
@@ -706,7 +707,7 @@ class PermissionsModel extends AgentModel
                     $checkPermission = $this->checkPermission($user_obj['cpy_id'], $pdt);
                     write_to_log('check permission'. json_encode($checkPermission), '_from_ird');
                     if ($checkPermission) {
-                        $this->__addPdtPermission($pdtarr,$pdt, $user_obj['userid'], $user_obj['cpy_id'], $ird_user_id);
+                        $this->__addPdtPermission($pdtarr,$pdt, $user_obj['userid'], $user_obj['cpy_id'], $ird_user_id,$pdttimearr,$pp);
                     }
                 }
             }
@@ -729,7 +730,7 @@ class PermissionsModel extends AgentModel
     ################################                     #################################
     ######################################################################################
 
-    private function __addPdtPermission($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id)
+    private function __addPdtPermission($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id,$pdttimearr,$pp)
     {
         $upTimes = date("Y-m-d H:i:s");
         $rs = $this->__getLicenceKey($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id);
@@ -744,8 +745,391 @@ class PermissionsModel extends AgentModel
             $ret = $this->mysqlEdit('idt_licence', $update_data, ['licence_key' => $rs[0]['licence_key']]);
             write_to_log('ret: ' . json_encode($ret), '_from_ird');
             return $ret !== '1';
+        }elseif($rs){
+            return $this->__createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id,$pdttimearr,$pp);
         }else{
             return false;
+        }
+    }
+
+    private function __createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id,$pdttimearr,$pp)
+    {
+        $upTimes = date("Y-m-d H:i:s");
+        $sql_parent = "select pdt_label from idt_product where pdt_id = {$pdtId}";
+        $ret_parent = $this->mysqlQuery($sql_parent, 'all');
+        if(!empty($ret_parent[0]['pdt_label'])){
+            $rq = json_decode($ret_parent[0]['pdt_label'],true);
+            //判断用户是否有这个权限的产品
+            if($pdtId == 12 ){
+                $sql = "select pnum_id,end_date from idt_permissiona_number where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
+                $ret = $this->mysqlQuery($sql,"all");
+                $sql_default_points = "select IFNULL(pdt_default_points,0) pdt_default_points from idt_product where pdt_id = {$rq['parentID']}";
+                $pdt_default_points = $this->mysqlQuery($sql_default_points, "all");
+                $lic['licence_key'] = getGUID();
+                $lic['u_id'] = $userID;
+                $lic['cpy_id'] = $cpy_id;
+                $lic['pdt_id'] = $rq['parentID'];
+                $lic['points'] = $pdt_default_points[0]['pdt_default_points'];
+                $lic['lic_author_uid'] = "admin@iresearch.com.cn";
+                $rs['lic_cdate'] = $upTimes;
+                $rs['lic_edate'] = $upTimes;
+                $rs['state'] = 1;
+                $rs['lic_comment'] = 'from ird';
+                $point['licenceKey'] = $lic['licence_key'];
+                $point['pdt_id'] = $rq['parentID'];
+                $point['points'] = $lic['points'];
+                $this->mysqlInsert('idt_licence', $rs);
+                $this->__newtopUp($point);
+                if(count($ret) >0){
+                    $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
+                    if($ird_end_date > $ret[0]['end_date']){
+                        $end_date = "and end_date = '{$ird_end_date}'";
+                    }else{
+                        $end_date = "";
+                    }
+                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']} {$end_date}";
+                    $ret_pnum = $this->mysqlQuery($pnumSql);
+                }else{
+                    $where['cpy_id'] = $cpy_id; //公司ID
+                    $where['pdt_id'] = $rq['parentID']; //产品ID
+                    $where['meu_id'] = 0; //报告ID
+                    $where['pnum_number'] = 1; //权限数量
+                    $where['pnum_cdate'] = $upTimes; //创建时间
+                    $where['pnum_edate'] = $upTimes; //更新时间
+                    $where['start_date'] = $upTimes; //开通日期
+                    $where['end_date'] = date("Y-m-d",strtotime($pp['proexpire'])); //到期日期
+                    $where['pnum_type'] = 0;
+                    $ret_pnum = $this->mysqlInsert('idt_permissions_number', $where);
+                }
+                if(in_array('mut',$pdtarr)){
+                    $subproduct['licence_key'] = $lic['licence_key'];
+                    $subproduct['pdt_id'] = $rq['parentID'];
+                    $subproduct['pc_start_time'] = $upTimes;
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['mobile_start_time'] = $upTimes;
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr[700]['proexpire']));
+                    $subproduct['spdt_comment'] = "from ird";
+                }else{
+                    $subproduct['licence_key'] = $lic['licence_key'];
+                    $subproduct['pdt_id'] = $rq['parentID'];
+                    $subproduct['pc_start_time'] = $upTimes;
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['spdt_comment'] = "from ird";
+                }
+                return $this->mysqlInsert('idt_subproduct',$subproduct);
+            }elseif($pdtId == 37){
+                $sql = "select pnum_id,end_date from idt_permissiona_number where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
+                $ret = $this->mysqlQuery($sql,"all");
+                $sql_default_points = "select IFNULL(pdt_default_points,0) pdt_default_points from idt_product where pdt_id = {$rq['parentID']}";
+                $pdt_default_points = $this->mysqlQuery($sql_default_points, "all");
+                $lic['licence_key'] = getGUID();
+                $lic['u_id'] = $userID;
+                $lic['cpy_id'] = $cpy_id;
+                $lic['pdt_id'] = $rq['parentID'];
+                $lic['points'] = $pdt_default_points[0]['pdt_default_points'];
+                $lic['lic_author_uid'] = "admin@iresearch.com.cn";
+                $rs['lic_cdate'] = $upTimes;
+                $rs['lic_edate'] = $upTimes;
+                $rs['state'] = 1;
+                $rs['lic_comment'] = 'from ird';
+                $point['licenceKey'] = $lic['licence_key'];
+                $point['pdt_id'] = $rq['parentID'];
+                $point['points'] = $lic['points'];
+                $this->mysqlInsert('idt_licence', $rs);
+                $this->__newtopUp($point);
+                if(count($ret) >0){
+                    $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
+                    if($ird_end_date > $ret[0]['end_date']){
+                        $end_date = "and end_date = '{$ird_end_date}'";
+                    }else{
+                        $end_date = "";
+                    }
+                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']} {$end_date}";
+                    $ret_pnum = $this->mysqlQuery($pnumSql);
+                }else{
+                    $where['cpy_id'] = $cpy_id; //公司ID
+                    $where['pdt_id'] = $rq['parentID']; //产品ID
+                    $where['meu_id'] = 0; //报告ID
+                    $where['pnum_number'] = 1; //权限数量
+                    $where['pnum_cdate'] = $upTimes; //创建时间
+                    $where['pnum_edate'] = $upTimes; //更新时间
+                    $where['start_date'] = $upTimes; //开通日期
+                    $where['end_date'] = date("Y-m-d",strtotime($pp['proexpire'])); //到期日期
+                    $where['pnum_type'] = 0;
+                    $ret_pnum = $this->mysqlInsert('idt_permissions_number', $where);
+                }
+                if(in_array('iut',$pdtarr)){
+                    $subproduct['licence_key'] = $lic['licence_key'];
+                    $subproduct['pdt_id'] = $rq['parentID'];
+                    $subproduct['pc_start_time'] = $upTimes;
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr[200]['proexpire']));
+                    $subproduct['mobile_start_time'] = $upTimes;
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['spdt_comment'] = "from ird";
+                }else{
+                    $subproduct['licence_key'] = $lic['licence_key'];
+                    $subproduct['pdt_id'] = $rq['parentID'];
+                    $subproduct['mobile_start_time'] = $upTimes;
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['spdt_comment'] = "from ird";
+                }
+                return $this->mysqlInsert('idt_subproduct',$subproduct);
+            }elseif($pdtId == 45){
+                $sql = "select pnum_id,end_date from idt_permissiona_number where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
+                $ret = $this->mysqlQuery($sql,"all");
+                $sql_default_points = "select IFNULL(pdt_default_points,0) pdt_default_points from idt_product where pdt_id = {$rq['parentID']}";
+                $pdt_default_points = $this->mysqlQuery($sql_default_points, "all");
+                $lic['licence_key'] = getGUID();
+                $lic['u_id'] = $userID;
+                $lic['cpy_id'] = $cpy_id;
+                $lic['pdt_id'] = $rq['parentID'];
+                $lic['points'] = $pdt_default_points[0]['pdt_default_points'];
+                $lic['lic_author_uid'] = "admin@iresearch.com.cn";
+                $rs['lic_cdate'] = $upTimes;
+                $rs['lic_edate'] = $upTimes;
+                $rs['state'] = 1;
+                $rs['lic_comment'] = 'from ird';
+                $point['licenceKey'] = $lic['licence_key'];
+                $point['pdt_id'] = $rq['parentID'];
+                $point['points'] = $lic['points'];
+                $this->mysqlInsert('idt_licence', $rs);
+                $this->__newtopUp($point);
+                if(count($ret) >0){
+                    $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
+                    if($ird_end_date > $ret[0]['end_date']){
+                        $end_date = "and end_date = '{$ird_end_date}'";
+                    }else{
+                        $end_date = "";
+                    }
+                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']} {$end_date}";
+                    $ret_pnum = $this->mysqlQuery($pnumSql);
+                }else{
+                    $where['cpy_id'] = $cpy_id; //公司ID
+                    $where['pdt_id'] = $rq['parentID']; //产品ID
+                    $where['meu_id'] = 0; //报告ID
+                    $where['pnum_number'] = 1; //权限数量
+                    $where['pnum_cdate'] = $upTimes; //创建时间
+                    $where['pnum_edate'] = $upTimes; //更新时间
+                    $where['start_date'] = $upTimes; //开通日期
+                    $where['end_date'] = date("Y-m-d",strtotime($pp['proexpire'])); //到期日期
+                    $where['pnum_type'] = 0;
+                    $ret_pnum = $this->mysqlInsert('idt_permissions_number', $where);
+                }
+                $mvtSql = "select ird_tmp_id from ird_user_tmp where pdt_type = 'mvt' and ird_cu_id = '{$ird_user_id}' and idt_user_id is null";
+                $ovtSql = "select ird_tmp_id from ird_user_tmp where pdt_type = 'ovt' and ird_cu_id = '{$ird_user_id}' and idt_user_id is null";
+                $mvtret = $this->mysqlQuery($mvtSql,'all');
+                $ovtret = $this->mysqlQuery($ovtSql,'all');
+                if(count($mvtret) >0 && count($ovtret) >0){
+                    $subproduct['licence_key'] = $lic['licence_key'];
+                    $subproduct['pdt_id'] = $rq['parentID'];
+                    $subproduct['pc_start_time'] = $upTimes;
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['mobile_start_time'] = $upTimes;
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['ott_start_time'] = $upTimes;
+                    $subproduct['ott_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['spdt_comment'] = "from ird";
+                }elseif (count($mvtret) >0){
+                    $subproduct['licence_key'] = $lic['licence_key'];
+                    $subproduct['pdt_id'] = $rq['parentID'];
+                    $subproduct['pc_start_time'] = $upTimes;
+                    $subproduct['pc_due_time'] = ddate("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['mobile_start_time'] = $upTimes;
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['spdt_comment'] = "from ird";
+                }elseif (count($ovtret) >0){
+                    $subproduct['licence_key'] = $lic['licence_key'];
+                    $subproduct['pdt_id'] = $rq['parentID'];
+                    $subproduct['pc_start_time'] = $upTimes;
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['ott_start_time'] = $upTimes;
+                    $subproduct['ott_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['spdt_comment'] = "from ird";
+                }else{
+                    $subproduct['licence_key'] = $lic['licence_key'];
+                    $subproduct['pdt_id'] = $rq['parentID'];
+                    $subproduct['pc_start_time'] = $upTimes;
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['spdt_comment'] = "from ird";
+                }
+                return $this->mysqlInsert('idt_subproduct',$subproduct);
+            }
+        }else{
+            if($pdtId == 42){
+                $sql = "select pnum_id,end_date from idt_permissiona_number where cpy_id = {$cpy_id} and pdt_id = $pdtId";
+                $ret = $this->mysqlQuery($sql,"all");
+                $sql_default_points = "select IFNULL(pdt_default_points,0) pdt_default_points from idt_product where pdt_id = $pdtId";
+                $pdt_default_points = $this->mysqlQuery($sql_default_points, "all");
+                $lic['licence_key'] = getGUID();
+                $lic['u_id'] = $userID;
+                $lic['cpy_id'] = $cpy_id;
+                $lic['pdt_id'] = $pdtId;
+                $lic['points'] = $pdt_default_points[0]['pdt_default_points'];
+                $lic['lic_author_uid'] = "admin@iresearch.com.cn";
+                $rs['lic_cdate'] = $upTimes;
+                $rs['lic_edate'] = $upTimes;
+                $rs['state'] = 1;
+                $rs['lic_comment'] = 'from ird';
+                $point['licenceKey'] = $lic['licence_key'];
+                $point['pdt_id'] = $pdtId;
+                $point['points'] = $lic['points'];
+                $this->mysqlInsert('idt_licence', $rs);
+                $this->__newtopUp($point);
+                if(count($ret) >0){
+                    $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
+                    if($ird_end_date > $ret[0]['end_date']){
+                        $end_date = "and end_date = '{$ird_end_date}'";
+                    }else{
+                        $end_date = "";
+                    }
+                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']} {$end_date}";
+                    $ret_pnum = $this->mysqlQuery($pnumSql);
+                }else{
+                    $where['cpy_id'] = $cpy_id; //公司ID
+                    $where['pdt_id'] = $pdtId; //产品ID
+                    $where['meu_id'] = 0; //报告ID
+                    $where['pnum_number'] = 1; //权限数量
+                    $where['pnum_cdate'] = $upTimes; //创建时间
+                    $where['pnum_edate'] = $upTimes; //更新时间
+                    $where['start_date'] = $upTimes; //开通日期
+                    $where['end_date'] = date("Y-m-d",strtotime($pp['proexpire'])); //到期日期
+                    $where['pnum_type'] = 0;
+                    $ret_pnum = $this->mysqlInsert('idt_permissions_number', $where);
+                }
+                if(in_array('iadt',$pdtarr) && in_array('madt',$pdtarr)){
+                    $subproduct['licence_key'] = $lic['licence_key'];
+                    $subproduct['pdt_id'] = $pdtId;
+                    $subproduct['pc_start_time'] = $upTimes;
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr[100]['proexpire']));
+                    $subproduct['mobile_start_time'] = $upTimes;
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr[2000]['proexpire']));
+                    $subproduct['spdt_comment'] = "from ird";
+                }elseif(in_array('iadt',$pdtarr)){
+                    $subproduct['licence_key'] = $lic['licence_key'];
+                    $subproduct['pdt_id'] = $pdtId;
+                    $subproduct['pc_start_time'] = $upTimes;
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr[100]['proexpire']));
+                    $subproduct['spdt_comment'] = "from ird";
+                }elseif(in_array('madt',$pdtarr)){
+                    $subproduct['licence_key'] = $lic['licence_key'];
+                    $subproduct['pdt_id'] = $pdtId;
+                    $subproduct['mobile_start_time'] = $upTimes;
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr[2000]['proexpire']));
+                    $subproduct['spdt_comment'] = "from ird";
+                }
+                return $this->mysqlInsert('idt_subproduct',$subproduct);
+            }else {
+                $sql = "select pnum_id,end_date from idt_permissiona_number where cpy_id = {$cpy_id} and pdt_id = $pdtId";
+                $ret = $this->mysqlQuery($sql,"all");
+                $lic['licence_key'] = getGUID();
+                $lic['u_id'] = $userID;
+                $lic['cpy_id'] = $cpy_id;
+                $lic['pdt_id'] = $pdtId;
+                $lic['lic_author_uid'] = "admin@iresearch.com.cn";
+                $rs['lic_cdate'] = $upTimes;
+                $rs['lic_edate'] = $upTimes;
+                $rs['state'] = 1;
+                $rs['lic_comment'] = 'from ird';
+                $this->mysqlInsert('idt_licence', $rs);
+                if(count($ret) >0){
+                    $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
+                    if($ird_end_date > $ret[0]['end_date']){
+                        $end_date = "and end_date = '{$ird_end_date}'";
+                    }else{
+                        $end_date = "";
+                    }
+                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']} {$end_date}";
+                    return $this->mysqlQuery($pnumSql);
+                }else{
+                    $where['cpy_id'] = $cpy_id; //公司ID
+                    $where['pdt_id'] = $pdtId; //产品ID
+                    $where['meu_id'] = 0; //报告ID
+                    $where['pnum_number'] = 1; //权限数量
+                    $where['pnum_cdate'] = $upTimes; //创建时间
+                    $where['pnum_edate'] = $upTimes; //更新时间
+                    $where['start_date'] = $upTimes; //开通日期
+                    $where['end_date'] = date("Y-m-d",strtotime($pp['proexpire'])); //到期日期
+                    $where['pnum_type'] = 0;
+                    return $this->mysqlInsert('idt_permissions_number', $where);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param $data
+     */
+    private function __newtopUp($data)
+    {
+        if (is_array($data)) {
+            $data = [
+                'type' => 1,
+                'licence_key' => $data['licenceKey'],
+                'point_explain' => "充值" . $data['points'] . "积分",
+                'point_value' => $data['points'],
+                'pdt_id' => $data['pdt_id'],
+                'u_id' => "11111111-1111-1111-1111-111111111111",
+                'balance' =>  $this->__computingBalancePoint($data['licenceKey'])
+            ];
+            if (is_numeric($data['point_value'])) {
+                if ($data['point_value'] >= 0) {
+                    if (floor($data['point_value']) == $data['point_value']) {
+
+                    } else {
+                        _ERROR('001', '积分格式错误');
+                    }
+                } else {
+                    _ERROR('001', '积分格式错误');
+                }
+            } else {
+                _ERROR('001', '积分格式错误');
+            }
+            $this->__insertRow($data);
+        }
+    }
+
+    /**
+     * computing balance point
+     *
+     * @param $licenceKey
+     * @return array
+     */
+    private function __computingBalancePoint($licenceKey)
+    {
+        $positiveNumSQL = "SELECT sum(point_value) as positiveNum FROM idt_points WHERE type <= 5 AND licence_key='{$licenceKey}'";
+        $negativeNumSQL = "SELECT sum(point_value) as negativeNum FROM idt_points WHERE type > 5 AND licence_key='{$licenceKey}'";
+        $positiveNum = $this->mysqlQuery($positiveNumSQL, 'all');
+        $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
+        $ret = (int)$positiveNum[0]['positivenum'] - (int)$negativeNum[0]['negativenum'];
+        return $ret;
+    }
+
+    /**
+     * insert row data
+     *
+     * @param array $data
+     * @return array|int|string
+     */
+    private function __insertRow(array $data)
+    {
+        unset($data['token']);
+        if (empty($data['u_id'])) {
+            _ERROR('002', 'no user id');
+        }
+
+        if (empty($data['type'])) {
+            _ERROR('002', 'no point type');
+        }
+
+        if (empty($data['point_explain'])) {
+            _ERROR('002', 'no comment');
+        }
+
+        $ret = $this->mysqlInsert('idt_points', $data);
+        if ($ret) {
+            return $ret;
+        } else {
+            _ERROR('002', $data);
         }
     }
 
