@@ -284,7 +284,7 @@ class UserModel extends AgentModel
                     ];
 
                     //judge binding
-                    if ($ret[0]['u_permissions'] == 0) {
+                    if ($ret[0]['u_permissions'] == 0 || $ret[0]['u_product_key'] == null) {
                         //guest if the data has ird guid
                         if (!empty($data['ird_user'])) {
                             if ((int)$data['ird_user']['iUserID'] > 0) {
@@ -1768,11 +1768,32 @@ class UserModel extends AgentModel
             write_to_log('[binding fails] u_id:' . $u_id . ' ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
             return false;
         } else {
+            if($this->__checkEmail($ird_user['UserName'])){
+                $this->mysqlEdit('idt_user',['u_mail' => $ird_user['UserName']],"u_id='{$u_id}'");
+                write_to_log('[email SUCCESS]  u_id ' . $u_id . ', ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
+            }else{
+                write_to_log('[email fails]  u_id ' . $u_id . ', ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
+            }
             write_to_log('[binding SUCCESS]  u_id ' . $u_id . ', ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
             return $this->mysqlEdit('idt_user', ['u_product_key' => $ird_user['iUserID']], "u_id='{$u_id}'");
         }
 
 
+    }
+
+    /**
+     * @param $mail
+     * @return bool
+     */
+    private function __checkEmail($mail)
+    {
+        $sql = "SELECT u_permissions FROM idt_user WHERE u_mail='{$mail}'";
+        $ret = $this->mysqlQuery($sql, "all");
+        if(count($ret) >0){
+            return false;
+        }else{
+            return true;
+        }
     }
 
     /**
