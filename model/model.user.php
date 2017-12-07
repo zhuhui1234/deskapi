@@ -30,12 +30,12 @@ class UserModel extends AgentModel
             return ['code' => '500', 'state' => false, 'msg' => 'uuid不能为空'];
 
         } else {
-            $sql = "SELECT count(u_mobile) AS cu FROM idatadb.idt_user WHERE 1=1 AND u_wxunid='{$uuid}' AND u_state='0' ";
+            $sql = "SELECT count(u_mobile) AS cu FROM idt_user WHERE 1=1 AND u_wxunid='{$uuid}' AND u_state='0' ";
 
             $ret = $this->mysqlQuery($sql, 'all');
 
             if ((int)$ret[0]['cu'] > 0) {
-                $mobileSQL = "SELECT u_mobile AS cu FROM idatadb.idt_user WHERE 1=1 AND u_wxunid='{$uuid}' AND u_state='0' ";
+                $mobileSQL = "SELECT u_mobile AS cu FROM idt_user WHERE 1=1 AND u_wxunid='{$uuid}' AND u_state='0' ";
                 $mobile = $this->mysqlQuery($mobileSQL, 'all');
                 return ['code' => '200', 'state' => true, 'msg' => '验证成功', 'mobile' => $mobile[0]];
             } else {
@@ -58,12 +58,12 @@ class UserModel extends AgentModel
             return ['code' => '500', 'state' => false, 'msg' => 'uuid不能为空'];
 
         } else {
-            $sql = "SELECT count(u_wxunid) AS cu FROM idatadb.idt_user WHERE 1=1 AND u_mobile='{$mobile}' AND u_state='0' ";
+            $sql = "SELECT count(u_wxunid) AS cu FROM idt_user WHERE 1=1 AND u_mobile='{$mobile}' AND u_state='0' ";
 
             $ret = $this->mysqlQuery($sql, 'all');
 
             if ((int)$ret[0]['cu'] > 0) {
-                $wxSQL = "SELECT u_wxunid AS cu FROM idatadb.idt_user WHERE 1=1 AND u_mobile='{$mobile}' AND u_state='0' ";
+                $wxSQL = "SELECT u_wxunid AS cu FROM idt_user WHERE 1=1 AND u_mobile='{$mobile}' AND u_state='0' ";
                 $u_wxunid = $this->mysqlQuery($wxSQL, 'all');
                 return ['code' => '200', 'state' => true, 'msg' => '验证成功', 'uuid' => $u_wxunid[0]];
             } else {
@@ -88,9 +88,9 @@ class UserModel extends AgentModel
             return ['code' => '500', 'state' => false, 'msg' => '参数不能为空'];
         }
 
-        $hasMWSQL = "SELECT COUNT(*) as cc FROM idatadb.idt_user WHERE u_wxunid='{$uuid}' AND u_mobile='{$u_mobile}'";
+        $hasMWSQL = "SELECT COUNT(*) as cc FROM idt_user WHERE u_wxunid='{$uuid}' AND u_mobile='{$u_mobile}'";
 
-        $hasMobileSQL = "SELECT u_id FROM idatadb.idt_user WHERE u_wxunid=NULL AND u_mobile='{$u_mobile}'";
+        $hasMobileSQL = "SELECT u_id FROM idt_user WHERE u_wxunid=NULL AND u_mobile='{$u_mobile}'";
 
         $ret = $this->mysqlQuery($hasMWSQL, 'all');
         write_to_log('has mwsql :' . json_encode($ret), '_app');
@@ -404,7 +404,7 @@ class UserModel extends AgentModel
 
                 //get company name
                 if ($userInfo[0]['cpy_id'] !== 0) {
-                    $sql = "SELECT cpy_cname FROM idatadb.idt_company WHERE 1=1 AND cpy_id = '{$userInfo[0]['cpy_id']}'";
+                    $sql = "SELECT cpy_cname FROM idt_company WHERE 1=1 AND cpy_id = '{$userInfo[0]['cpy_id']}'";
                     $getCpyInfo = $this->mysqlQuery($sql, 'all');
 
                     if (!empty($getCpyInfo)) {
@@ -1205,7 +1205,7 @@ class UserModel extends AgentModel
         } else {
             foreach ($ret as $key => $value) {
                 $sql = "SELECT IFNULL(COUNT(1),0) have_pnum 
-                FROM idt_licence WHERE 1=1 AND state=1 AND cpy_id={$data['cpy_id']} AND pdt_id={$ret[$key]['pdt_id']}";
+                FROM idt_licence WHERE 1=1 AND state=1 AND cpy_id={$data['cpy_id']} AND pdt_id={$ret[$key]['pdt_id']} AND u_id is not null";
                 $have_pnum = $this->mysqlQuery($sql, "all");
                 $rs['list'][$key]['productID'] = $ret[$key]['pdt_id'];
                 $rs['list'][$key]['productName'] = $ret[$key]['pdt_ename'];
@@ -1320,7 +1320,7 @@ class UserModel extends AgentModel
      */
     private function __checkHasEmail($mobile)
     {
-        $sql = "select u_mail from idatadb.idt_user WHERE u_mobile='{$mobile}'";
+        $sql = "select u_mail from idt_user WHERE u_mobile='{$mobile}'";
         $ret = $this->mysqlQuery($sql, 'all');
         return $ret[0]['u_mail'];
     }
@@ -1642,7 +1642,7 @@ class UserModel extends AgentModel
      */
     private function __getUserInfo($irUserID)
     {
-        $sql = "SELECT * FROM idatadb.idt_user WHERE u_product_key='{$irUserID}'";
+        $sql = "SELECT * FROM idt_user WHERE u_product_key='{$irUserID}'";
         return $this->mysqlQuery($sql, 'all');
     }
 
@@ -1813,7 +1813,7 @@ class UserModel extends AgentModel
      */
     private function __getCpyFromIRD($ird_cpy_id)
     {
-        $sql = "SELECT cpy_id, cpy_cname FROM idatadb.idt_company WHERE ird_ca_id='{$ird_cpy_id}'";
+        $sql = "SELECT cpy_id, cpy_cname FROM idt_company WHERE ird_ca_id='{$ird_cpy_id}'";
         $cpy_id = $this->mysqlQuery($sql, 'all');
         write_to_log('get cpy from ird sql: ' . $sql, '_from_ird');
         if (!empty($cpy_id[0]['cpy_id'])) {
