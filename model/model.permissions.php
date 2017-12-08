@@ -699,7 +699,7 @@ class PermissionsModel extends AgentModel
         if (!empty($pp_list)) {
             foreach ($pp_list as $key => $value){
                 $pdtarr[] = $pp_list[$key]['ppname'];
-                $pdttimearr[$pp_list[$key]['ppid']] = $pp_list[$key]['proexpire'];
+                $pdttimearr[$pp_list[$key]['ppname']] = $pp_list[$key]['proexpire'];
             }
             foreach ($pp_list as $pp) {
                 $pdt = $this->tranIRDPdtName($pp['ppname']);
@@ -752,12 +752,12 @@ class PermissionsModel extends AgentModel
             $ret = $this->mysqlEdit('idt_licence', $update_data, ['licence_key' => $rs[0]['licence_key']]);
             write_to_log('ret: ' . json_encode($ret), '_from_ird');
             return $ret !== '1';
+        }elseif($rs === false){
+            write_to_log('false ', '_from_ird');
+            return false;
         }elseif(empty($rs)){
             write_to_log('create Pdt licence ', '_from_ird');
             return $this->__createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id,$pdttimearr,$pp);
-        }else{
-            write_to_log('false ', '_from_ird');
-            return false;
         }
     }
 
@@ -817,7 +817,7 @@ class PermissionsModel extends AgentModel
                     $subproduct['pc_start_time'] = $upTimes;
                     $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['700']['proexpire']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['mut']));
                     $subproduct['spdt_comment'] = "from ird";
                 }else{
                     $subproduct['licence_key'] = $lic['licence_key'];
@@ -873,7 +873,7 @@ class PermissionsModel extends AgentModel
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $rq['parentID'];
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['200']['proexpire']));
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['iut']));
                     $subproduct['mobile_start_time'] = $upTimes;
                     $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
@@ -1013,21 +1013,21 @@ class PermissionsModel extends AgentModel
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $pdtId;
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['100']['proexpire']));
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['iadt']));
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['2000']['proexpire']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['madt']));
                     $subproduct['spdt_comment'] = "from ird";
                 }elseif(in_array('iadt',$pdtarr)){
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $pdtId;
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['100']['proexpire']));
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['iadt']));
                     $subproduct['spdt_comment'] = "from ird";
                 }elseif(in_array('madt',$pdtarr)){
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $pdtId;
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['2000']['proexpire']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['madt']));
                     $subproduct['spdt_comment'] = "from ird";
                 }
                 return $this->mysqlInsert('idt_subproduct',$subproduct);
