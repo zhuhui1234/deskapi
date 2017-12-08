@@ -719,7 +719,14 @@ class PermissionsModel extends AgentModel
 
     public function checkPermission($cpy_id, $pdtID)
     {
-        $sql = "SELECT COUNT(pdt_id) as co_pdt FROM idt_permissions_number where cpy_id='{$cpy_id}' and pdt_id='{$pdtID}'";
+        $sql_parent = "select pdt_label from idt_product where pdt_id = {$pdtID}";
+        $ret_parent = $this->mysqlQuery($sql_parent, 'all');
+        if(!empty($ret_parent[0]['pdt_label'])) {
+            $rq = json_decode($ret_parent[0]['pdt_label'], true);
+            $sql = "SELECT COUNT(pdt_id) as co_pdt FROM idt_permissions_number where cpy_id='{$cpy_id}' and pdt_id='{$rq['parentID']}'";
+        }else{
+            $sql = "SELECT COUNT(pdt_id) as co_pdt FROM idt_permissions_number where cpy_id='{$cpy_id}' and pdt_id='{$pdtID}'";
+        }
         $ret = $this->mysqlQuery($sql, 'all');
         return $ret[0]['co_pdt'] > 0;
     }
@@ -745,9 +752,11 @@ class PermissionsModel extends AgentModel
             $ret = $this->mysqlEdit('idt_licence', $update_data, ['licence_key' => $rs[0]['licence_key']]);
             write_to_log('ret: ' . json_encode($ret), '_from_ird');
             return $ret !== '1';
-        }elseif($rs){
+        }elseif(empty($rs)){
+            write_to_log('create Pdt licence ', '_from_ird');
             return $this->__createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id,$pdttimearr,$pp);
         }else{
+            write_to_log('false ', '_from_ird');
             return false;
         }
     }
@@ -761,7 +770,7 @@ class PermissionsModel extends AgentModel
             $rq = json_decode($ret_parent[0]['pdt_label'],true);
             //判断用户是否有这个权限的产品
             if($pdtId == 12 ){
-                $sql = "select pnum_id,end_date from idt_permissiona_number where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
+                $sql = "select pnum_id,end_date from idt_permissions_number where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
                 $ret = $this->mysqlQuery($sql,"all");
                 $sql_default_points = "select IFNULL(pdt_default_points,0) pdt_default_points from idt_product where pdt_id = {$rq['parentID']}";
                 $pdt_default_points = $this->mysqlQuery($sql_default_points, "all");
@@ -783,6 +792,7 @@ class PermissionsModel extends AgentModel
                 if(count($ret) >0){
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
                     if($ird_end_date > $ret[0]['end_date']){
+                        write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
                         $end_date = "and end_date = '{$ird_end_date}'";
                     }else{
                         $end_date = "";
@@ -818,7 +828,7 @@ class PermissionsModel extends AgentModel
                 }
                 return $this->mysqlInsert('idt_subproduct',$subproduct);
             }elseif($pdtId == 37){
-                $sql = "select pnum_id,end_date from idt_permissiona_number where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
+                $sql = "select pnum_id,end_date from idt_permissions_number where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
                 $ret = $this->mysqlQuery($sql,"all");
                 $sql_default_points = "select IFNULL(pdt_default_points,0) pdt_default_points from idt_product where pdt_id = {$rq['parentID']}";
                 $pdt_default_points = $this->mysqlQuery($sql_default_points, "all");
@@ -840,6 +850,7 @@ class PermissionsModel extends AgentModel
                 if(count($ret) >0){
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
                     if($ird_end_date > $ret[0]['end_date']){
+                        write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
                         $end_date = "and end_date = '{$ird_end_date}'";
                     }else{
                         $end_date = "";
@@ -875,7 +886,7 @@ class PermissionsModel extends AgentModel
                 }
                 return $this->mysqlInsert('idt_subproduct',$subproduct);
             }elseif($pdtId == 45){
-                $sql = "select pnum_id,end_date from idt_permissiona_number where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
+                $sql = "select pnum_id,end_date from idt_permissions_number where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
                 $ret = $this->mysqlQuery($sql,"all");
                 $sql_default_points = "select IFNULL(pdt_default_points,0) pdt_default_points from idt_product where pdt_id = {$rq['parentID']}";
                 $pdt_default_points = $this->mysqlQuery($sql_default_points, "all");
@@ -897,6 +908,7 @@ class PermissionsModel extends AgentModel
                 if(count($ret) >0){
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
                     if($ird_end_date > $ret[0]['end_date']){
+                        write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
                         $end_date = "and end_date = '{$ird_end_date}'";
                     }else{
                         $end_date = "";
@@ -956,7 +968,7 @@ class PermissionsModel extends AgentModel
             }
         }else{
             if($pdtId == 42){
-                $sql = "select pnum_id,end_date from idt_permissiona_number where cpy_id = {$cpy_id} and pdt_id = $pdtId";
+                $sql = "select pnum_id,end_date from idt_permissions_number where cpy_id = {$cpy_id} and pdt_id = $pdtId";
                 $ret = $this->mysqlQuery($sql,"all");
                 $sql_default_points = "select IFNULL(pdt_default_points,0) pdt_default_points from idt_product where pdt_id = $pdtId";
                 $pdt_default_points = $this->mysqlQuery($sql_default_points, "all");
@@ -978,11 +990,12 @@ class PermissionsModel extends AgentModel
                 if(count($ret) >0){
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
                     if($ird_end_date > $ret[0]['end_date']){
+                        write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
                         $end_date = "and end_date = '{$ird_end_date}'";
                     }else{
                         $end_date = "";
                     }
-                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']} {$end_date}";
+                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$pdtId} {$end_date}";
                     $ret_pnum = $this->mysqlQuery($pnumSql);
                 }else{
                     $where['cpy_id'] = $cpy_id; //公司ID
@@ -1019,7 +1032,7 @@ class PermissionsModel extends AgentModel
                 }
                 return $this->mysqlInsert('idt_subproduct',$subproduct);
             }else {
-                $sql = "select pnum_id,end_date from idt_permissiona_number where cpy_id = {$cpy_id} and pdt_id = $pdtId";
+                $sql = "select pnum_id,end_date from idt_permissions_number where cpy_id = {$cpy_id} and pdt_id = $pdtId";
                 $ret = $this->mysqlQuery($sql,"all");
                 $lic['licence_key'] = getGUID();
                 $lic['u_id'] = $userID;
@@ -1034,11 +1047,12 @@ class PermissionsModel extends AgentModel
                 if(count($ret) >0){
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
                     if($ird_end_date > $ret[0]['end_date']){
+                        write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
                         $end_date = "and end_date = '{$ird_end_date}'";
                     }else{
                         $end_date = "";
                     }
-                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']} {$end_date}";
+                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$pdtId} {$end_date}";
                     return $this->mysqlQuery($pnumSql);
                 }else{
                     $where['cpy_id'] = $cpy_id; //公司ID

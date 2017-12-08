@@ -284,7 +284,7 @@ class UserModel extends AgentModel
                     ];
 
                     //judge binding
-                    if ($ret[0]['u_permissions'] == 0 || $ret[0]['u_product_key'] == null) {
+                    if ($ret[0]['permissions'] == 0) {
                         //guest if the data has ird guid
                         if (!empty($data['ird_user'])) {
                             if ((int)$data['ird_user']['iUserID'] > 0) {
@@ -303,6 +303,32 @@ class UserModel extends AgentModel
                                             $rs['ird'] = 'add permission';
                                             $permission_model->addPermission($data['ird_user']['pplist'], $ret[0], $data['ird_user']['iUserID']);
                                         }
+                                    }
+
+                                }
+
+                            } else {
+                                write_to_log(json_encode($data['ird_user']), '_from_ird');
+                                write_to_log('iuser id 非法', '_from_ird');
+                            }
+
+                        }
+                    } elseif($ret[0]['productkey'] == null){
+                        //guest if the data has ird guid
+                        if (!empty($data['ird_user'])) {
+                            if ((int)$data['ird_user']['iUserID'] > 0) {
+                                //nobody binding this id
+                                $cpy_id = $this->__getCpyFromIRD($data['ird_user']['CompanyID']);
+                                if ($cpy_id) {
+                                    $binding_ird = $this->__bindingIRD($ret[0]['userid'], $data['ird_user']);
+                                    if ($binding_ird) {
+                                        $rs['permissions'] = $ret[0]['permissions'];
+                                        $rs['productKey'] = 0;
+                                        $rs['ird_user_id'] = $data['ird_user']['iUserID'];
+                                        $rs['companyName'] = $cpy_id['cpy_cname'];
+                                        $rs['dev_id'] = $cpy_id['cpy_id'];
+                                        $rs['ird'] = 'add permission';
+                                        $permission_model->addPermission($data['ird_user']['pplist'], $ret[0], $data['ird_user']['iUserID']);
                                     }
 
                                 }
@@ -632,7 +658,7 @@ class UserModel extends AgentModel
 
 
             //judge binding
-            if ($ret[0]['u_permissions'] == 0) {
+            if ($ret[0]['permissions'] == 0) {
                 //guest if the data has ird guid
                 if (!empty($data['ird_user'])) {
                     if ((int)$data['ird_user']['iUserID'] > 0) {
@@ -652,6 +678,32 @@ class UserModel extends AgentModel
                                     $rs['ird'] = 'add permission';
                                     $permission_model->addPermission($data['ird_user']['pplist'], $ret[0], $data['ird_user']['iUserID']);
                                 }
+                            }
+
+                        }
+
+                    } else {
+                        write_to_log(json_encode($data['ird_user']), '_from_ird');
+                        write_to_log('iuser id 非法', '_from_ird');
+                    }
+
+                }
+            } elseif($ret[0]['u_product_key'] == null){
+                //guest if the data has ird guid
+                if (!empty($data['ird_user'])) {
+                    if ((int)$data['ird_user']['iUserID'] > 0) {
+                        //nobody binding this id
+                        $cpy_id = $this->__getCpyFromIRD($data['ird_user']['CompanyID']);
+                        if ($cpy_id) {
+                            $binding_ird = $this->__bindingIRD($ret[0]['userid'], $data['ird_user']);
+                            if ($binding_ird) {
+                                $rs['permissions'] = $ret[0]['u_permissions'];
+                                $rs['productKey'] = 0;
+                                $rs['ird_user_id'] = $data['ird_user']['iUserID'];
+                                $rs['companyName'] = $cpy_id['cpy_cname'];
+                                $rs['dev_id'] = $cpy_id['cpy_id'];
+                                $rs['ird'] = 'add permission';
+                                $permission_model->addPermission($data['ird_user']['pplist'], $ret[0], $data['ird_user']['iUserID']);
                             }
 
                         }
