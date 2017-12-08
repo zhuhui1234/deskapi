@@ -704,11 +704,11 @@ class PermissionsModel extends AgentModel
             foreach ($pp_list as $pp) {
                 $pdt = $this->tranIRDPdtName($pp['ppname']);
                 if ($pdt) {
-                    $checkPermission = $this->checkPermission($user_obj['cpy_id'], $pdt);
-                    write_to_log('check permission'. json_encode($checkPermission), '_from_ird');
-                    if ($checkPermission) {
-                        $this->__addPdtPermission($pdtarr,$pdt, $user_obj['userid'], $user_obj['cpy_id'], $ird_user_id,$pdttimearr,$pp);
-                    }
+//                    $checkPermission = $this->checkPermission($user_obj['cpy_id'], $pdt);
+//                    write_to_log('check permission'. json_encode($checkPermission), '_from_ird');
+//                    if ($checkPermission) {
+                    $this->__addPdtPermission($pdtarr,$pdt, $user_obj['userid'], $user_obj['cpy_id'], $ird_user_id,$pdttimearr,$pp);
+//                    }
                 }
             }
             return true;
@@ -780,14 +780,14 @@ class PermissionsModel extends AgentModel
                 $lic['pdt_id'] = $rq['parentID'];
                 $lic['points'] = $pdt_default_points[0]['pdt_default_points'];
                 $lic['lic_author_uid'] = "admin@iresearch.com.cn";
-                $rs['lic_cdate'] = $upTimes;
-                $rs['lic_edate'] = $upTimes;
-                $rs['state'] = 1;
-                $rs['lic_comment'] = 'from ird';
+                $lic['lic_cdate'] = $upTimes;
+                $lic['lic_edate'] = $upTimes;
+                $lic['state'] = 1;
+                $lic['lic_comment'] = 'from ird';
                 $point['licenceKey'] = $lic['licence_key'];
                 $point['pdt_id'] = $rq['parentID'];
                 $point['points'] = $lic['points'];
-                $this->mysqlInsert('idt_licence', $rs);
+                $this->mysqlInsert('idt_licence', $lic);
                 $this->__newtopUp($point);
                 if(count($ret) >0){
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
@@ -817,7 +817,7 @@ class PermissionsModel extends AgentModel
                     $subproduct['pc_start_time'] = $upTimes;
                     $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr[700]['proexpire']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['700']['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
                 }else{
                     $subproduct['licence_key'] = $lic['licence_key'];
@@ -838,14 +838,14 @@ class PermissionsModel extends AgentModel
                 $lic['pdt_id'] = $rq['parentID'];
                 $lic['points'] = $pdt_default_points[0]['pdt_default_points'];
                 $lic['lic_author_uid'] = "admin@iresearch.com.cn";
-                $rs['lic_cdate'] = $upTimes;
-                $rs['lic_edate'] = $upTimes;
-                $rs['state'] = 1;
-                $rs['lic_comment'] = 'from ird';
+                $lic['lic_cdate'] = $upTimes;
+                $lic['lic_edate'] = $upTimes;
+                $lic['state'] = 1;
+                $lic['lic_comment'] = 'from ird';
                 $point['licenceKey'] = $lic['licence_key'];
                 $point['pdt_id'] = $rq['parentID'];
                 $point['points'] = $lic['points'];
-                $this->mysqlInsert('idt_licence', $rs);
+                $this->mysqlInsert('idt_licence', $lic);
                 $this->__newtopUp($point);
                 if(count($ret) >0){
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
@@ -873,7 +873,7 @@ class PermissionsModel extends AgentModel
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $rq['parentID'];
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr[200]['proexpire']));
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['200']['proexpire']));
                     $subproduct['mobile_start_time'] = $upTimes;
                     $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
@@ -896,14 +896,14 @@ class PermissionsModel extends AgentModel
                 $lic['pdt_id'] = $rq['parentID'];
                 $lic['points'] = $pdt_default_points[0]['pdt_default_points'];
                 $lic['lic_author_uid'] = "admin@iresearch.com.cn";
-                $rs['lic_cdate'] = $upTimes;
-                $rs['lic_edate'] = $upTimes;
-                $rs['state'] = 1;
-                $rs['lic_comment'] = 'from ird';
+                $lic['lic_cdate'] = $upTimes;
+                $lic['lic_edate'] = $upTimes;
+                $lic['state'] = 1;
+                $lic['lic_comment'] = 'from ird';
                 $point['licenceKey'] = $lic['licence_key'];
                 $point['pdt_id'] = $rq['parentID'];
                 $point['points'] = $lic['points'];
-                $this->mysqlInsert('idt_licence', $rs);
+                $this->mysqlInsert('idt_licence', $lic);
                 $this->__newtopUp($point);
                 if(count($ret) >0){
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
@@ -978,14 +978,14 @@ class PermissionsModel extends AgentModel
                 $lic['pdt_id'] = $pdtId;
                 $lic['points'] = $pdt_default_points[0]['pdt_default_points'];
                 $lic['lic_author_uid'] = "admin@iresearch.com.cn";
-                $rs['lic_cdate'] = $upTimes;
-                $rs['lic_edate'] = $upTimes;
-                $rs['state'] = 1;
-                $rs['lic_comment'] = 'from ird';
+                $lic['lic_cdate'] = $upTimes;
+                $lic['lic_edate'] = $upTimes;
+                $lic['state'] = 1;
+                $lic['lic_comment'] = 'from ird';
                 $point['licenceKey'] = $lic['licence_key'];
                 $point['pdt_id'] = $pdtId;
                 $point['points'] = $lic['points'];
-                $this->mysqlInsert('idt_licence', $rs);
+                $this->mysqlInsert('idt_licence', $lic);
                 $this->__newtopUp($point);
                 if(count($ret) >0){
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
@@ -1013,21 +1013,21 @@ class PermissionsModel extends AgentModel
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $pdtId;
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr[100]['proexpire']));
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['100']['proexpire']));
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr[2000]['proexpire']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['2000']['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
                 }elseif(in_array('iadt',$pdtarr)){
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $pdtId;
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr[100]['proexpire']));
+                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['100']['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
                 }elseif(in_array('madt',$pdtarr)){
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $pdtId;
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr[2000]['proexpire']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['2000']['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
                 }
                 return $this->mysqlInsert('idt_subproduct',$subproduct);
@@ -1039,11 +1039,11 @@ class PermissionsModel extends AgentModel
                 $lic['cpy_id'] = $cpy_id;
                 $lic['pdt_id'] = $pdtId;
                 $lic['lic_author_uid'] = "admin@iresearch.com.cn";
-                $rs['lic_cdate'] = $upTimes;
-                $rs['lic_edate'] = $upTimes;
-                $rs['state'] = 1;
-                $rs['lic_comment'] = 'from ird';
-                $this->mysqlInsert('idt_licence', $rs);
+                $lic['lic_cdate'] = $upTimes;
+                $lic['lic_edate'] = $upTimes;
+                $lic['state'] = 1;
+                $lic['lic_comment'] = 'from ird';
+                $this->mysqlInsert('idt_licence', $lic);
                 if(count($ret) >0){
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
                     if($ird_end_date > $ret[0]['end_date']){
