@@ -1391,7 +1391,7 @@ class PermissionsModel extends AgentModel
      */
     private function __checkPermission($userID, $pdt_id, $cpy_id)
     {
-        $now = date('Y-m-d');
+        $now = date('Y-m-d H:i:s');
         $sql_parent = "select pdt_label from idt_product where pdt_id = {$pdt_id}";
         $ret_parent = $this->mysqlQuery($sql_parent, 'all');
         if(!empty($ret_parent[0]['pdt_label'])){
