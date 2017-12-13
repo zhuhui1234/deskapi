@@ -384,6 +384,7 @@ class PermissionsModel extends AgentModel
         }
 
         $rs['role'] = $role;
+        $rs['ird_guid'] = $ret_irdKey['iRGuid'];
 
         //返回响应结果
         _SUCCESS('000000', '查询成功', $rs);
