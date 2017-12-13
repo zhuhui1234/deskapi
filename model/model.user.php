@@ -233,6 +233,7 @@ class UserModel extends AgentModel
                 //更新TOKEN
                 $this->redisHere(VERSION . '_' . $ret[0]['userid'] . '_ird', true);
                 $where_upToken['u_token'] = $upToken;//更新TOKEN
+                $where_upToken['u_edate'] = $upTimes;//更新登录时间
                 $id_upToken = " u_id='" . $ret[0]['userid'] . "'";//用户GUID
                 $ret_upToken = $this->mysqlEdit('idt_user', $where_upToken, $id_upToken);
 
@@ -360,6 +361,7 @@ class UserModel extends AgentModel
                 if (!empty($sp_ret)) {
                     $this->redisHere(VERSION . '_' . $ret[0]['userid'] . '_ird', true);
                     $where_upToken['u_token'] = $upToken;//更新TOKEN
+                    $where_upToken['u_edate'] = $upTimes;//更新登录时间
                     $id_upToken = " u_id='" . $sp_ret[0]['u_id'] . "'";//用户GUID
                     $ret_upToken = $this->mysqlEdit('idt_user', $where_upToken, $id_upToken);
                     if ($ret_upToken == '1') {
