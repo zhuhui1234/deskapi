@@ -502,7 +502,7 @@ class PermissionsModel extends AgentModel
     public function getPdtInfo($pdt_id)
     {
         if (!empty($pdt_id)) {
-            $sql = "SELECT pdt_name, pdt_url FROM idt_product WHERE pdt_id='{$pdt_id}' 
+            $sql = "SELECT pdt_name, pdt_url,pdt_try_cdate,pdt_try_edate FROM idt_product WHERE pdt_id='{$pdt_id}' 
                 AND pdt_state=0 AND pdt_vtype=1";
             $ret = $this->mysqlQuery($sql, 'all');
             return $ret[0];
