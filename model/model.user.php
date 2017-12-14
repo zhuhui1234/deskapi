@@ -911,13 +911,13 @@ class UserModel extends AgentModel
 
         if (!empty($data['productID'])) {
 
-            $getExpDateSQL = "SELECT end_date 
+            $getExpDateSQL = "SELECT end_date ,pnum_type
                               FROM idt_permissions_number 
                               WHERE cpy_id='{$ret[0]['cpy_id']}' AND pdt_id='{$data['productID']}'";
             $getExpDate = $this->mysqlQuery($getExpDateSQL, 'all');
 
             if ($getExpDate) {
-
+                $pnum_type = $getExpDate[0]['pnum_type'];
                 $getExpDate = $getExpDate[0]['end_date'];
             } else {
                 if ($ret[0]['cpy_id'] == 1) {
@@ -945,6 +945,7 @@ class UserModel extends AgentModel
             'devID' => $ret[0]['dev_id'],
             'devName' => $ret[0]['dev_name'],
             'expDate' => $getExpDate,
+            'pnum_type' => $pnum_type,
             'permissions' => $ret[0]['u_permissions']
         ];
     }
