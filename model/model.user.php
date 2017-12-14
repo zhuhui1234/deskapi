@@ -859,6 +859,7 @@ class UserModel extends AgentModel
         $productkey = " u_id='" . $data['userID'] . "'";//用户GUID
         $ret_productkey = $this->mysqlEdit('idt_user', $where, $productkey);
         if ($ret_productkey == 1) {
+            Model::instance('Permissions')->addPermission($ret_irdKey['pplist'],$data,$ret_irdKey['iUserID']);
             _SUCCESS('000000', '绑定成功');
         } else {
             _ERROR('000002', '绑定失败');
