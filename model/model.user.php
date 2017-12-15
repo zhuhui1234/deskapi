@@ -1328,6 +1328,17 @@ class UserModel extends AgentModel
         $this->__addEmployee($data);
     }
 
+    public function getIRVuserid($data)
+    {
+        $sql = "select u_product_key from idt_user where u_product_key = {$data['iUserID']}";
+        $rs = $this->mysqlQuery($sql, "all");
+        if (count($rs) >0) {
+            _SUCCESS('000000', '成功');
+        } else {
+            _ERROR('000001', '失败');
+        }
+    }
+
 
     ######################################################################################
     ##################################                     ###############################

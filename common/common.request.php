@@ -216,6 +216,7 @@ class Request
     {
         if (
             ($_GET['m'] == 'User' AND $_GET['a'] == 'login') //登录
+            OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'getIRVuserid') //获取irv用户ID
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'setMobileKey') //短信服务
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'addUser') //用户注册
             OR (strtolower($_GET['m']) == 'permissions' AND $_GET['a'] == 'checkUserProPer') //验证用户权限
