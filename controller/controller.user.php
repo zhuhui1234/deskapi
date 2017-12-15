@@ -368,5 +368,10 @@ class UserController extends Controller
         $this->model->addEmployee($data);
     }
 
+    public function getIRVuserid()
+    {
+        $data = _POST();
+        $this->model->getIRVuserid($data);
+    }
 
 }
