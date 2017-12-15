@@ -117,7 +117,8 @@ class PermissionsController extends Controller
                 $userInfoByToken = Model::instance('user')->_getUserInfoByToken($data);
 
                 $exp = (time() - strtotime($userInfoByToken['tokenDate'])) / (60 * 60);
-
+                write_to_log('exp: '.$exp,'_time');
+                write_to_log('time_out: '.TOKEN_TIME_OUT, '_time');
                 if ($exp > TOKEN_TIME_OUT) {
                     _ERROR('40004', 'TOKEN超时');
                 }
