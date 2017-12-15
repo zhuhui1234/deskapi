@@ -182,7 +182,7 @@ class UserModel extends AgentModel
                 }
             }
 
-            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_email email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,
                     dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
                     dba.u_state u_state , dba.u_department department 
@@ -193,7 +193,7 @@ class UserModel extends AgentModel
                     AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5";
 
         } else if ($data['LoginType'] === 'weixin') {
-            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_email email,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.dev_id,
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,
                     dba.u_permissions permissions,dba.u_token token,
                     dba.u_state u_state, dba.u_department department 
