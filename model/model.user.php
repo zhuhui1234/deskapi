@@ -2060,7 +2060,7 @@ class UserModel extends AgentModel
      */
     private function __check_mail_suffix($data)
     {
-        if (empty($data['u_email'])) {
+        if (empty($data['u_mail'])) {
             return true;
         }
         $sql = "select cpy_mail_suffix from idt_company where cpy_id='{$data['cpy_id']}'";
