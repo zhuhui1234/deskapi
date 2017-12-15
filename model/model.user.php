@@ -182,7 +182,7 @@ class UserModel extends AgentModel
                 }
             }
 
-            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_email email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,
                     dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
                     dba.u_state u_state , dba.u_department department 
@@ -193,7 +193,7 @@ class UserModel extends AgentModel
                     AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5";
 
         } else if ($data['LoginType'] === 'weixin') {
-            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.dev_id,
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_email email,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,
                     dba.u_permissions permissions,dba.u_token token,
                     dba.u_state u_state, dba.u_department department 
@@ -320,6 +320,23 @@ class UserModel extends AgentModel
                             if ((int)$data['ird_user']['iUserID'] > 0) {
                                 //nobody binding this id
                                 $cpy_id = $this->__getCpyFromIRD($data['ird_user']['CompanyID']);
+                                if($cpy_id['cpy_id'] != $ret[0]['cpy_id']){
+                                    $ird_diff = [
+                                        'ird_user_id' => $data['ird_user']['iUserID'],
+                                        'idt_user_id' => $ret[0]['userid'],
+                                        'idt_old_cpy_id' => $ret[0]['cpy_id'],
+                                        'idt_new_cpy_id' => $cpy_id['cpy_id'],
+                                        'ird_email' => $data['ird_user']['UserName'],
+                                        'idt_email' => $ret[0]['email'],
+                                        'cdate' => $upTimes
+                                    ];
+                                    $this->mysqlInsert('ird_diff_user',$ird_diff);
+                                    $sql = "update idt_licence set u_id = null where u_id = '{$ret[0]['userid']}'";
+                                    $this->mysqlQuery($sql, "all");
+                                    $update_data = ['cpy_id' => $cpy_id['cpy_id']];
+                                    write_to_log('CHANGE COMPANY ' . json_encode($update_data), '_from_ird');
+                                    $this->mysqlEdit('idt_user', $update_data, "u_id='{$ret[0]['userid']}'");
+                                }
                                 if ($cpy_id) {
                                     $binding_ird = $this->__bindingIRD($ret[0]['userid'], $data['ird_user']);
                                     if ($binding_ird) {
