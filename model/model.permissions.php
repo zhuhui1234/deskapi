@@ -928,8 +928,8 @@ class PermissionsModel extends AgentModel
                     $where['pnum_type'] = 0;
                     $ret_pnum = $this->mysqlInsert('idt_permissions_number', $where);
                 }
-                $mvtSql = "select ird_tmp_id from ird_user_tmp where pdt_type = 'mvt' and ird_cu_id = '{$ird_user_id}' and idt_user_id is null";
-                $ovtSql = "select ird_tmp_id from ird_user_tmp where pdt_type = 'ovt' and ird_cu_id = '{$ird_user_id}' and idt_user_id is null";
+                $mvtSql = "select ird_tmp_id from ird_user_tmp where pdt_type = 'mvt' and ird_cu_id = '{$ird_user_id}'";
+                $ovtSql = "select ird_tmp_id from ird_user_tmp where pdt_type = 'ovt' and ird_cu_id = '{$ird_user_id}'";
                 $mvtret = $this->mysqlQuery($mvtSql,'all');
                 $ovtret = $this->mysqlQuery($ovtSql,'all');
                 if(count($mvtret) >0 && count($ovtret) >0){
@@ -1017,6 +1017,8 @@ class PermissionsModel extends AgentModel
                     $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['iadt']));
                     $subproduct['mobile_start_time'] = $upTimes;
                     $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['madt']));
+                    $subproduct['ott_start_time'] = $upTimes;
+                    $subproduct['ott_due_time'] = date("Y-m-d",strtotime($pdttimearr['madt']));
                     $subproduct['spdt_comment'] = "from ird";
                 }elseif(in_array('iadt',$pdtarr)){
                     $subproduct['licence_key'] = $lic['licence_key'];
@@ -1029,6 +1031,8 @@ class PermissionsModel extends AgentModel
                     $subproduct['pdt_id'] = $pdtId;
                     $subproduct['mobile_start_time'] = $upTimes;
                     $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['madt']));
+                    $subproduct['ott_start_time'] = $upTimes;
+                    $subproduct['ott_due_time'] = date("Y-m-d",strtotime($pdttimearr['madt']));
                     $subproduct['spdt_comment'] = "from ird";
                 }
                 return $this->mysqlInsert('idt_subproduct',$subproduct);

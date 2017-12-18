@@ -302,7 +302,7 @@ class UserModel extends AgentModel
                                             $rs['companyName'] = $cpy_id['cpy_cname'];
                                             $rs['dev_id'] = $cpy_id['cpy_id'];
                                             $rs['ird'] = 'add permission';
-                                            $permission_model->addPermission($data['ird_user']['pplist'], $ret[0], $data['ird_user']['iUserID']);
+                                            $rs['bind_state'] = $permission_model->addPermission($data['ird_user']['pplist'], $ret[0], $data['ird_user']['iUserID']);
                                         }
                                     }
 
@@ -336,17 +336,18 @@ class UserModel extends AgentModel
                                     $update_data = ['cpy_id' => $cpy_id['cpy_id']];
                                     write_to_log('CHANGE COMPANY ' . json_encode($update_data), '_from_ird');
                                     $this->mysqlEdit('idt_user', $update_data, "u_id='{$ret[0]['userid']}'");
+                                    $ret[0]['cpy_id'] = $cpy_id['cpy_id'];
                                 }
                                 if ($cpy_id) {
                                     $binding_ird = $this->__bindingIRD($ret[0]['userid'], $data['ird_user']);
                                     if ($binding_ird) {
                                         $rs['permissions'] = $ret[0]['permissions'];
-                                        $rs['productKey'] = 0;
+                                        $rs['productKey'] = 1;
                                         $rs['ird_user_id'] = $data['ird_user']['iUserID'];
                                         $rs['companyName'] = $cpy_id['cpy_cname'];
                                         $rs['dev_id'] = $cpy_id['cpy_id'];
                                         $rs['ird'] = 'add permission';
-                                        $permission_model->addPermission($data['ird_user']['pplist'], $ret[0], $data['ird_user']['iUserID']);
+                                        $rs['bind_state'] = $permission_model->addPermission($data['ird_user']['pplist'], $ret[0], $data['ird_user']['iUserID']);
                                     }
 
                                 }
