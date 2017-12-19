@@ -233,10 +233,6 @@ class PointsModel extends AgentModel
             _ERROR('000002', 'no comment');
         }
 
-        if (empty($data['point_value'])) {
-            _ERROR('000002', 'no point value');
-        }
-
         $ret = $this->mysqlInsert('idt_points', $data);
         if ($ret) {
             return $ret;
