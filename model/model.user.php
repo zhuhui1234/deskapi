@@ -185,7 +185,7 @@ class UserModel extends AgentModel
             $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,
                     dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state , dba.u_department department 
+                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat
                     FROM idt_user dba 
                     LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
                     LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
@@ -196,7 +196,7 @@ class UserModel extends AgentModel
             $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,
                     dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state, dba.u_department department 
+                    dba.u_state u_state, dba.u_department department , dba.u_wxname as wechat
                     FROM idt_user dba 
                     LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                     WHERE dba.u_wxopid='{$data['Account']}' AND dba.u_wxunid='{$data['LoginKey']}'";
@@ -278,6 +278,7 @@ class UserModel extends AgentModel
                         'productKey' => $productKey, //ird_user_id
                         'dev_id' => $ret[0]['dev_id'],
                         'token' => $upToken,
+                        'wechat' => $ret[0]['wechat'],
                         'uname' => $ret[0]['uname'],
                         'userID' => $ret[0]['userid'],
                         'ird_user_id' => $ird_ua_id,
@@ -314,13 +315,13 @@ class UserModel extends AgentModel
                             }
 
                         }
-                    } elseif($ret[0]['productkey'] == null){
+                    } elseif ($ret[0]['productkey'] == null) {
                         //guest if the data has ird guid
                         if (!empty($data['ird_user'])) {
                             if ((int)$data['ird_user']['iUserID'] > 0) {
                                 //nobody binding this id
                                 $cpy_id = $this->__getCpyFromIRD($data['ird_user']['CompanyID']);
-                                if($cpy_id['cpy_id'] != $ret[0]['cpy_id']){
+                                if ($cpy_id['cpy_id'] != $ret[0]['cpy_id']) {
                                     $ird_diff = [
                                         'ird_user_id' => $data['ird_user']['iUserID'],
                                         'idt_user_id' => $ret[0]['userid'],
@@ -330,7 +331,7 @@ class UserModel extends AgentModel
                                         'idt_email' => $ret[0]['email'],
                                         'cdate' => $upTimes
                                     ];
-                                    $this->mysqlInsert('ird_diff_user',$ird_diff);
+                                    $this->mysqlInsert('ird_diff_user', $ird_diff);
                                     $sql = "update idt_licence set u_id = null where u_id = '{$ret[0]['userid']}'";
                                     $this->mysqlQuery($sql, "all");
                                     $update_data = ['cpy_id' => $cpy_id['cpy_id']];
@@ -708,7 +709,7 @@ class UserModel extends AgentModel
                     }
 
                 }
-            } elseif($ret[0]['u_product_key'] == null){
+            } elseif ($ret[0]['u_product_key'] == null) {
                 //guest if the data has ird guid
                 if (!empty($data['ird_user'])) {
                     if ((int)$data['ird_user']['iUserID'] > 0) {
@@ -867,8 +868,8 @@ class UserModel extends AgentModel
         if ($ret_productkey[0]['u_mail'] == "" OR $ret_productkey[0]['u_mail'] == null) {
             $sql_mail = "update idt_user set u_mail = '{$data['account']}' where u_id = '{$data['userID']}'";
             $this->mysqlQuery($sql_mail);
-        }else{
-            write_to_log(json_encode($data),'_diffmail');
+        } else {
+            write_to_log(json_encode($data), '_diffmail');
         }
 
 
@@ -877,7 +878,7 @@ class UserModel extends AgentModel
         $productkey = " u_id='" . $data['userID'] . "'";//用户GUID
         $ret_productkey = $this->mysqlEdit('idt_user', $where, $productkey);
         if ($ret_productkey == 1) {
-            Model::instance('Permissions')->addPermission($ret_irdKey['pplist'],$data,$ret_irdKey['iUserID']);
+            Model::instance('Permissions')->addPermission($ret_irdKey['pplist'], $data, $ret_irdKey['iUserID']);
             _SUCCESS('000000', '绑定成功');
         } else {
             _ERROR('000002', '绑定失败');
@@ -889,7 +890,7 @@ class UserModel extends AgentModel
     {
         //查询产品Key
         $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,
-                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department
+                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department,dba.u_wxname, dba.u_product_key
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                 WHERE dba.u_id='{$data['userID']}'";
@@ -913,13 +914,15 @@ class UserModel extends AgentModel
         $rs['position'] = $ret[0]['u_position']; //职位
         $rs['uname'] = $ret[0]['u_name']; //姓名
         $rs['permissions'] = $ret[0]['u_permissions']; //姓名
+        $rs['wechat'] = $ret[0]['u_wxname'];
+        $rs['ird_user_Id'] = $ret[0]['u_product_key'];
         _SUCCESS('000000', '获取成功', $rs);
     }
 
     public function _getUserInfoByToken($data)
     {
         $sql = "SELECT dbb.cpy_cname,dbb.cpy_id,dba.u_mail,dba.u_head,
-                dba.u_mobile,dba.u_position,dba.u_permissions,dba.u_name,dba.u_id ,devdb.dev_name, dba.dev_id,dba.u_edate
+                dba.u_mobile,dba.u_position,dba.u_permissions,dba.u_name,dba.u_id ,devdb.dev_name, dba.dev_id,dba.u_edate, dba.u_product_key, dba.u_wxname
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                 LEFT JOIN idt_devs devdb on (dba.dev_id = devdb.dev_id)
@@ -964,7 +967,9 @@ class UserModel extends AgentModel
             'devName' => $ret[0]['dev_name'],
             'expDate' => $getExpDate,
             'pnum_type' => $pnum_type,
-            'permissions' => $ret[0]['u_permissions']
+            'permissions' => $ret[0]['u_permissions'],
+            'wechat' => $ret[0]['u_wxname'],
+            'ird_user_id' => $ret[0]['product_key']
         ];
     }
 
@@ -992,7 +997,7 @@ class UserModel extends AgentModel
 
         if ($data['department'] === '') {
             $where['u_department'] = ' ';
-        }else{
+        } else {
             $where['u_department'] = $data['department'];
         }
         //修改用户头像
@@ -1333,7 +1338,7 @@ class UserModel extends AgentModel
     {
         $sql = "select u_product_key from idt_user where u_product_key = {$data['iUserID']}";
         $rs = $this->mysqlQuery($sql, "all");
-        if (count($rs) >0) {
+        if (count($rs) > 0) {
             _SUCCESS('000000', '成功');
         } else {
             _ERROR('000001', '失败');
@@ -1853,10 +1858,10 @@ class UserModel extends AgentModel
             write_to_log('[binding fails] u_id:' . $u_id . ' ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
             return false;
         } else {
-            if($this->__checkEmail($ird_user['UserName'])){
-                $this->mysqlEdit('idt_user',['u_mail' => $ird_user['UserName']],"u_id='{$u_id}'");
+            if ($this->__checkEmail($ird_user['UserName'])) {
+                $this->mysqlEdit('idt_user', ['u_mail' => $ird_user['UserName']], "u_id='{$u_id}'");
                 write_to_log('[email SUCCESS]  u_id ' . $u_id . ', ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
-            }else{
+            } else {
                 write_to_log('[email fails]  u_id ' . $u_id . ', ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
             }
             write_to_log('[binding SUCCESS]  u_id ' . $u_id . ', ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
@@ -1874,9 +1879,9 @@ class UserModel extends AgentModel
     {
         $sql = "SELECT u_permissions FROM idt_user WHERE u_mail='{$mail}'";
         $ret = $this->mysqlQuery($sql, "all");
-        if(count($ret) >0){
+        if (count($ret) > 0) {
             return false;
-        }else{
+        } else {
             return true;
         }
     }
@@ -2067,7 +2072,7 @@ class UserModel extends AgentModel
         $sql = "select cpy_mail_suffix from idt_company where cpy_id='{$data['cpy_id']}'";
         $cpy_mail_suffix = $this->mysqlQuery($sql, 'all');
         $mail_suffix = explode(",", $cpy_mail_suffix[0]['cpy_mail_suffix']);
-        $array = explode("@", $data['email']);
+        $array = explode("@", $data['u_mail']);
         $user_mail_suffix = "@" . $array[1];
         $state = false;
         foreach ($mail_suffix as $key => $value) {
