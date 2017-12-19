@@ -938,7 +938,7 @@ class UserModel extends AgentModel
                 $pnum_type = $getExpDate[0]['pnum_type'];
                 $getExpDate = $getExpDate[0]['end_date'];
             } else {
-                if ($ret[0]['cpy_id'] == 1) {
+                if ($ret[0]['cpy_id'] == 1 and OPEN_ME) {
                     $getExpDate = '无限';
                 } else {
                     $getExpDate = '已';
