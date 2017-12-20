@@ -1095,6 +1095,12 @@ class UserModel extends AgentModel
         $rs = array();
         //返回参数-执行结果
         foreach ($ret as $a => $v) {
+            $lic_sql = "select idt_licence.pdt_id,pdt_ename,pc_start_time,pc_due_time,mobile_start_time,mobile_due_time,ott_start_time,ott_due_time,DATE_FORMAT(`start_date`,'%Y-%m-%d') start_date,DATE_FORMAT(`end_date`,'%Y-%m-%d') end_date from idt_licence 
+left join idt_product on idt_product.pdt_id = idt_licence.pdt_id
+left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+left join idt_permissions_number on idt_permissions_number.pdt_id = idt_licence.pdt_id
+where state = 1 and idt_licence.u_id = '{$v['u_id']}' and idt_permissions_number.cpy_id = {$ret_companyID[0]['cpy_id']}";
+            $rs['list'][$a]['productInfo'] = $this->mysqlQuery($lic_sql, "all");
             $rs['list'][$a]['userID'] = $v['u_id']; //用户GUID
 //            $rs['list'][$a]['head'] = $v['u_head']; //头像
             $rs['list'][$a]['mobile'] = $v['mobile']; //手机
@@ -1314,10 +1320,10 @@ class UserModel extends AgentModel
     public function removeUser($data)
     {
         if ($data['lic_author_uid'] != $data['toUserID']) {
-            $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['lic_author_uid']}'  where u_id = '{$data['toUserID']}'";
-            $ret = $this->mysqlQuery($sql, "all");
+            $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['lic_author_uid']}' where u_id = '{$data['toUserID']}'";
+            $ret = $this->mysqlQuery($sql);
             $sql = "update idt_user set cpy_id = null,u_permissions = 0 where u_id = '{$data['toUserID']}'";
-            $rs = $this->mysqlQuery($sql, "all");
+            $rs = $this->mysqlQuery($sql);
             if ($ret && $rs) {
                 _SUCCESS('000000', '移除成功');
             } else {
