@@ -753,10 +753,7 @@ class PermissionsModel extends AgentModel
             $ret = $this->mysqlEdit('idt_licence', $update_data, ['licence_key' => $rs[0]['licence_key']]);
             write_to_log('ret: ' . json_encode($ret), '_from_ird');
             return $ret !== '1';
-        }elseif($rs === false){
-            write_to_log('false ', '_from_ird');
-            return false;
-        }elseif(empty($rs)){
+        } else{
             write_to_log('create Pdt licence ', '_from_ird');
             return $this->__createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id,$pdttimearr,$pp);
         }
@@ -794,11 +791,11 @@ class PermissionsModel extends AgentModel
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
                     if($ird_end_date > $ret[0]['end_date']){
                         write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
-                        $end_date = "and end_date = '{$ird_end_date}'";
+                        $end_date = ",end_date = '{$ird_end_date}'";
                     }else{
                         $end_date = "";
                     }
-                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']} {$end_date}";
+                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1{$end_date} where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
                     $ret_pnum = $this->mysqlQuery($pnumSql);
                 }else{
                     $where['cpy_id'] = $cpy_id; //公司ID
@@ -852,11 +849,11 @@ class PermissionsModel extends AgentModel
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
                     if($ird_end_date > $ret[0]['end_date']){
                         write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
-                        $end_date = "and end_date = '{$ird_end_date}'";
+                        $end_date = ",end_date = '{$ird_end_date}'";
                     }else{
                         $end_date = "";
                     }
-                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']} {$end_date}";
+                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1{$end_date} where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
                     $ret_pnum = $this->mysqlQuery($pnumSql);
                 }else{
                     $where['cpy_id'] = $cpy_id; //公司ID
@@ -910,11 +907,11 @@ class PermissionsModel extends AgentModel
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
                     if($ird_end_date > $ret[0]['end_date']){
                         write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
-                        $end_date = "and end_date = '{$ird_end_date}'";
+                        $end_date = ",end_date = '{$ird_end_date}'";
                     }else{
                         $end_date = "";
                     }
-                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']} {$end_date}";
+                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1{$end_date} where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
                     $ret_pnum = $this->mysqlQuery($pnumSql);
                 }else{
                     $where['cpy_id'] = $cpy_id; //公司ID
@@ -992,11 +989,11 @@ class PermissionsModel extends AgentModel
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
                     if($ird_end_date > $ret[0]['end_date']){
                         write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
-                        $end_date = "and end_date = '{$ird_end_date}'";
+                        $end_date = ",end_date = '{$ird_end_date}'";
                     }else{
                         $end_date = "";
                     }
-                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$pdtId} {$end_date}";
+                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1{$end_date} where cpy_id = {$cpy_id} and pdt_id = {$pdtId}";
                     $ret_pnum = $this->mysqlQuery($pnumSql);
                 }else{
                     $where['cpy_id'] = $cpy_id; //公司ID
@@ -1053,11 +1050,11 @@ class PermissionsModel extends AgentModel
                     $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
                     if($ird_end_date > $ret[0]['end_date']){
                         write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
-                        $end_date = "and end_date = '{$ird_end_date}'";
+                        $end_date = ",end_date = '{$ird_end_date}'";
                     }else{
                         $end_date = "";
                     }
-                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1 where cpy_id = {$cpy_id} and pdt_id = {$pdtId} {$end_date}";
+                    $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1{$end_date} where cpy_id = {$cpy_id} and pdt_id = {$pdtId}";
                     return $this->mysqlQuery($pnumSql);
                 }else{
                     $where['cpy_id'] = $cpy_id; //公司ID
@@ -1172,6 +1169,14 @@ class PermissionsModel extends AgentModel
             AND pdt_id='{$rq['parentID']}' AND state= 1";
             $rs = $this->mysqlQuery($sql, 'all');
             if(count($rs) >0){
+                $where = [
+                    'licence_key' => $rs[0]['licence_key']
+                ];
+                $ret = $this->mysqlDelete('idt_licence',$where);
+                write_to_log('delete  :'.$ret, '_from_ird');
+                write_to_log('delete licence :'.$rs[0]['licence_key'], '_from_ird');
+                $pnumSql = "update idt_permissions_number set pnum_number = pnum_number-1 where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
+                $ret_pnum = $this->mysqlQuery($pnumSql);
                 return false;
             }else {
                 if($pdtId == 12 ){
@@ -1231,6 +1236,14 @@ class PermissionsModel extends AgentModel
             $sql = "select licence_key from idt_licence where cpy_id = $cpy_id and pdt_id = $pdtId and u_id = '{$userID}' and state = 1";
             $rs = $this->mysqlQuery($sql, 'all');
             if(count($rs) > 0){
+                $where = [
+                    'licence_key' => $rs[0]['licence_key']
+                ];
+                $ret = $this->mysqlDelete('idt_licence',$where);
+                write_to_log('delete  :'.$ret, '_from_ird');
+                write_to_log('delete licence :'.$rs[0]['licence_key'], '_from_ird');
+                $pnumSql = "update idt_permissions_number set pnum_number = pnum_number-1 where cpy_id = {$cpy_id} and pdt_id = {$pdtId}";
+                $ret_pnum = $this->mysqlQuery($pnumSql);
                 return false;
             }else{
                 if($pdtId == 42){
