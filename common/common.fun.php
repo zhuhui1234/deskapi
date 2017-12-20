@@ -1033,6 +1033,8 @@ function _findChildren($list, $p_id, $cleaningList = false)
 //
 function fnEncrypt($sValue, $sSecretKey)
 {
+    write_to_log('value:' . $sValue, '_ird');
+    write_to_log('sSecret: ' . $sValue, '_ird');
     return rtrim(
         base64_encode(
             mcrypt_encrypt(
