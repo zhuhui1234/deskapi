@@ -108,10 +108,10 @@ class PermissionsController extends Controller
     public function checkPermission()
     {
         $data = json_decode(file_get_contents('php://input'), true);
-//        write_to_log(json_encode($data),'_test');
-        if (!empty($data['token'])) {
-            $ret = $this->model->getPermissionInfo($data);
 
+        if (!empty($data['token'])) {
+
+            $ret = $this->model->getPermissionInfo($data);
 
             if ($ret) {
                 $userInfoByToken = Model::instance('user')->_getUserInfoByToken($data);

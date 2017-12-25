@@ -414,15 +414,30 @@ class PermissionsModel extends AgentModel
     public function getPermissionInfo($data)
     {
         $userInfo = Model::instance('user')->_getUserInfoByToken($data);
+
         if ((OPEN_ME AND $userInfo['companyID'] == 1) and $data['pdt_id'] !== 38) {
+
             return $this->getPdtInfo($data['pdt_id']);
+
         } else {
+
             if (!empty($userInfo['uid']) AND !empty($userInfo['companyID']) AND !empty($data['pdt_id'])) {
-                if ($this->__checkPermission($userInfo['uid'], $data['pdt_id'], $userInfo['companyID'])) {
-                    return $this->getPdtInfo($data['pdt_id']);
-                } else {
-                    return false;
+
+                if (!isset($data['terminal'])) {
+
+                    $data['terminal'] = null;
                 }
+
+                if ($this->__checkPermission($userInfo['uid'], $data['pdt_id'], $userInfo['companyID'], $data['terminal'])) {
+
+                    return $this->getPdtInfo($data['pdt_id']);
+
+                } else {
+
+                    return false;
+
+                }
+
             } else {
                 return false;
             }
@@ -602,7 +617,7 @@ class PermissionsModel extends AgentModel
                 write_to_log('not your mail', 'check_mail');
                 write_to_log('userID: ' . $data['userID'] . ' , ' . 'mail: ' . $data['mail']);
                 $saveData['check_mail'] = 1;
-		        return true;
+                return true;
             } else {
                 $saveData['check_mail'] = 1;
             }
@@ -698,7 +713,7 @@ class PermissionsModel extends AgentModel
     public function addPermission($pp_list, $user_obj, $ird_user_id)
     {
         if (!empty($pp_list)) {
-            foreach ($pp_list as $key => $value){
+            foreach ($pp_list as $key => $value) {
                 $pdtarr[] = $pp_list[$key]['ppname'];
                 $pdttimearr[$pp_list[$key]['ppname']] = $pp_list[$key]['proexpire'];
             }
@@ -708,7 +723,7 @@ class PermissionsModel extends AgentModel
 //                    $checkPermission = $this->checkPermission($user_obj['cpy_id'], $pdt);
 //                    write_to_log('check permission'. json_encode($checkPermission), '_from_ird');
 //                    if ($checkPermission) {
-                    $this->__addPdtPermission($pdtarr,$pdt, $user_obj['userid'], $user_obj['cpy_id'], $ird_user_id,$pdttimearr,$pp);
+                    $this->__addPdtPermission($pdtarr, $pdt, $user_obj['userid'], $user_obj['cpy_id'], $ird_user_id, $pdttimearr, $pp);
 //                    }
                 }
             }
@@ -722,10 +737,10 @@ class PermissionsModel extends AgentModel
     {
         $sql_parent = "select pdt_label from idt_product where pdt_id = {$pdtID}";
         $ret_parent = $this->mysqlQuery($sql_parent, 'all');
-        if(!empty($ret_parent[0]['pdt_label'])) {
+        if (!empty($ret_parent[0]['pdt_label'])) {
             $rq = json_decode($ret_parent[0]['pdt_label'], true);
             $sql = "SELECT COUNT(pdt_id) as co_pdt FROM idt_permissions_number where cpy_id='{$cpy_id}' and pdt_id='{$rq['parentID']}'";
-        }else{
+        } else {
             $sql = "SELECT COUNT(pdt_id) as co_pdt FROM idt_permissions_number where cpy_id='{$cpy_id}' and pdt_id='{$pdtID}'";
         }
         $ret = $this->mysqlQuery($sql, 'all');
@@ -738,11 +753,11 @@ class PermissionsModel extends AgentModel
     ################################                     #################################
     ######################################################################################
 
-    private function __addPdtPermission($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id,$pdttimearr,$pp)
+    private function __addPdtPermission($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id, $pdttimearr, $pp)
     {
         $upTimes = date("Y-m-d H:i:s");
         $rs = $this->__getLicenceKey($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id);
-        if($rs && count($rs)>0){
+        if ($rs && count($rs) > 0) {
             $update_data = [
                 'u_id' => $userID,
                 'lic_author_uid' => '8cbd411a-28ae-11e7-8cab-0017fa012439',
@@ -753,23 +768,23 @@ class PermissionsModel extends AgentModel
             $ret = $this->mysqlEdit('idt_licence', $update_data, ['licence_key' => $rs[0]['licence_key']]);
             write_to_log('ret: ' . json_encode($ret), '_from_ird');
             return $ret !== '1';
-        } else{
+        } else {
             write_to_log('create Pdt licence ', '_from_ird');
-            return $this->__createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id,$pdttimearr,$pp);
+            return $this->__createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id, $pdttimearr, $pp);
         }
     }
 
-    private function __createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id,$pdttimearr,$pp)
+    private function __createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id, $pdttimearr, $pp)
     {
         $upTimes = date("Y-m-d H:i:s");
         $sql_parent = "select pdt_label from idt_product where pdt_id = {$pdtId}";
         $ret_parent = $this->mysqlQuery($sql_parent, 'all');
-        if(!empty($ret_parent[0]['pdt_label'])){
-            $rq = json_decode($ret_parent[0]['pdt_label'],true);
+        if (!empty($ret_parent[0]['pdt_label'])) {
+            $rq = json_decode($ret_parent[0]['pdt_label'], true);
             //判断用户是否有这个权限的产品
-            if($pdtId == 12 ){
+            if ($pdtId == 12) {
                 $sql = "select pnum_id,end_date from idt_permissions_number where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
-                $ret = $this->mysqlQuery($sql,"all");
+                $ret = $this->mysqlQuery($sql, "all");
                 $sql_default_points = "select IFNULL(pdt_default_points,0) pdt_default_points from idt_product where pdt_id = {$rq['parentID']}";
                 $pdt_default_points = $this->mysqlQuery($sql_default_points, "all");
                 $lic['licence_key'] = getGUID();
@@ -787,17 +802,17 @@ class PermissionsModel extends AgentModel
                 $point['points'] = $lic['points'];
                 $this->mysqlInsert('idt_licence', $lic);
                 $this->__newtopUp($point);
-                if(count($ret) >0){
-                    $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
-                    if($ird_end_date > $ret[0]['end_date']){
-                        write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
+                if (count($ret) > 0) {
+                    $ird_end_date = date("Y-m-d", strtotime($pp['proexpire']));
+                    if ($ird_end_date > $ret[0]['end_date']) {
+                        write_to_log('old pnum_end_date:' . $ret[0]['end_date'], '_from_ird');
                         $end_date = ",end_date = '{$ird_end_date}'";
-                    }else{
+                    } else {
                         $end_date = "";
                     }
                     $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1{$end_date} where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
                     $ret_pnum = $this->mysqlQuery($pnumSql);
-                }else{
+                } else {
                     $where['cpy_id'] = $cpy_id; //公司ID
                     $where['pdt_id'] = $rq['parentID']; //产品ID
                     $where['meu_id'] = 0; //报告ID
@@ -805,29 +820,29 @@ class PermissionsModel extends AgentModel
                     $where['pnum_cdate'] = $upTimes; //创建时间
                     $where['pnum_edate'] = $upTimes; //更新时间
                     $where['start_date'] = $upTimes; //开通日期
-                    $where['end_date'] = date("Y-m-d",strtotime($pp['proexpire'])); //到期日期
+                    $where['end_date'] = date("Y-m-d", strtotime($pp['proexpire'])); //到期日期
                     $where['pnum_type'] = 0;
                     $ret_pnum = $this->mysqlInsert('idt_permissions_number', $where);
                 }
-                if(in_array('mut',$pdtarr)){
+                if (in_array('mut', $pdtarr)) {
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $rq['parentID'];
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['pc_due_time'] = date("Y-m-d", strtotime($pp['proexpire']));
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['mut']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d", strtotime($pdttimearr['mut']));
                     $subproduct['spdt_comment'] = "from ird";
-                }else{
+                } else {
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $rq['parentID'];
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['pc_due_time'] = date("Y-m-d", strtotime($pp['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
                 }
-                return $this->mysqlInsert('idt_subproduct',$subproduct);
-            }elseif($pdtId == 37){
+                return $this->mysqlInsert('idt_subproduct', $subproduct);
+            } elseif ($pdtId == 37) {
                 $sql = "select pnum_id,end_date from idt_permissions_number where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
-                $ret = $this->mysqlQuery($sql,"all");
+                $ret = $this->mysqlQuery($sql, "all");
                 $sql_default_points = "select IFNULL(pdt_default_points,0) pdt_default_points from idt_product where pdt_id = {$rq['parentID']}";
                 $pdt_default_points = $this->mysqlQuery($sql_default_points, "all");
                 $lic['licence_key'] = getGUID();
@@ -845,17 +860,17 @@ class PermissionsModel extends AgentModel
                 $point['points'] = $lic['points'];
                 $this->mysqlInsert('idt_licence', $lic);
                 $this->__newtopUp($point);
-                if(count($ret) >0){
-                    $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
-                    if($ird_end_date > $ret[0]['end_date']){
-                        write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
+                if (count($ret) > 0) {
+                    $ird_end_date = date("Y-m-d", strtotime($pp['proexpire']));
+                    if ($ird_end_date > $ret[0]['end_date']) {
+                        write_to_log('old pnum_end_date:' . $ret[0]['end_date'], '_from_ird');
                         $end_date = ",end_date = '{$ird_end_date}'";
-                    }else{
+                    } else {
                         $end_date = "";
                     }
                     $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1{$end_date} where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
                     $ret_pnum = $this->mysqlQuery($pnumSql);
-                }else{
+                } else {
                     $where['cpy_id'] = $cpy_id; //公司ID
                     $where['pdt_id'] = $rq['parentID']; //产品ID
                     $where['meu_id'] = 0; //报告ID
@@ -863,29 +878,29 @@ class PermissionsModel extends AgentModel
                     $where['pnum_cdate'] = $upTimes; //创建时间
                     $where['pnum_edate'] = $upTimes; //更新时间
                     $where['start_date'] = $upTimes; //开通日期
-                    $where['end_date'] = date("Y-m-d",strtotime($pp['proexpire'])); //到期日期
+                    $where['end_date'] = date("Y-m-d", strtotime($pp['proexpire'])); //到期日期
                     $where['pnum_type'] = 0;
                     $ret_pnum = $this->mysqlInsert('idt_permissions_number', $where);
                 }
-                if(in_array('iut',$pdtarr)){
+                if (in_array('iut', $pdtarr)) {
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $rq['parentID'];
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['iut']));
+                    $subproduct['pc_due_time'] = date("Y-m-d", strtotime($pdttimearr['iut']));
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d", strtotime($pp['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
-                }else{
+                } else {
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $rq['parentID'];
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d", strtotime($pp['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
                 }
-                return $this->mysqlInsert('idt_subproduct',$subproduct);
-            }elseif($pdtId == 45){
+                return $this->mysqlInsert('idt_subproduct', $subproduct);
+            } elseif ($pdtId == 45) {
                 $sql = "select pnum_id,end_date from idt_permissions_number where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
-                $ret = $this->mysqlQuery($sql,"all");
+                $ret = $this->mysqlQuery($sql, "all");
                 $sql_default_points = "select IFNULL(pdt_default_points,0) pdt_default_points from idt_product where pdt_id = {$rq['parentID']}";
                 $pdt_default_points = $this->mysqlQuery($sql_default_points, "all");
                 $lic['licence_key'] = getGUID();
@@ -903,17 +918,17 @@ class PermissionsModel extends AgentModel
                 $point['points'] = $lic['points'];
                 $this->mysqlInsert('idt_licence', $lic);
                 $this->__newtopUp($point);
-                if(count($ret) >0){
-                    $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
-                    if($ird_end_date > $ret[0]['end_date']){
-                        write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
+                if (count($ret) > 0) {
+                    $ird_end_date = date("Y-m-d", strtotime($pp['proexpire']));
+                    if ($ird_end_date > $ret[0]['end_date']) {
+                        write_to_log('old pnum_end_date:' . $ret[0]['end_date'], '_from_ird');
                         $end_date = ",end_date = '{$ird_end_date}'";
-                    }else{
+                    } else {
                         $end_date = "";
                     }
                     $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1{$end_date} where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
                     $ret_pnum = $this->mysqlQuery($pnumSql);
-                }else{
+                } else {
                     $where['cpy_id'] = $cpy_id; //公司ID
                     $where['pdt_id'] = $rq['parentID']; //产品ID
                     $where['meu_id'] = 0; //报告ID
@@ -921,53 +936,53 @@ class PermissionsModel extends AgentModel
                     $where['pnum_cdate'] = $upTimes; //创建时间
                     $where['pnum_edate'] = $upTimes; //更新时间
                     $where['start_date'] = $upTimes; //开通日期
-                    $where['end_date'] = date("Y-m-d",strtotime($pp['proexpire'])); //到期日期
+                    $where['end_date'] = date("Y-m-d", strtotime($pp['proexpire'])); //到期日期
                     $where['pnum_type'] = 0;
                     $ret_pnum = $this->mysqlInsert('idt_permissions_number', $where);
                 }
                 $mvtSql = "select ird_tmp_id from ird_user_tmp where pdt_type = 'mvt' and ird_cu_id = '{$ird_user_id}'";
                 $ovtSql = "select ird_tmp_id from ird_user_tmp where pdt_type = 'ovt' and ird_cu_id = '{$ird_user_id}'";
-                $mvtret = $this->mysqlQuery($mvtSql,'all');
-                $ovtret = $this->mysqlQuery($ovtSql,'all');
-                if(count($mvtret) >0 && count($ovtret) >0){
+                $mvtret = $this->mysqlQuery($mvtSql, 'all');
+                $ovtret = $this->mysqlQuery($ovtSql, 'all');
+                if (count($mvtret) > 0 && count($ovtret) > 0) {
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $rq['parentID'];
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['pc_due_time'] = date("Y-m-d", strtotime($pp['proexpire']));
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d", strtotime($pp['proexpire']));
                     $subproduct['ott_start_time'] = $upTimes;
-                    $subproduct['ott_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['ott_due_time'] = date("Y-m-d", strtotime($pp['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
-                }elseif (count($mvtret) >0){
+                } elseif (count($mvtret) > 0) {
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $rq['parentID'];
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = ddate("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['pc_due_time'] = ddate("Y-m-d", strtotime($pp['proexpire']));
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d", strtotime($pp['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
-                }elseif (count($ovtret) >0){
+                } elseif (count($ovtret) > 0) {
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $rq['parentID'];
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['pc_due_time'] = date("Y-m-d", strtotime($pp['proexpire']));
                     $subproduct['ott_start_time'] = $upTimes;
-                    $subproduct['ott_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['ott_due_time'] = date("Y-m-d", strtotime($pp['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
-                }else{
+                } else {
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $rq['parentID'];
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pp['proexpire']));
+                    $subproduct['pc_due_time'] = date("Y-m-d", strtotime($pp['proexpire']));
                     $subproduct['spdt_comment'] = "from ird";
                 }
-                return $this->mysqlInsert('idt_subproduct',$subproduct);
+                return $this->mysqlInsert('idt_subproduct', $subproduct);
             }
-        }else{
-            if($pdtId == 42){
+        } else {
+            if ($pdtId == 42) {
                 $sql = "select pnum_id,end_date from idt_permissions_number where cpy_id = {$cpy_id} and pdt_id = $pdtId";
-                $ret = $this->mysqlQuery($sql,"all");
+                $ret = $this->mysqlQuery($sql, "all");
                 $sql_default_points = "select IFNULL(pdt_default_points,0) pdt_default_points from idt_product where pdt_id = $pdtId";
                 $pdt_default_points = $this->mysqlQuery($sql_default_points, "all");
                 $lic['licence_key'] = getGUID();
@@ -985,17 +1000,17 @@ class PermissionsModel extends AgentModel
                 $point['points'] = $lic['points'];
                 $this->mysqlInsert('idt_licence', $lic);
                 $this->__newtopUp($point);
-                if(count($ret) >0){
-                    $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
-                    if($ird_end_date > $ret[0]['end_date']){
-                        write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
+                if (count($ret) > 0) {
+                    $ird_end_date = date("Y-m-d", strtotime($pp['proexpire']));
+                    if ($ird_end_date > $ret[0]['end_date']) {
+                        write_to_log('old pnum_end_date:' . $ret[0]['end_date'], '_from_ird');
                         $end_date = ",end_date = '{$ird_end_date}'";
-                    }else{
+                    } else {
                         $end_date = "";
                     }
                     $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1{$end_date} where cpy_id = {$cpy_id} and pdt_id = {$pdtId}";
                     $ret_pnum = $this->mysqlQuery($pnumSql);
-                }else{
+                } else {
                     $where['cpy_id'] = $cpy_id; //公司ID
                     $where['pdt_id'] = $pdtId; //产品ID
                     $where['meu_id'] = 0; //报告ID
@@ -1003,39 +1018,39 @@ class PermissionsModel extends AgentModel
                     $where['pnum_cdate'] = $upTimes; //创建时间
                     $where['pnum_edate'] = $upTimes; //更新时间
                     $where['start_date'] = $upTimes; //开通日期
-                    $where['end_date'] = date("Y-m-d",strtotime($pp['proexpire'])); //到期日期
+                    $where['end_date'] = date("Y-m-d", strtotime($pp['proexpire'])); //到期日期
                     $where['pnum_type'] = 0;
                     $ret_pnum = $this->mysqlInsert('idt_permissions_number', $where);
                 }
-                if(in_array('iadt',$pdtarr) && in_array('madt',$pdtarr)){
+                if (in_array('iadt', $pdtarr) && in_array('madt', $pdtarr)) {
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $pdtId;
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['iadt']));
+                    $subproduct['pc_due_time'] = date("Y-m-d", strtotime($pdttimearr['iadt']));
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['madt']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d", strtotime($pdttimearr['madt']));
                     $subproduct['ott_start_time'] = $upTimes;
-                    $subproduct['ott_due_time'] = date("Y-m-d",strtotime($pdttimearr['madt']));
+                    $subproduct['ott_due_time'] = date("Y-m-d", strtotime($pdttimearr['madt']));
                     $subproduct['spdt_comment'] = "from ird";
-                }elseif(in_array('iadt',$pdtarr)){
+                } elseif (in_array('iadt', $pdtarr)) {
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $pdtId;
                     $subproduct['pc_start_time'] = $upTimes;
-                    $subproduct['pc_due_time'] = date("Y-m-d",strtotime($pdttimearr['iadt']));
+                    $subproduct['pc_due_time'] = date("Y-m-d", strtotime($pdttimearr['iadt']));
                     $subproduct['spdt_comment'] = "from ird";
-                }elseif(in_array('madt',$pdtarr)){
+                } elseif (in_array('madt', $pdtarr)) {
                     $subproduct['licence_key'] = $lic['licence_key'];
                     $subproduct['pdt_id'] = $pdtId;
                     $subproduct['mobile_start_time'] = $upTimes;
-                    $subproduct['mobile_due_time'] = date("Y-m-d",strtotime($pdttimearr['madt']));
+                    $subproduct['mobile_due_time'] = date("Y-m-d", strtotime($pdttimearr['madt']));
                     $subproduct['ott_start_time'] = $upTimes;
-                    $subproduct['ott_due_time'] = date("Y-m-d",strtotime($pdttimearr['madt']));
+                    $subproduct['ott_due_time'] = date("Y-m-d", strtotime($pdttimearr['madt']));
                     $subproduct['spdt_comment'] = "from ird";
                 }
-                return $this->mysqlInsert('idt_subproduct',$subproduct);
-            }else {
+                return $this->mysqlInsert('idt_subproduct', $subproduct);
+            } else {
                 $sql = "select pnum_id,end_date from idt_permissions_number where cpy_id = {$cpy_id} and pdt_id = $pdtId";
-                $ret = $this->mysqlQuery($sql,"all");
+                $ret = $this->mysqlQuery($sql, "all");
                 $lic['licence_key'] = getGUID();
                 $lic['u_id'] = $userID;
                 $lic['cpy_id'] = $cpy_id;
@@ -1046,17 +1061,17 @@ class PermissionsModel extends AgentModel
                 $lic['state'] = 1;
                 $lic['lic_comment'] = 'from ird';
                 $this->mysqlInsert('idt_licence', $lic);
-                if(count($ret) >0){
-                    $ird_end_date = date("Y-m-d",strtotime($pp['proexpire']));
-                    if($ird_end_date > $ret[0]['end_date']){
-                        write_to_log('old pnum_end_date:'.$ret[0]['end_date'], '_from_ird');
+                if (count($ret) > 0) {
+                    $ird_end_date = date("Y-m-d", strtotime($pp['proexpire']));
+                    if ($ird_end_date > $ret[0]['end_date']) {
+                        write_to_log('old pnum_end_date:' . $ret[0]['end_date'], '_from_ird');
                         $end_date = ",end_date = '{$ird_end_date}'";
-                    }else{
+                    } else {
                         $end_date = "";
                     }
                     $pnumSql = "update idt_permissions_number set pnum_number = pnum_number+1{$end_date} where cpy_id = {$cpy_id} and pdt_id = {$pdtId}";
                     return $this->mysqlQuery($pnumSql);
-                }else{
+                } else {
                     $where['cpy_id'] = $cpy_id; //公司ID
                     $where['pdt_id'] = $pdtId; //产品ID
                     $where['meu_id'] = 0; //报告ID
@@ -1064,7 +1079,7 @@ class PermissionsModel extends AgentModel
                     $where['pnum_cdate'] = $upTimes; //创建时间
                     $where['pnum_edate'] = $upTimes; //更新时间
                     $where['start_date'] = $upTimes; //开通日期
-                    $where['end_date'] = date("Y-m-d",strtotime($pp['proexpire'])); //到期日期
+                    $where['end_date'] = date("Y-m-d", strtotime($pp['proexpire'])); //到期日期
                     $where['pnum_type'] = 0;
                     return $this->mysqlInsert('idt_permissions_number', $where);
                 }
@@ -1085,7 +1100,7 @@ class PermissionsModel extends AgentModel
                 'point_value' => $data['points'],
                 'pdt_id' => $data['pdt_id'],
                 'u_id' => "11111111-1111-1111-1111-111111111111",
-                'balance' =>  $this->__computingBalancePoint($data['licenceKey'])
+                'balance' => $this->__computingBalancePoint($data['licenceKey'])
             ];
             if (is_numeric($data['point_value'])) {
                 if ($data['point_value'] >= 0) {
@@ -1161,70 +1176,70 @@ class PermissionsModel extends AgentModel
     {
         $sql_parent = "select pdt_label from idt_product where pdt_id = {$pdtId}";
         $ret_parent = $this->mysqlQuery($sql_parent, 'all');
-        if(!empty($ret_parent[0]['pdt_label'])){
-            $rq = json_decode($ret_parent[0]['pdt_label'],true);
+        if (!empty($ret_parent[0]['pdt_label'])) {
+            $rq = json_decode($ret_parent[0]['pdt_label'], true);
             //判断用户是否有这个权限的产品
             $sql = "SELECT licence_key FROM idt_licence
             WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
             AND pdt_id='{$rq['parentID']}' AND state= 1";
             $rs = $this->mysqlQuery($sql, 'all');
-            if(count($rs) >0){
+            if (count($rs) > 0) {
                 $where = [
                     'licence_key' => $rs[0]['licence_key']
                 ];
-                $ret = $this->mysqlDelete('idt_licence',$where);
-                write_to_log('delete  :'.$ret, '_from_ird');
-                write_to_log('delete licence :'.$rs[0]['licence_key'], '_from_ird');
+                $ret = $this->mysqlDelete('idt_licence', $where);
+                write_to_log('delete  :' . $ret, '_from_ird');
+                write_to_log('delete licence :' . $rs[0]['licence_key'], '_from_ird');
                 $pnumSql = "update idt_permissions_number set pnum_number = pnum_number-1 where cpy_id = {$cpy_id} and pdt_id = {$rq['parentID']}";
                 $ret_pnum = $this->mysqlQuery($pnumSql);
                 return false;
-            }else {
-                if($pdtId == 12 ){
-                    if(in_array('mut',$pdtarr)){
+            } else {
+                if ($pdtId == 12) {
+                    if (in_array('mut', $pdtarr)) {
                         $terminalSql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = {$rq['parentID']} and cpy_id = $cpy_id and u_id is null AND pc_due_time is not null AND mobile_due_time is not null limit 1";
-                    }else{
+                    } else {
                         $terminalSql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = {$rq['parentID']} and cpy_id = $cpy_id and u_id is null AND pc_due_time is not null AND mobile_due_time is null limit 1";
                     }
-                }elseif($pdtId == 37){
-                    if(in_array('iut',$pdtarr)){
+                } elseif ($pdtId == 37) {
+                    if (in_array('iut', $pdtarr)) {
                         $terminalSql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = {$rq['parentID']} and cpy_id = $cpy_id and u_id is null AND pc_due_time is not null AND mobile_due_time is not null limit 1";
-                    }else{
+                    } else {
                         $terminalSql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = {$rq['parentID']} and cpy_id = $cpy_id and u_id is null AND pc_due_time is null AND mobile_due_time is not null limit 1";
                     }
-                }elseif($pdtId == 45){
+                } elseif ($pdtId == 45) {
                     $mvtSql = "select ird_tmp_id from ird_user_tmp where pdt_type = 'mvt' and ird_cu_id = '{$ird_user_id}' and idt_user_id is null";
                     $ovtSql = "select ird_tmp_id from ird_user_tmp where pdt_type = 'ovt' and ird_cu_id = '{$ird_user_id}' and idt_user_id is null";
-                    $mvtret = $this->mysqlQuery($mvtSql,'all');
-                    $ovtret = $this->mysqlQuery($ovtSql,'all');
-                    if(count($mvtret) >0 && count($ovtret) >0){
+                    $mvtret = $this->mysqlQuery($mvtSql, 'all');
+                    $ovtret = $this->mysqlQuery($ovtSql, 'all');
+                    if (count($mvtret) > 0 && count($ovtret) > 0) {
                         $this->mysqlEdit('ird_user_tmp',
-                            ['idt_user_Id' => $userID,'idt_cpy_id' => $cpy_id], ['ird_tmp_id' => $mvtret[0]['ird_tmp_id']]);
+                            ['idt_user_Id' => $userID, 'idt_cpy_id' => $cpy_id], ['ird_tmp_id' => $mvtret[0]['ird_tmp_id']]);
                         $this->mysqlEdit('ird_user_tmp',
-                            ['idt_user_Id' => $userID,'idt_cpy_id' => $cpy_id], ['ird_tmp_id' => $ovtret[0]['ird_tmp_id']]);
+                            ['idt_user_Id' => $userID, 'idt_cpy_id' => $cpy_id], ['ird_tmp_id' => $ovtret[0]['ird_tmp_id']]);
                         $terminalSql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = {$rq['parentID']} and cpy_id = $cpy_id and u_id is null AND pc_due_time is not null AND mobile_due_time is not null AND ott_due_time is not null limit 1";
-                    }elseif (count($mvtret) >0){
+                    } elseif (count($mvtret) > 0) {
                         $this->mysqlEdit('ird_user_tmp',
-                            ['idt_user_Id' => $userID,'idt_cpy_id' => $cpy_id], ['ird_tmp_id' => $mvtret[0]['ird_tmp_id']]);
+                            ['idt_user_Id' => $userID, 'idt_cpy_id' => $cpy_id], ['ird_tmp_id' => $mvtret[0]['ird_tmp_id']]);
                         $terminalSql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = {$rq['parentID']} and cpy_id = $cpy_id and u_id is null AND pc_due_time is not null AND mobile_due_time is not null AND ott_due_time is null limit 1";
-                    }elseif (count($ovtret) >0){
+                    } elseif (count($ovtret) > 0) {
                         $this->mysqlEdit('ird_user_tmp',
-                            ['idt_user_Id' => $userID,'idt_cpy_id' => $cpy_id], ['ird_tmp_id' => $ovtret[0]['ird_tmp_id']]);
+                            ['idt_user_Id' => $userID, 'idt_cpy_id' => $cpy_id], ['ird_tmp_id' => $ovtret[0]['ird_tmp_id']]);
                         $terminalSql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = {$rq['parentID']} and cpy_id = $cpy_id and u_id is null AND pc_due_time is not null AND mobile_due_time is null AND ott_due_time is not null limit 1";
-                    }else{
+                    } else {
                         $terminalSql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = {$rq['parentID']} and cpy_id = $cpy_id and u_id is null AND pc_due_time is not null AND mobile_due_time is null AND ott_due_time is null limit 1";
@@ -1232,35 +1247,35 @@ class PermissionsModel extends AgentModel
                 }
                 return $this->mysqlQuery($terminalSql, 'all');
             }
-        }else{
+        } else {
             $sql = "select licence_key from idt_licence where cpy_id = $cpy_id and pdt_id = $pdtId and u_id = '{$userID}' and state = 1";
             $rs = $this->mysqlQuery($sql, 'all');
-            if(count($rs) > 0){
+            if (count($rs) > 0) {
                 $where = [
                     'licence_key' => $rs[0]['licence_key']
                 ];
-                $ret = $this->mysqlDelete('idt_licence',$where);
-                write_to_log('delete  :'.$ret, '_from_ird');
-                write_to_log('delete licence :'.$rs[0]['licence_key'], '_from_ird');
+                $ret = $this->mysqlDelete('idt_licence', $where);
+                write_to_log('delete  :' . $ret, '_from_ird');
+                write_to_log('delete licence :' . $rs[0]['licence_key'], '_from_ird');
                 $pnumSql = "update idt_permissions_number set pnum_number = pnum_number-1 where cpy_id = {$cpy_id} and pdt_id = {$pdtId}";
                 $ret_pnum = $this->mysqlQuery($pnumSql);
                 return false;
-            }else{
-                if($pdtId == 42){
-                    if(in_array('iadt',$pdtarr) && in_array('madt',$pdtarr)){
+            } else {
+                if ($pdtId == 42) {
+                    if (in_array('iadt', $pdtarr) && in_array('madt', $pdtarr)) {
                         $sql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = $pdtId and cpy_id = $cpy_id and u_id is null AND pc_due_time is not null AND mobile_due_time is not null limit 1";
-                    }elseif(in_array('iadt',$pdtarr)){
+                    } elseif (in_array('iadt', $pdtarr)) {
                         $sql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = $pdtId and cpy_id = $cpy_id and u_id is null AND pc_due_time is not null AND mobile_due_time is null limit 1";
-                    }elseif(in_array('madt',$pdtarr)){
+                    } elseif (in_array('madt', $pdtarr)) {
                         $sql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = $pdtId and cpy_id = $cpy_id and u_id is null AND pc_due_time is null AND mobile_due_time is not null limit 1";
                     }
-                }else {
+                } else {
                     $sql = "select licence_key from idt_licence where cpy_id = $cpy_id and pdt_id = $pdtId and u_id is null and state = 1 limit 1";
                 }
                 return $this->mysqlQuery($sql, 'all');
@@ -1404,16 +1419,16 @@ class PermissionsModel extends AgentModel
      * @param $userID
      * @param $pdt_id
      * @param $cpy_id
-     *
+     * @param null $get_terminal
      * @return bool
      */
-    private function __checkPermission($userID, $pdt_id, $cpy_id)
+    private function __checkPermission($userID, $pdt_id, $cpy_id, $get_terminal = null)
     {
         $now = date('Y-m-d H:i:s');
         $sql_parent = "select pdt_label from idt_product where pdt_id = {$pdt_id}";
         $ret_parent = $this->mysqlQuery($sql_parent, 'all');
-        if(!empty($ret_parent[0]['pdt_label'])){
-            $rq = json_decode($ret_parent[0]['pdt_label'],true);
+        if (!empty($ret_parent[0]['pdt_label'])) {
+            $rq = json_decode($ret_parent[0]['pdt_label'], true);
             //判断用户是否有这个权限的产品
             $sql = "SELECT licence_key FROM idt_licence
                 WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
@@ -1421,7 +1436,7 @@ class PermissionsModel extends AgentModel
             $res = $this->mysqlQuery($sql, 'all');
             write_to_log($sql, '_test');
             write_to_log(json_encode($res), '_test');
-            if(count($res) >0){
+            if (count($res) > 0) {
                 //权限是否过期
                 $numSql = "SELECT COUNT(*) co FROM idt_permissions_number 
                     WHERE cpy_id='{$cpy_id}' 
@@ -1430,52 +1445,95 @@ class PermissionsModel extends AgentModel
                 $num = $this->mysqlQuery($numSql, 'all');
                 write_to_log($numSql, '_test');
                 write_to_log(json_encode($num), '_test');
-                if($num[0]['co'] > 0){
-                    if($rq['terminal'] == 'pc'){
+                if ($num[0]['co'] > 0) {
+                    if ($rq['terminal'] == 'pc') {
                         //终端权限是否过期
                         $terminalSql = "SELECT COUNT(*) co FROM idt_subproduct 
                                         WHERE licence_key='{$res[0]['licence_key']}' AND pdt_id = {$rq['parentID']}
                                         AND pc_due_time>='{$now}' AND pc_start_time<='{$now}'";
-                    }elseif($rq['terminal'] == 'mobile'){
+                    } elseif ($rq['terminal'] == 'mobile') {
                         $terminalSql = "SELECT COUNT(*) co FROM idt_subproduct 
                                         WHERE licence_key='{$res[0]['licence_key']}' AND pdt_id = {$rq['parentID']}
                                         AND mobile_due_time>='{$now}' AND mobile_start_time<='{$now}'";
-                    }elseif($rq['terminal'] == 'ott'){
+                    } elseif ($rq['terminal'] == 'ott') {
                         $terminalSql = "SELECT COUNT(*) co FROM idt_subproduct 
                                         WHERE licence_key='{$res[0]['licence_key']}' AND pdt_id = {$rq['parentID']}
                                         AND ott_due_time>='{$now}' AND ott_start_time<='{$now}'";
                     }
                     $terminal = $this->mysqlQuery($terminalSql, 'all');
-                    if($terminal[0]['co'] >0){
+                    if ($terminal[0]['co'] > 0) {
                         return true;
-                    }else{
+                    } else {
                         return false;
                     }
-                }else{
+                } else {
                     return false;
                 }
-            }else{
+            } else {
                 return false;
             }
-        }else{
+        } else {
+
             //判断用户是否有这个权限的产品
-            $sql = "SELECT COUNT(*) co FROM idt_licence
+            $sql = "SELECT licence_key  FROM idt_licence
                 WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
                 AND pdt_id='{$pdt_id}' AND state='1' ";
+
             $res = $this->mysqlQuery($sql, 'all');
             write_to_log($sql, '_test');
             write_to_log(json_encode($res), '_test');
-            if($res[0]['co'] >0){
+
+            if (count($res) > 0) {
                 //权限是否过期
                 $numSql = "SELECT COUNT(*) co FROM idt_permissions_number 
                     WHERE cpy_id='{$cpy_id}' 
                     AND pdt_id='{$pdt_id}'
                     AND end_date>='{$now}' AND start_date<='{$now}'";
                 $num = $this->mysqlQuery($numSql, 'all');
+
                 write_to_log($numSql, '_test');
                 write_to_log(json_encode($num), '_test');
-                return $num[0]['co'] > 0;
-            }else{
+
+                if ($num[0]['co'] > 0) {
+
+                    if (!empty($get_terminal)) {
+
+                        switch ($get_terminal) {
+                            case 'pc':
+                                $ptSql = "SELECT COUNT(*) co FROM idt_subproduct 
+                                        WHERE licence_key='{$res[0]['licence_key']}' AND pdt_id = '{$pdt_id}'
+                                        AND pc_due_time>='{$now}' AND pc_start_time<='{$now}'";
+                                break;
+                            case 'mobile':
+                                $ptSql = "SELECT COUNT(*) co FROM idt_subproduct 
+                                        WHERE licence_key='{$res[0]['licence_key']}' AND pdt_id = '{$pdt_id}'
+                                        AND mobile_due_time>='{$now}' AND mobile_start_time<='{$now}'";
+                                break;
+                            case 'ott':
+                                $ptSql = "SELECT COUNT(*) co FROM idt_subproduct 
+                                        WHERE licence_key='{$res[0]['licence_key']}' AND pdt_id = '{$pdt_id}'
+                                        AND ott_due_time>='{$now}' AND ott_start_time<='{$now}'";
+                                break;
+                            default:
+                                $ptSql = "SELECT COUNT(*) co FROM idt_subproduct 
+                                        WHERE licence_key='{$res[0]['licence_key']}' AND pdt_id = '{$pdt_id}'
+                                        AND pc_due_time>='{$now}' AND pc_start_time<='{$now}'";
+                                break;
+                        }
+
+                        $t_res = $this->mysqlQuery($ptSql, 'all');
+
+                        return $t_res[0]['co'] > 0;
+
+                    } else {
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+
+
+            } else {
                 return false;
             }
         }
