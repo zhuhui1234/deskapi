@@ -1089,8 +1089,15 @@ class UserModel extends AgentModel
         $ret = $this->mysqlQuery($sql, "all");
 
         //执行总数
-
-        $ret_count = $this->__countUsersByCompany($ret_companyID[0]['cpy_id']);
+        $sql_count = "SELECT COUNT(1) count_num " .
+            "FROM idt_user dba " .
+            "LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id AND dba.cpy_id='{$ret_companyID[0]['cpy_id']}') " .
+            "WHERE 1=1 " .
+            "AND dba.u_state=0 " .
+            "AND dbb.cpy_state=0 " .
+            "AND (dba.u_permissions=1 OR dba.u_permissions=2) {$keyword}";
+        $ret_count = $this->mysqlQuery($sql_count, "all");
+//        $ret_count = $this->__countUsersByCompany($ret_companyID[0]['cpy_id']);
         //返回结果
         $rs = array();
         //返回参数-执行结果
