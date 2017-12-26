@@ -1006,8 +1006,8 @@ class UserModel extends AgentModel
             $imgName = $data['userID'] . '.png';//头像名称
             $imgPath = 'upload/head/' . $imgName;//头像路径
             $imgVal = base64_decode($data['headImg']);//头像格式化
-            write_to_log($data['headImg'], '_conapi');
-            write_to_log($imgVal, '_conapi');
+            write_to_log($data['headImg'], '_pic');
+            write_to_log($imgVal, '_pic');
             file_put_contents($imgPath, $imgVal);//返回的是字节数
             //保存头像
             $where['u_head'] = $imgName; //用户头像
