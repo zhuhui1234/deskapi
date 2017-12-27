@@ -366,6 +366,7 @@ class UserModel extends AgentModel
                         'user' => $rs['userID'],
                         'companyID' => $rs['companyID'],
                         'type' => 'irv用户日志',
+                        'action' => '',
                         'resource' => 'irv登入',
                         'status' => '20000',
                         'level' => '2'

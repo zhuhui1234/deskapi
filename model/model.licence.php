@@ -7,10 +7,12 @@
  */
 class LicenceModel extends AgentModel
 {
+    private $logsModel;
 
     public function __construct($classname)
     {
         parent::__construct($classname);
+        $this->logsModel = Model::instance('Logs');
     }
 
     public function getLicencesByCompanyFullNameID($data)
@@ -162,6 +164,7 @@ class LicenceModel extends AgentModel
         _SUCCESS('000000', '查询成功', $rs);
     }
 
+
     public function editLicencesByUserID($data)
     {
         $upTimes = date("Y-m-d H:i:s");
@@ -182,8 +185,28 @@ class LicenceModel extends AgentModel
         write_to_log(json_encode($where_editUser), '_licence');
         //验证并返回响应结果
         if ($ret == 1) {
+            $this->logsModel->pushLog([
+                'user' => $data['licenceUserID'],
+                'status' => '20000',
+                'type' => 'irv用户日志',
+                'resource' => 'iData',
+                'subid' => $data['productID'],
+                'level' => '2',
+                'action' => '修改License',
+                'content' => json_encode($where_editUser)
+            ]);
             _SUCCESS('000000', '修改成功');
         } else {
+            $this->logsModel->pushLog([
+                'user' => $data['licenceUserID'],
+                'status' => '40000',
+                'type' => 'irv用户日志',
+                'resource' => 'iData',
+                'subid' => $data['productID'],
+                'level' => '2',
+                'action' => '修改License',
+                'content' => json_encode($where_editUser)
+            ]);
             _ERROR('000001', '修改失败');
         }
     }
@@ -194,13 +217,39 @@ class LicenceModel extends AgentModel
         if(empty($data['licenceKey'])){
             _ERROR('000002', '许可证Key不能为空');
         }
+
+        $sql = "select licence_id,pdt_id from idt_licence where licence_key = '{$data['licenceKey']}'";
+        $getList = $this->mysqlQuery($sql, "all");
+
         $sql = "update idt_licence set u_id = null,lic_edate = '$upTimes',lic_author_uid = '{$data['userID']}' where licence_key = '{$data['licenceKey']}'";
         $ret = $this->mysqlQuery($sql);
         if($ret){
+
             write_to_log('removeLicence'.$data['licenceKey'], '_licence');
             //验证并返回响应结果
+
+            $this->logsModel->pushLog([
+                'user' => $data['userID'],
+                'status' => '20000',
+                'type' => 'irv用户日志',
+                'resource' => 'iData',
+                'subid' => $getList[0]['pdt_id'],
+                'level' => '2',
+                'action' => '删除License',
+                'content' => $data['licenceKey'],
+            ]);
             _SUCCESS('000000', '修改成功');
         }else{
+            $this->logsModel->pushLog([
+                'user' => $data['userID'],
+                'status' => '40004',
+                'type' => 'irv用户日志',
+                'resource' => 'iData',
+                'subid' => $getList[0]['pdt_id'],
+                'level' => '2',
+                'action' => '删除License',
+                'content' => $data['licenceKey'],
+            ]);
             _ERROR('000001','修改失败');
         }
     }
