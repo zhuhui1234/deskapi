@@ -179,7 +179,7 @@ class LicenceModel extends AgentModel
         $where_editUser['lic_comment'] = $data['remark']; //备注
         $id_editUser = " licence_key='" . $data['licenceKey'] . "'";//用户GUID
         $ret = $this->mysqlEdit('idt_licence', $where_editUser, $id_editUser);
-
+        write_to_log(json_encode($where_editUser), '_licence');
         //验证并返回响应结果
         if ($ret == 1) {
             _SUCCESS('000000', '修改成功');
@@ -197,6 +197,7 @@ class LicenceModel extends AgentModel
         $sql = "update idt_licence set u_id = null,lic_edate = '$upTimes',lic_author_uid = '{$data['userID']}' where licence_key = '{$data['licenceKey']}'";
         $ret = $this->mysqlQuery($sql);
         if($ret){
+            write_to_log('removeLicence'.$data['licenceKey'], '_licence');
             //验证并返回响应结果
             _SUCCESS('000000', '修改成功');
         }else{

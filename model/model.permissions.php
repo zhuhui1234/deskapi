@@ -770,7 +770,9 @@ class PermissionsModel extends AgentModel
             return $ret !== '1';
         } else {
             write_to_log('create Pdt licence ', '_from_ird');
-            return $this->__createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id, $pdttimearr, $pp);
+            $ret =  $this->__createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id, $pdttimearr, $pp);
+            write_to_log('create Pdt licence return '.$ret, '_from_ird');
+            return $ret;
         }
     }
 
