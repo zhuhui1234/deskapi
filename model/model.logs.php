@@ -52,6 +52,10 @@ class LogsModel extends AgentModel
         _SUCCESS('000000','查询日志',$rs);
     }
 
+    /**
+     * @param $data
+     * @return array|bool|int|string
+     */
     public function pushLog($data)
     {
         if (isset($data['user']) && isset($data['action'])) {
