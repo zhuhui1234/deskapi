@@ -297,6 +297,7 @@ class UserModel extends AgentModel
                                     $binding_ird = $this->__bindingIRD($ret[0]['userid'], $data['ird_user']);
                                     if ($binding_ird) {
                                         $change_member = $this->__changeToMember($ret[0]['userid'], $cpy_id['cpy_id']);
+                                        $ret[0]['cpy_id'] = $cpy_id['cpy_id'];
                                         if ($change_member) {
                                             $rs['permissions'] = 1;
                                             $rs['productKey'] = 1;
