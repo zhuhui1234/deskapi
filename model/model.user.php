@@ -162,6 +162,7 @@ class UserModel extends AgentModel
         $upToken = md5(rand(1000000001, 9999999999));
         $permission_model = Model::instance('Permissions');
 
+        $logsModel = Model::instance('logs');
         //登录方式
         if ($data['LoginType'] === 'mobile') {
             //游客注册
@@ -360,7 +361,14 @@ class UserModel extends AgentModel
 
                         }
                     }
-
+                    $logsModel->pushLog([
+                        'user' => $rs['userID'],
+                        'companyID' => $rs['companyID'],
+                        'type' => 'irv用户日志',
+                        'resource' => 'irv登入',
+                        'status' => '20000',
+                        'level' => '2'
+                    ]);
 
                     _SUCCESS('000000', '登录成功', $rs);
 
@@ -397,6 +405,16 @@ class UserModel extends AgentModel
                             'department' => $sp_ret[0]['u_department'],
                             'ird_user_id' => null,
                         ];
+
+                        $logsModel->pushLog([
+                            'user' => $sp_ret[0]['u_id'],
+                            'companyID' => $sp_ret[0]['cpy_id'],
+                            'type' => 'irv用户日志',
+                            'resource' => 'irv日本用户登入',
+                            'status' => '20000',
+                            'level' => '2'
+                        ]);
+
                         _SUCCESS('000000', '登录成功', $rs);
                     }
                 }
