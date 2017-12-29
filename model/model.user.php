@@ -362,15 +362,19 @@ class UserModel extends AgentModel
 
                         }
                     }
-                    $logsModel->pushLog([
+                    $log_db = $logsModel->pushLog([
                         'user' => $rs['userID'],
                         'companyID' => $rs['companyID'],
                         'type' => 'irv用户日志',
-                        'action' => '',
+                        'action' => '睿见登入',
                         'resource' => 'irv登入',
                         'status' => '20000',
                         'level' => '2'
                     ]);
+
+                    if (!$log_db) {
+                        write_to_log('log error', '_log');
+                    }
 
                     _SUCCESS('000000', '登录成功', $rs);
 
