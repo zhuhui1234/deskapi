@@ -895,6 +895,7 @@ class UserModel extends AgentModel
         } else {
             write_to_log(json_encode($data), '_diffmail');
         }
+        $ret_productkey[0]['u_name'] = trim($ret_productkey[0]['u_name']);
         if ($ret_productkey[0]['u_name'] == "" OR $ret_productkey[0]['u_name'] == null) {
             $sql_mail = "update idt_user set u_name = '{$ret_irdKey['TrueName']}' where u_id = '{$data['userID']}'";
             $this->mysqlQuery($sql_mail);
