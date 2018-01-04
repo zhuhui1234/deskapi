@@ -1927,10 +1927,11 @@ where state = 1 and idt_licence.u_id = '{$v['u_id']}' and idt_permissions_number
     {
         $sql = "SELECT u_name FROM idt_user WHERE u_id='{$u_id}'";
         $ret = $this->mysqlQuery($sql, "all");
-        if (!empty($ret[0]['u_name'])) {
-            return false;
-        } else {
+        $ret[0]['u_name'] = trim($ret[0]['u_name']);
+        if (empty($ret[0]['u_name'])) {
             return true;
+        } else {
+            return false;
         }
     }
 
