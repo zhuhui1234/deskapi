@@ -41,7 +41,7 @@ define('SMS_USER_ID', '813860');
 define('SMS_ACCOUNT', 'data5');
 define('SMS_PWD', '82D05B779D9301FBB9D3BB1D46C6181F29DC0323');
 define('SMS_SIGNATURE', '【艾瑞数据】');
-define('SMS_CONTENT', '您的注册验证码为(CODE)，该验证码5分钟内有效。如非本人操作请忽略此短信！');
+define('SMS_CONTENT', '您的验证码为(CODE)，该验证码5分钟内有效。如非本人操作请忽略此短信！');
 define('SMS_CONTENT_CHECK', '您的手机验证码为(CODE)，该验证码5分钟内有效。如非本人操作请忽略此短信！');
 //******************************************************************
 //站点配置
@@ -81,7 +81,7 @@ define('CACHE_ON', false);
 define('DEBUG', false || isset($_GET['debug']));
 define('DEBUG_LOG', TRUE); //记录日志
 define('START_TIME', microtime(true));
-define('OPEN_ME', true);
+define('OPEN_ME', false);
 
 define('NEED_MAIL', ['wanghaiyan@iresearch.com.cn', 'cswdc@icloud.com', 'rai@valuesccg.com', 'hank@iresearch.com.cn']);
 
