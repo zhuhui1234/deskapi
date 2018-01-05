@@ -35,10 +35,10 @@ class MysqlRoutRule implements IMysqlRoutRule{
 //                    'user'=>'idata_admin',
 //                    'pass'=>'1qaz2wsx',
 //                    'db'=>'idatadb'
-                    'host' => 'localhost',
-                    'user' => 'root',
-                    'pass' => 'root',
-                    'db' => 'idatadb'
+                    'host' => '42.159.231.97',
+                    'user' => 'idata_admin',
+                    'pass' => '1qaz2wsx',
+                    'db' => 'idata2'
                 )
             ),
             'S'=>array(
@@ -47,10 +47,10 @@ class MysqlRoutRule implements IMysqlRoutRule{
 //                    'user'=>'idata_admin',
 //                    'pass'=>'1qaz2wsx',
 //                    'db'=>'idatadb'
-                    'host'=>'localhost',
-                    'user'=>'root',
-                    'pass'=>'root',
-                    'db'=>'idatadb'
+                    'host'=>'42.159.231.97',
+                    'user'=>'idata_admin',
+                    'pass'=>'1qaz2wsx',
+                    'db'=>'idata2'
                 )
             ),
 //            'M'=>array(
