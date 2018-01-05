@@ -884,7 +884,7 @@ class UserModel extends AgentModel
         };
 
         //查询产品Key
-        $sql_productkey = "SELECT u_product_key,u_mail FROM idt_user WHERE u_id='{$data['userID']}'";
+        $sql_productkey = "SELECT u_product_key,u_mail,u_name FROM idt_user WHERE u_id='{$data['userID']}'";
         $ret_productkey = $this->mysqlQuery($sql_productkey, "all");
         if ($ret_productkey[0]['u_product_key'] != "" OR $ret_productkey[0]['u_product_key'] != null) {
             _ERROR('000002', '绑定失败,该产品KEY已绑定其它账号');
@@ -895,7 +895,13 @@ class UserModel extends AgentModel
         } else {
             write_to_log(json_encode($data), '_diffmail');
         }
-
+        $ret_productkey[0]['u_name'] = trim($ret_productkey[0]['u_name']);
+        if ($ret_productkey[0]['u_name'] == "" OR $ret_productkey[0]['u_name'] == null) {
+            $sql_mail = "update idt_user set u_name = '{$ret_irdKey['TrueName']}' where u_id = '{$data['userID']}'";
+            $this->mysqlQuery($sql_mail);
+        } else {
+            write_to_log(json_encode($data), '_diffname');
+        }
 
         //绑定成功,更新产品KEY
         $where['u_product_key'] = $ret_irdKey['iUserID']; //产品Key
@@ -1901,11 +1907,33 @@ where state = 1 and idt_licence.u_id = '{$v['u_id']}' and idt_permissions_number
             } else {
                 write_to_log('[email fails]  u_id ' . $u_id . ', ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
             }
+            if ($this->__checkUserName($u_id)) {
+                $this->mysqlEdit('idt_user', ['u_name' => $ird_user['TrueName']], "u_id='{$u_id}'");
+                write_to_log('[name SUCCESS]  u_id ' . $u_id . ', ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
+            } else {
+                write_to_log('[name fails]  u_id ' . $u_id . ', ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
+            }
             write_to_log('[binding SUCCESS]  u_id ' . $u_id . ', ird_u_id: ' . $ird_user['iUserID'], '_from_ird');
             return $this->mysqlEdit('idt_user', ['u_product_key' => $ird_user['iUserID']], "u_id='{$u_id}'");
         }
 
 
+    }
+
+    /**
+     * @param $u_id
+     * @return bool
+     */
+    private function __checkUserName($u_id)
+    {
+        $sql = "SELECT u_name FROM idt_user WHERE u_id='{$u_id}'";
+        $ret = $this->mysqlQuery($sql, "all");
+        $ret[0]['u_name'] = trim($ret[0]['u_name']);
+        if (empty($ret[0]['u_name'])) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
