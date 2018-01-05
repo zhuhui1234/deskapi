@@ -402,14 +402,14 @@ class UserModel extends AgentModel
                             'headImg' => $sp_ret[0]['headimg'], //avatar
                             'mobile' => $sp_ret[0]['u_mobile'],
                             'companyID' => $sp_ret[0]['cpy_id'],
-                            'permissions' => $sp_ret[0]['permissions'], //用户身份 0游客 1企业用户 2企业管理员
-                            'productKey' => 0, //ird_user_id
+                            'permissions' => $sp_ret[0]['u_permissions'], //用户身份 0游客 1企业用户 2企业管理员
+                            'productKey' => $sp_ret[0]['u_product_key'], //ird_user_id
                             'dev_id' => $sp_ret[0]['dev_id'],
                             'token' => $upToken,
-                            'uname' => $sp_ret[0]['uname'],
+                            'uname' => $sp_ret[0]['u_name'],
                             'userID' => $sp_ret[0]['u_id'],
                             'department' => $sp_ret[0]['u_department'],
-                            'ird_user_id' => null,
+                            'ird_user_id' =>  $sp_ret[0]['u_product_key'],
                         ];
 
                         $logsModel->pushLog([

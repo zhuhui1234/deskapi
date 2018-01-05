@@ -45,6 +45,10 @@ class ToolsModel extends AgentModel
             $postVal['userID'] = $postVal['Mobile'];
         }
 
+        if (isset($data['avatar_base64'])) {
+            unset($data['avatar_base64']);
+        }
+
         //新增日志
         $where_logs['sys_user'] = $postVal['userID']; //操作用户
         $where_logs['sys_m'] = $m; //模块

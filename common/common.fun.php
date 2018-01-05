@@ -976,6 +976,9 @@ function _SUCCESS($resCode = '000000', $resMsg = '处理成功', $data = '')
     );
 
     //写日志
+    if (isset($data['avatar_base'])) {
+        unset($data['avatar_base64']);
+    }
     Model::instance('tools')->logs($resCode, $resMsg, $data);
     $ret = json_encode($arr, JSON_UNESCAPED_UNICODE);
     write_to_log(' RESPONSE SUCCESS ' . $ret, '_conapi');
