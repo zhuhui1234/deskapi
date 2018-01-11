@@ -946,6 +946,7 @@ class UserModel extends AgentModel
         $rs['permissions'] = $ret[0]['u_permissions']; //姓名
         $rs['wechat'] = $ret[0]['u_wxname'];
         $rs['ird_user_Id'] = $ret[0]['u_product_key'];
+        $rs['productList'] = $this->__getUserProductList($data['userID']);
         _SUCCESS('000000', '获取成功', $rs);
     }
 
@@ -999,7 +1000,7 @@ class UserModel extends AgentModel
             'pnum_type' => $pnum_type,
             'permissions' => $ret[0]['u_permissions'],
             'wechat' => $ret[0]['u_wxname'],
-            'ird_user_id' => $ret[0]['product_key']
+            'ird_user_id' => $ret[0]['product_key'],
         ];
     }
 
@@ -1047,8 +1048,13 @@ class UserModel extends AgentModel
         } //处理空
         //修改用户
 
+        if (!empty($data['toUserID'])) {
+            $id = " u_id='" . $data['toUserID'] . "'";//用户GUID
+        }else{
+            $id = " u_id='" . $data['userID'] . "'";//用户GUID
+        }
 
-        $id = " u_id='" . $data['userID'] . "'";//用户GUID
+//        $id = " u_id='" . $data['userID'] . "'";//用户GUID
         if (isset($where)) {
             $ret = $this->mysqlEdit('idt_user', $where, $id);
         }
@@ -1083,6 +1089,7 @@ class UserModel extends AgentModel
         $this->__changeUserState($data['userID'], 0);
     }
 
+
     /**
      * user list
      *
@@ -1107,14 +1114,14 @@ class UserModel extends AgentModel
 
         //执行查询
         $sql = "SELECT dba.u_id,dba.u_head,dba.u_mobile mobile,dba.u_mail,dba.u_name,dba.u_permissions permissions,
-            dba.u_state,dba.u_edate logindate ,IFNULL(dbc.pcount,0) power, u_position, u_department
-            FROM idt_user dba 
-            LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id AND dba.cpy_id={$ret_companyID[0]['cpy_id']}) 
-            LEFT JOIN (SELECT u_id,COUNT(1) pcount FROM idt_licence where state = 1 GROUP BY u_id) dbc ON (dba.u_id=dbc.u_id)
-            WHERE 1=1 AND dba.u_state=0 
-            AND dbb.cpy_state=0 
-            AND (dba.u_permissions=1 OR dba.u_permissions=2) {$keyword}
-            ORDER BY {$orderByColumn} {$orderByType} LIMIT {$pageNo},{$pageSize}";
+                dba.u_state,dba.u_edate logindate ,IFNULL(dbc.pcount,0) power, u_position, u_department
+                FROM idt_user dba 
+                LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id AND dba.cpy_id={$ret_companyID[0]['cpy_id']}) 
+                LEFT JOIN (SELECT u_id,COUNT(1) pcount FROM idt_licence where state = 1 GROUP BY u_id) dbc ON (dba.u_id=dbc.u_id)
+                WHERE 1=1 AND dba.u_state=0 
+                AND dbb.cpy_state=0 
+                AND (dba.u_permissions=1 OR dba.u_permissions=2) {$keyword}
+                ORDER BY {$orderByColumn} {$orderByType} LIMIT {$pageNo},{$pageSize}";
 
         $ret = $this->mysqlQuery($sql, "all");
 
@@ -1132,11 +1139,12 @@ class UserModel extends AgentModel
         $rs = array();
         //返回参数-执行结果
         foreach ($ret as $a => $v) {
-            $lic_sql = "select idt_licence.pdt_id,pdt_ename,pc_start_time,pc_due_time,mobile_start_time,mobile_due_time,ott_start_time,ott_due_time,DATE_FORMAT(`start_date`,'%Y-%m-%d') start_date,DATE_FORMAT(`end_date`,'%Y-%m-%d') end_date from idt_licence 
-left join idt_product on idt_product.pdt_id = idt_licence.pdt_id
-left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
-left join idt_permissions_number on idt_permissions_number.pdt_id = idt_licence.pdt_id
-where state = 1 and idt_licence.u_id = '{$v['u_id']}' and idt_permissions_number.cpy_id = {$ret_companyID[0]['cpy_id']}";
+            $lic_sql = "select idt_licence.pdt_id,pdt_ename,pc_start_time,pc_due_time,mobile_start_time,mobile_due_time,ott_start_time,ott_due_time,
+                        DATE_FORMAT(`start_date`,'%Y-%m-%d') start_date,DATE_FORMAT(`end_date`,'%Y-%m-%d') end_date from idt_licence 
+                        left join idt_product on idt_product.pdt_id = idt_licence.pdt_id
+                        left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                        left join idt_permissions_number on idt_permissions_number.pdt_id = idt_licence.pdt_id
+                        where state = 1 and idt_licence.u_id = '{$v['u_id']}' and idt_permissions_number.cpy_id = {$ret_companyID[0]['cpy_id']}";
             $rs['list'][$a]['productInfo'] = $this->mysqlQuery($lic_sql, "all");
             $rs['list'][$a]['userID'] = $v['u_id']; //用户GUID
 //            $rs['list'][$a]['head'] = $v['u_head']; //头像
@@ -1860,10 +1868,10 @@ where state = 1 and idt_licence.u_id = '{$v['u_id']}' and idt_permissions_number
     }
 
     /**
-     * send code mail
-     *
+     * send code
      * @param $sender
      * @param $code
+     * @throws phpmailerException
      */
     private function __sendCode($sender, $code)
     {
@@ -2146,6 +2154,41 @@ where state = 1 and idt_licence.u_id = '{$v['u_id']}' and idt_permissions_number
             }
         }
         return $state;
+    }
+
+    /**
+     * get user product list
+     *
+     * @param $userID
+     * @return array|string
+     */
+    private function __getUserProductList($userID)
+    {
+
+        $lic_sql = "SELECT
+                      idt_licence.u_id,
+                      idt_licence.licence_key,
+                      idt_licence.cpy_id,
+                      idt_licence.pdt_id,
+                      idt_subproduct.pc_start_time,
+                      idt_subproduct.mobile_start_time,
+                      idt_subproduct.ott_start_time,
+                      idt_subproduct.mobile_due_time,
+                      idt_subproduct.pc_due_time,
+                      idt_subproduct.ott_due_time,
+                      idt_permissions_number.start_date,
+                      idt_permissions_number.end_date,
+                      idt_product.pdt_state,
+                      now() as now
+                    FROM idt_licence
+                      LEFT JOIN idt_subproduct ON idt_subproduct.licence_key = idt_licence.licence_key
+                      LEFT JOIN idt_permissions_number
+                        ON idt_permissions_number.pdt_id = idt_subproduct.pdt_id AND idt_permissions_number.cpy_id = idt_licence.cpy_id
+                      RIGHT JOIN idt_product on idt_product.pdt_id = idt_subproduct.pdt_id
+                    WHERE idt_licence.u_id = '{$userID}'
+                          AND idt_licence.state = 1 and pdt_state=0 and start_date <= now() and end_date >= now();";
+        $ret =  $this->mysqlQuery($lic_sql, 'all');
+        return $ret;
     }
 
 }
