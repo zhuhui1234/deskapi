@@ -2076,15 +2076,15 @@ class UserModel extends AgentModel
     {
         $hasUser = $this->__hasUser($data['mobile']);
 
-        $checkMobile = $this->__checkMobileKey($data['mobile'], $data['mobile_key'], 3);
+//        $checkMobile = $this->__checkMobileKey($data['mobile'], $data['mobile_key'], 3);
 
         if (!$this->__check_mail_suffix($data)) {
             _ERROR('000001', '所填写邮箱不包好在预设的邮箱域名范围之内');
         }
 
-        if (!empty($checkMobile)) {
+//        if (!empty($checkMobile)) {
 
-            $this->__updateMobileKey($checkMobile[0]['mik_id']);
+//            $this->__updateMobileKey($checkMobile[0]['mik_id']);
 
             if (empty($hasUser)) {
                 //添加用户
@@ -2112,24 +2112,27 @@ class UserModel extends AgentModel
                 //修改用户
                 if ($hasUser[0]['cpy_id'] == $data['cpy_id']) {
                     _ERROR('000001', '该公司下，此用户已存在');
-                }
-                $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['userID']}'  where u_id = '{$hasUser[0]['u_id']}'";
-                $ret = $this->mysqlQuery($sql);
-                if (!$ret) {
-                    _ERROR('000001', 'lic upload fails');
-                }
-                $updateUser = $this->mysqlEdit('idt_user', ['cpy_id' => $data['cpy_id'], 'u_permissions' => '1'], ['u_id' => $hasUser[0]['u_id']]);
+                }elseif($hasUser[0]['cpy_id'] == null || $hasUser[0]['cpy_id'] == 0){
+                    $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['userID']}'  where u_id = '{$hasUser[0]['u_id']}'";
+                    $ret = $this->mysqlQuery($sql);
+                    if (!$ret) {
+                        _ERROR('000001', 'lic upload fails');
+                    }
+                    $updateUser = $this->mysqlEdit('idt_user', ['cpy_id' => $data['cpy_id'], 'u_permissions' => '1'], ['u_id' => $hasUser[0]['u_id']]);
 
-                if ($updateUser) {
-                    _SUCCESS('000000', 'ok');
-                } else {
-                    _ERROR('000001', 'error');
+                    if ($updateUser) {
+                        _SUCCESS('000000', 'ok');
+                    } else {
+                        _ERROR('000001', 'error');
+                    }
+                }else{
+                    _ERROR('000001','该手机号系统中已存在！');
                 }
 
             }
-        } else {
-            _ERROR('000001', '验证码失败');
-        }
+//        } else {
+//            _ERROR('000001', '验证码失败');
+//        }
     }
 
     /**
