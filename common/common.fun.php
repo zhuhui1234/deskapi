@@ -1033,7 +1033,12 @@ function _findChildren($list, $p_id, $cleaningList = false)
     return $r;
 }
 
-//
+/**
+ *
+ * @param $sValue
+ * @param $sSecretKey
+ * @return string
+ */
 function fnEncrypt($sValue, $sSecretKey)
 {
     write_to_log('value:' . $sValue, '_ird');

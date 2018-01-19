@@ -28,6 +28,7 @@ define('LOG_PATH', ROOT_PATH . 'log' . DS);
 define('PWD_KEY', 'F3CA98CC222E4507ADBB955A60EEC6E1C8F9453A3E4B45EE814F98646809FC1D');
 //IRD产品整合接口
 define('IRD_SERVER_URL', 'http://sys.itracker.cn/api/WebForm1.aspx');
+define('IRD_SERVER_URL_SUPER', 'http://sys.itracker.cn/api/WebForm4.aspx');
 //******************** 邮件配置信息 ********************************
 define('EMAIL_SMTPSERVER', 'smtp.partner.outlook.cn');//SMTP服务器
 define('EMAIL_SMTPSERVERPORT', '587');//SMTP服务器端口

@@ -409,7 +409,7 @@ class UserModel extends AgentModel
                             'uname' => $sp_ret[0]['u_name'],
                             'userID' => $sp_ret[0]['u_id'],
                             'department' => $sp_ret[0]['u_department'],
-                            'ird_user_id' =>  $sp_ret[0]['u_product_key'],
+                            'ird_user_id' => $sp_ret[0]['u_product_key'],
                         ];
 
                         $logsModel->pushLog([
@@ -920,7 +920,8 @@ class UserModel extends AgentModel
     {
         //查询产品Key
         $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,
-                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department,dba.u_wxname, dba.u_product_key
+                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department,dba.u_wxname, 
+                dba.u_product_key, dbb.ird_ca_id as ird_ca_id
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                 WHERE dba.u_id='{$data['userID']}'";
@@ -946,9 +947,46 @@ class UserModel extends AgentModel
         $rs['permissions'] = $ret[0]['u_permissions']; //姓名
         $rs['wechat'] = $ret[0]['u_wxname'];
         $rs['ird_user_Id'] = $ret[0]['u_product_key'];
+        $rs['ird_ca_id'] = $ret[0]['ird_ca_id'];
         $rs['productList'] = $this->__getUserProductList($data['userID']);
         _SUCCESS('000000', '获取成功', $rs);
     }
+
+    public function getUserInfoClean($data)
+    {
+        $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,
+                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department,dba.u_wxname, 
+                dba.u_product_key, dbb.ird_ca_id as ird_ca_id
+                FROM idt_user dba 
+                LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
+                WHERE dba.u_id='{$data['userID']}'";
+
+        $ret = $this->mysqlQuery($sql, "all");
+
+        //返回用户信息
+        $rs['company'] = $ret[0]['cpy_cname']; //公司
+        $rs['companyEmail'] = $ret[0]['u_mail']; //公司邮箱
+        $rs['department'] = $ret[0]['u_department']; //公司邮箱
+        $rs['headImg'] = "upload/head/" . $ret[0]['u_head']; //头像
+        $base_image = base64_encode(file_get_contents(ROOT_PATH . 'upload/head/' . $ret[0]['u_head']));
+
+        if (!empty($base_image)) {
+            $rs['avatar_base64'] = 'data:image/png;base64,' . $base_image;
+        } else {
+            $rs['avatar_base64'] = null;
+        }
+
+        $rs['mobile'] = $ret[0]['u_mobile']; //手机
+        $rs['position'] = $ret[0]['u_position']; //职位
+        $rs['uname'] = $ret[0]['u_name']; //姓名
+        $rs['permissions'] = $ret[0]['u_permissions']; //姓名
+        $rs['wechat'] = $ret[0]['u_wxname'];
+        $rs['ird_user_Id'] = $ret[0]['u_product_key'];
+        $rs['ird_ca_id'] = $ret[0]['ird_ca_id'];
+        $rs['productList'] = $this->__getUserProductList($data['userID']);
+        return $rs;
+    }
+
 
     public function _getUserInfoByToken($data)
     {
@@ -1050,7 +1088,7 @@ class UserModel extends AgentModel
 
         if (!empty($data['toUserID'])) {
             $id = " u_id='" . $data['toUserID'] . "'";//用户GUID
-        }else{
+        } else {
             $id = " u_id='" . $data['userID'] . "'";//用户GUID
         }
 
@@ -1396,6 +1434,84 @@ class UserModel extends AgentModel
         }
     }
 
+
+    public function hasProductList($u_id)
+    {
+        $productList = $this->__getUserProductList($u_id);
+        write_to_log('plist: ' . json_encode($productList), '_ps_ird');
+        if (!empty($productList) and is_array($productList)) {
+            $ret = [];
+            $right_now = date('Y-m-d');
+            foreach ($productList as $product) {
+                //ut
+                if ($product['pdt_id'] == 48) {
+                    if ($right_now >= $product['pc_start_time'] and $right_now <= $product['pc_due_time']) {
+                        array_push($ret, 'iut');
+                    }
+
+                    if ($right_now >= $product['mobile_start_time'] and $right_now <= $product['mobile_due_time']) {
+                        array_push($ret, 'mut');
+                    }
+
+                    if ($right_now >= $product['ott_start_time'] and $right_now <= $product['ott_due_time']) {
+                        array_push($ret, 'out');
+                    }
+
+                }
+                //ut for yonghong report
+                if ($product['pdt_id'] == 49) {
+                    if ($right_now >= $product['pc_start_time'] and $right_now <= $product['pc_due_time']) {
+                        array_push($ret, 'iut_yh');
+                    }
+
+                    if ($right_now >= $product['mobile_start_time'] and $right_now <= $product['mobile_due_time']) {
+                        array_push($ret, 'mut_yh');
+                    }
+
+                    if ($right_now >= $product['mobile_start_time'] and $right_now <= $product['mobile_due_time']) {
+                        array_push($ret, 'mut_yh');
+                    }
+                }
+
+                //vt
+                if ($product['pdt_id'] == 47) {
+                    if ($right_now >= $product['pc_start_time'] and $right_now <= $product['pc_due_time']) {
+                        array_push($ret, 'ivt');
+                    }
+
+                    if ($right_now >= $product['mobile_start_time'] and $right_now <= $product['mobile_due_time']) {
+                        array_push($ret, 'mvt');
+                    }
+
+                    if ($right_now >= $product['ott_start_time'] and $right_now <= $product['ott_due_time']) {
+                        array_push($ret, 'ovt');
+                    }
+                }
+                //ad
+                if ($product['pdt_id'] == 42) {
+                    if ($right_now >= $product['pc_start_time'] and $right_now <= $product['pc_due_time']) {
+                        array_push($ret, 'iadt');
+                    }
+
+                    if ($right_now >= $product['mobile_start_time'] and $right_now <= $product['mobile_due_time']) {
+                        array_push($ret, 'madt');
+                    }
+
+                    if ($right_now >= $product['ott_start_time'] and $right_now <= $product['ott_due_time']) {
+                        array_push($ret, 'oadt');
+                    }
+                }
+            }
+
+            write_to_log('pplist: ' . json_encode($ret), '_ps_ird');
+
+            return $ret;
+        } else {
+
+            return Null;
+
+        }
+    }
 
     ######################################################################################
     ##################################                     ###############################
@@ -2086,50 +2202,50 @@ class UserModel extends AgentModel
 
 //            $this->__updateMobileKey($checkMobile[0]['mik_id']);
 
-            if (empty($hasUser)) {
-                //添加用户
-                $ret = $this->mysqlInsert('idt_user', [
-                        'u_id' => getGUID(),
-                        'u_name' => $data['uname'],
-                        'u_position' => $data['position'],
-                        'u_permissions' => '1',
-                        'u_state' => '0',
-                        'u_department' => $data['department'],
-                        'u_mobile' => $data['mobile'],
-                        'u_mail' => $data['u_mail'],
-                        'cpy_id' => $data['cpy_id'],
-                        'u_cdate' => $upTimes = date("Y-m-d H:i:s")
-                    ]
-                );
+        if (empty($hasUser)) {
+            //添加用户
+            $ret = $this->mysqlInsert('idt_user', [
+                    'u_id' => getGUID(),
+                    'u_name' => $data['uname'],
+                    'u_position' => $data['position'],
+                    'u_permissions' => '1',
+                    'u_state' => '0',
+                    'u_department' => $data['department'],
+                    'u_mobile' => $data['mobile'],
+                    'u_mail' => $data['u_mail'],
+                    'cpy_id' => $data['cpy_id'],
+                    'u_cdate' => $upTimes = date("Y-m-d H:i:s")
+                ]
+            );
 
-                if ($ret) {
+            if ($ret) {
+                _SUCCESS('000000', 'ok');
+            } else {
+                _ERROR('000001', 'add erro');
+            }
+
+        } else {
+            //修改用户
+            if ($hasUser[0]['cpy_id'] == $data['cpy_id']) {
+                _ERROR('000001', '该公司下，此用户已存在');
+            } elseif ($hasUser[0]['cpy_id'] == null || $hasUser[0]['cpy_id'] == 0) {
+                $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['userID']}'  where u_id = '{$hasUser[0]['u_id']}'";
+                $ret = $this->mysqlQuery($sql);
+                if (!$ret) {
+                    _ERROR('000001', 'lic upload fails');
+                }
+                $updateUser = $this->mysqlEdit('idt_user', ['cpy_id' => $data['cpy_id'], 'u_permissions' => '1'], ['u_id' => $hasUser[0]['u_id']]);
+
+                if ($updateUser) {
                     _SUCCESS('000000', 'ok');
                 } else {
-                    _ERROR('000001', 'add erro');
+                    _ERROR('000001', 'error');
                 }
-
             } else {
-                //修改用户
-                if ($hasUser[0]['cpy_id'] == $data['cpy_id']) {
-                    _ERROR('000001', '该公司下，此用户已存在');
-                }elseif($hasUser[0]['cpy_id'] == null || $hasUser[0]['cpy_id'] == 0){
-                    $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['userID']}'  where u_id = '{$hasUser[0]['u_id']}'";
-                    $ret = $this->mysqlQuery($sql);
-                    if (!$ret) {
-                        _ERROR('000001', 'lic upload fails');
-                    }
-                    $updateUser = $this->mysqlEdit('idt_user', ['cpy_id' => $data['cpy_id'], 'u_permissions' => '1'], ['u_id' => $hasUser[0]['u_id']]);
-
-                    if ($updateUser) {
-                        _SUCCESS('000000', 'ok');
-                    } else {
-                        _ERROR('000001', 'error');
-                    }
-                }else{
-                    _ERROR('000001','该手机号系统中已存在！');
-                }
-
+                _ERROR('000001', '该手机号系统中已存在！');
             }
+
+        }
 //        } else {
 //            _ERROR('000001', '验证码失败');
 //        }
@@ -2182,15 +2298,17 @@ class UserModel extends AgentModel
                       idt_permissions_number.start_date,
                       idt_permissions_number.end_date,
                       idt_product.pdt_state,
-                      now() as now
+                      now() AS now
                     FROM idt_licence
-                      LEFT JOIN idt_subproduct ON idt_subproduct.licence_key = idt_licence.licence_key
-                      LEFT JOIN idt_permissions_number
-                        ON idt_permissions_number.pdt_id = idt_subproduct.pdt_id AND idt_permissions_number.cpy_id = idt_licence.cpy_id
-                      RIGHT JOIN idt_product on idt_product.pdt_id = idt_subproduct.pdt_id
+                      LEFT JOIN idt_product ON idt_product.pdt_id = idt_licence.pdt_id
+                      LEFT JOIN idt_subproduct
+                        ON idt_subproduct.licence_key = idt_licence.licence_key
+                      LEFT JOIN idt_permissions_number ON idt_permissions_number.pdt_id = idt_subproduct.pdt_id
                     WHERE idt_licence.u_id = '{$userID}'
-                          AND idt_licence.state = 1 and pdt_state=0 and start_date <= now() and end_date >= now();";
-        $ret =  $this->mysqlQuery($lic_sql, 'all');
+                          AND idt_licence.state = 1 
+                          AND pdt_state = 0 AND start_date <= now() AND end_date >= now() AND
+      idt_permissions_number.cpy_id = idt_licence.cpy_id;";
+        $ret = $this->mysqlQuery($lic_sql, 'all');
         return $ret;
     }
 

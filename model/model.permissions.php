@@ -770,8 +770,8 @@ class PermissionsModel extends AgentModel
             return $ret !== '1';
         } else {
             write_to_log('create Pdt licence ', '_from_ird');
-            $ret =  $this->__createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id, $pdttimearr, $pp);
-            write_to_log('create Pdt licence return '.$ret, '_from_ird');
+            $ret = $this->__createLicence($pdtarr, $pdtId, $userID, $cpy_id, $ird_user_id, $pdttimearr, $pp);
+            write_to_log('create Pdt licence return ' . $ret, '_from_ird');
             return $ret;
         }
     }
@@ -1658,5 +1658,8 @@ class PermissionsModel extends AgentModel
         $baseCode = md5(base64_decode(urldecode($baseCode)) . KEY);
         return $baseCode == $code;
     }
+
+
+
 
 }
