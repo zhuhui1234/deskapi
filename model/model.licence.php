@@ -214,9 +214,9 @@ class LicenceModel extends AgentModel
                     );
 
                     if ($ret == 1) {
-                        write_to_log('update product key: ' . $user['ird_user_Id'] . ' change to ' . $ird['iUserID'], _ps_ird);
+                        write_to_log('update product key: ' . $user['ird_user_Id'] . ' change to ' . $ird['iUserID'], '_ps_ird');
                     } else {
-                        write_to_log('update product key fails  ' . $user['ird_user_Id'], _ps_ird);
+                        write_to_log('update product key fails  ' . $user['ird_user_Id'], '_ps_ird');
                     }
                     _SUCCESS('000000', '修改成功');
 
@@ -292,9 +292,9 @@ class LicenceModel extends AgentModel
                     );
 
                     if ($ret == 1) {
-                        write_to_log('update product key[remove]: ' . $user['ird_user_Id'] . ' change to ' . $ird['iUserID'], _ps_ird);
+                        write_to_log('update product key[remove]: ' . $user['ird_user_Id'] . ' change to ' . $ird['iUserID'], '_ps_ird');
                     } else {
-                        write_to_log('update product key fails  ' . $user['ird_user_Id'], _ps_ird);
+                        write_to_log('update product key fails  ' . $user['ird_user_Id'], '_ps_ird');
                     }
                     _SUCCESS('000000', '修改成功');
                 } else {
