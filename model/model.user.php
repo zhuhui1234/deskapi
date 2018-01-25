@@ -1519,7 +1519,7 @@ class UserModel extends AgentModel
             return $ret;
         } else {
 
-            return Null;
+            return [];
 
         }
     }
