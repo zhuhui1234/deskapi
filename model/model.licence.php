@@ -303,10 +303,10 @@ class LicenceModel extends AgentModel
                 }
 
             } else {
-                _ERROR('000001', '权限修改失败');
+                write_to_log('ird error'.json_encode($getList[0]['u_id']), '_ps_ird');
             }
             // ===  ird 删除权限 =====
-//            _SUCCESS('000000', '修改成功');
+            _SUCCESS('000000', '修改成功');
         } else {
             $this->logsModel->pushLog([
                 'user' => $data['userID'],
@@ -439,6 +439,17 @@ class LicenceModel extends AgentModel
     }
 
     /**
+     * remove ird permission
+     * @param $u_id
+     * @return mixed
+     */
+    public function removeIRDPermission($u_id)
+    {
+        return $this->__rmIRDPermission($u_id);
+    }
+
+
+    /**
      * computing balance point
      *
      * @param $licenceKey
@@ -569,7 +580,12 @@ class LicenceModel extends AgentModel
         return json_decode($ret, true);
     }
 
-
+    /**
+     * private remove ird permission
+     *
+     * @param $u_id
+     * @return mixed
+     */
     private function __rmIRDPermission($u_id)
     {
         $userModel = Model::instance('user');

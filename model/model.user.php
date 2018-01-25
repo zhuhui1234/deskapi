@@ -1403,9 +1403,20 @@ class UserModel extends AgentModel
     public function removeUser($data)
     {
         if ($data['lic_author_uid'] != $data['toUserID']) {
+
             $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['lic_author_uid']}' where u_id = '{$data['toUserID']}'";
             $ret = $this->mysqlQuery($sql);
-            $sql = "update idt_user set cpy_id = null,u_permissions = 0 where u_id = '{$data['toUserID']}'";
+
+            $licenceModel = Model::instance('licence');
+            $rmIRD = $licenceModel->removeIRDPermission($data['toUserID']);
+
+            if (!$rmIRD){
+                write_to_log('remove user permission fails, user id'.$data['toUserID'], '_ps_ird');
+            }
+
+            $sql = "update idt_user set cpy_id = null,u_permissions = 0,u_product_key=null where u_id = '{$data['toUserID']}'";
+
+
             $rs = $this->mysqlQuery($sql);
             if ($ret && $rs) {
                 _SUCCESS('000000', '移除成功');
