@@ -298,7 +298,7 @@ class LicenceModel extends AgentModel
                     }
                     _SUCCESS('000000', '修改成功');
                 } else {
-                    write_to_log('ird change ird fails');
+                    write_to_log('ird change ird fails','_ps_ird');
                     _ERROR('000001', $ird['message']);
                 }
 
