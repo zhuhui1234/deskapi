@@ -1467,8 +1467,22 @@ class UserModel extends AgentModel
                     if ($right_now >= $product['ott_start_time'] and $right_now <= $product['ott_due_time']) {
                         array_push($ret, 'out');
                     }
-
                 }
+                //ut-en
+                if ($product['pdt_id'] == 51) {
+                    if ($right_now >= $product['pc_start_time'] and $right_now <= $product['pc_due_time']) {
+                        array_push($ret, 'iut_en');
+                    }
+
+                    if ($right_now >= $product['mobile_start_time'] and $right_now <= $product['mobile_due_time']) {
+                        array_push($ret, 'mut_en');
+                    }
+
+                    if ($right_now >= $product['ott_start_time'] and $right_now <= $product['ott_due_time']) {
+                        array_push($ret, 'out_en');
+                    }
+                }
+
                 //ut for yonghong report
                 if ($product['pdt_id'] == 49) {
                     if ($right_now >= $product['pc_start_time'] and $right_now <= $product['pc_due_time']) {
@@ -1498,6 +1512,21 @@ class UserModel extends AgentModel
                         array_push($ret, 'ovt');
                     }
                 }
+                //vt-en
+                if ($product['pdt_id'] == 52) {
+                    if ($right_now >= $product['pc_start_time'] and $right_now <= $product['pc_due_time']) {
+                        array_push($ret, 'ivt_en');
+                    }
+
+                    if ($right_now >= $product['mobile_start_time'] and $right_now <= $product['mobile_due_time']) {
+                        array_push($ret, 'mvt_en');
+                    }
+
+                    if ($right_now >= $product['ott_start_time'] and $right_now <= $product['ott_due_time']) {
+                        array_push($ret, 'ovt_en');
+                    }
+                }
+
                 //ad
                 if ($product['pdt_id'] == 42) {
                     if ($right_now >= $product['pc_start_time'] and $right_now <= $product['pc_due_time']) {
@@ -1510,6 +1539,22 @@ class UserModel extends AgentModel
 
                     if ($right_now >= $product['ott_start_time'] and $right_now <= $product['ott_due_time']) {
                         array_push($ret, 'oadt');
+                    }
+                }
+
+
+                //ad_en
+                if ($product['pdt_id'] == 53) {
+                    if ($right_now >= $product['pc_start_time'] and $right_now <= $product['pc_due_time']) {
+                        array_push($ret, 'iadt_en');
+                    }
+
+                    if ($right_now >= $product['mobile_start_time'] and $right_now <= $product['mobile_due_time']) {
+                        array_push($ret, 'madt_en');
+                    }
+
+                    if ($right_now >= $product['ott_start_time'] and $right_now <= $product['ott_due_time']) {
+                        array_push($ret, 'oadt_en');
                     }
                 }
             }

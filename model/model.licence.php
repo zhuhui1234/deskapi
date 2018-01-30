@@ -542,11 +542,18 @@ class LicenceModel extends AgentModel
 
                 if ($product == 'iut') {
                     array_push($pro, 200);
+
+                }
+
+                if ($product == 'iut_en') {
                     array_push($pro, 800);
                 }
 
                 if ($product == 'mut') {
                     array_push($pro, 700);
+                }
+
+                if ($product == 'mut_en') {
                     array_push($pro, 900);
                 }
 
@@ -626,11 +633,18 @@ class LicenceModel extends AgentModel
 
         if (!in_array('iut', $data['productList'])) {
             array_push($pro, 200);
+
+        }
+
+        if (!in_array('iut_en', $data['productList'])) {
             array_push($pro, 800);
         }
 
         if (!in_array('mut', $data['productList'])) {
             array_push($pro, 700);
+        }
+
+        if (!in_array('mut_en', $data['productList'])) {
             array_push($pro, 900);
         }
 
