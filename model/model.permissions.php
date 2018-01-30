@@ -1342,7 +1342,7 @@ class PermissionsModel extends AgentModel
                                 WHERE idt_licence.pdt_id = $pdtId and state = 1 and cpy_id = $cpy_id and u_id is null AND pc_due_time is null AND mobile_due_time is not null limit 1";
                     }
                 } elseif ($pdtId == 51) {
-                    if (in_array('iut-en', $pdtarr) && in_array('mut_en', $pdtarr)) {
+                    if (in_array('iut-en', $pdtarr) && in_array('mut-en', $pdtarr)) {
                         $sql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = $pdtId and state = 1 and cpy_id = $cpy_id and u_id is null AND pc_due_time is not null AND mobile_due_time is not null limit 1";
@@ -1350,7 +1350,7 @@ class PermissionsModel extends AgentModel
                         $sql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = $pdtId and state = 1 and cpy_id = $cpy_id and u_id is null AND pc_due_time is not null AND mobile_due_time is null limit 1";
-                    } elseif (in_array('mut_en', $pdtarr)) {
+                    } elseif (in_array('mut-en', $pdtarr)) {
                         $sql = "SELECT idt_licence.licence_key FROM idt_licence
                                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                                 WHERE idt_licence.pdt_id = $pdtId and state = 1 and cpy_id = $cpy_id and u_id is null AND pc_due_time is null AND mobile_due_time is not null limit 1";
