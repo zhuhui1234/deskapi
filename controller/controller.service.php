@@ -163,4 +163,14 @@ class ServiceController extends Controller
         }
 
     }
+
+    public function msgHeads()
+    {
+        $data = _POST();
+
+        $userModel = Model::instance('user');
+
+        $userModel->hasProductList($data['u_id']);
+
+    }
 }
