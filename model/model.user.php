@@ -1410,8 +1410,8 @@ class UserModel extends AgentModel
             $licenceModel = Model::instance('licence');
             $rmIRD = $licenceModel->removeIRDPermission($data['toUserID']);
 
-            if (!$rmIRD){
-                write_to_log('remove user permission fails, user id'.$data['toUserID'], '_ps_ird');
+            if (!$rmIRD) {
+                write_to_log('remove user permission fails, user id' . $data['toUserID'], '_ps_ird');
             }
 
             $sql = "update idt_user set cpy_id = null,u_permissions = 0,u_product_key=null where u_id = '{$data['toUserID']}'";
@@ -2354,6 +2354,7 @@ class UserModel extends AgentModel
                       idt_permissions_number.start_date,
                       idt_permissions_number.end_date,
                       idt_product.pdt_state,
+                      idt_product.pdt_name,
                       now() AS now
                     FROM idt_licence
                       LEFT JOIN idt_product ON idt_product.pdt_id = idt_licence.pdt_id

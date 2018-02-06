@@ -98,12 +98,13 @@ class ServiceModel extends AgentModel
 
     /*
         ==============================
-               MSG SERVICE
+               MSG SERVICE DATABASE
                - msg_type:
                  0: all, just public msg list
                  1: only user msg
                  2: product msg
                  3: product msg without user
+                 4: knowledge base
 
                - state:
                  0: unread
@@ -119,10 +120,12 @@ class ServiceModel extends AgentModel
      * @param array $data
      *
      * -type:
-     *  1: all, just public msg list
-     *  2: only user msg without public msg
-     *  3: product msg
-     *  4: product msg without user
+     *      -1: all, without user msg
+            1: all, just public msg list
+            2: only user msg
+            3: product msg with user ()
+            4: product msg without user
+     *      5: knowledge base
      */
     public function msgList(array $data)
     {
@@ -281,16 +284,23 @@ class ServiceModel extends AgentModel
      * @return array|string
      *
      * -type:
+     *  -1: all, without user msg
      *  1: all, just public msg list
      *  2: only user msg without public msg
      *  3: product msg
      *  4: product msg without user
+     *  5: know base
+     *
      *
      */
     private function __getMsgList($data)
     {
 
         switch ($data['type']) {
+            case '-1':
+                return $this->__publicMsg();
+                break;
+
             case '1':
 
                 if (empty($data['userID'])) {
@@ -329,6 +339,10 @@ class ServiceModel extends AgentModel
                 }
                 return $this->__industryMsg($data['pdtID']);
                 break;
+
+            default:
+                return $this->__publicMsg();
+                break;
         }
     }
 
@@ -343,6 +357,14 @@ class ServiceModel extends AgentModel
         $sql = "SELECT msg_id,  msg_title, msg_cdate, msg_state,msg_udate 
                 FROM idt_msgs 
                 WHERE (msg_type=0 or msg_uid='{$uid}') AND msg_state >=0 ";
+        $ret = $this->mysqlQuery($sql, 'all');
+        return $ret;
+    }
+    private function __publicMsg()
+    {
+        $sql = "SELECT msg_id,  msg_title, msg_cdate, msg_state,msg_udate 
+                FROM idt_msgs 
+                WHERE msg_type=0  AND msg_state >=0 ";
         $ret = $this->mysqlQuery($sql, 'all');
         return $ret;
     }
