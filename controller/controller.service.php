@@ -78,6 +78,20 @@ class ServiceController extends Controller
     ==============================
     */
 
+    /*
+     * msg list
+     *
+     * @param array $data
+     *
+     * -type:
+     *      -1: all, without user msg
+        1: all, just public msg list
+        2: only user msg
+        3: product msg with user ()
+        4: product msg without user
+     *      5: knowledge base
+     */
+
     public function msgList()
     {
         $data = _POST();
