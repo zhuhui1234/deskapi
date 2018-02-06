@@ -975,16 +975,30 @@ function _SUCCESS($resCode = '000000', $resMsg = '处理成功', $data = '')
         'data' => $data,
     );
 
-    //写日志
-    if (isset($data['avatar_base'])) {
-        unset($data['avatar_base64']);
-    }
     Model::instance('tools')->logs($resCode, $resMsg, $data);
     $ret = json_encode($arr, JSON_UNESCAPED_UNICODE);
-    write_to_log(' RESPONSE SUCCESS ' . $ret, '_conapi');
-    header('Content-type: application/json;charset=utf-8');
-    header('Content-Encoding: utf-8');
+    //写日志
+
+
+//    header('Content-type: application/json;charset=utf-8');
+//    header('Content-Encoding: utf-8');
     echo $ret;
+    if (isset($data['avatar_base'] )) {
+        unset($data['avatar_base64']);
+    }
+
+    if (isset($data['avatar_base64'] )) {
+        unset($data['avatar_base64']);
+    }
+
+    $arr = array(
+        'resTime' => time() . '',
+        'resCode' => $resCode,
+        'resMsg' => $resMsg,
+        'data' => $data,
+    );
+    write_to_log(' RESPONSE SUCCESS ' .  json_encode($arr, JSON_UNESCAPED_UNICODE), '_conapi');
+
     die;
 }
 
