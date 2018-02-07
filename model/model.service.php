@@ -255,7 +255,7 @@ class ServiceModel extends AgentModel
 
                 $ret = $this->mysqlQuery("SELECT * 
                                                FROM idt_msgs 
-                                               WHERE 1=1 AND msg_id='{$msgID}' AND msg_uid='{$userID}'", 'all');
+                                               WHERE 1=1 AND msg_id='{$msgID}'", 'all');
 
                 if (count($ret) > 0) {
                     _SUCCESS('0000000', 'ok', $ret);
@@ -340,6 +340,13 @@ class ServiceModel extends AgentModel
                 return $this->__industryMsg($data['pdtID']);
                 break;
 
+            case '6':
+                if (empty($data['pdtID'])) {
+                    _ERROR('000001', '缺少参数');
+                }
+                return $this->__KnowledgeMsg($data['pdtID']);
+                break;
+
             default:
                 return $this->__publicMsg();
                 break;
@@ -421,10 +428,20 @@ class ServiceModel extends AgentModel
     {
         $sql = "SELECT msg_id,  msg_title,msg_content, msg_cdate, msg_state,msg_udate 
                 FROM idt_msgs 
-                WHERE 1=1 AND msg_state>=0 AND msg_pdt_id='{$pdtID}' AND msg_type='4' ";
+                WHERE 1=1 AND msg_state>=0 AND msg_pdt_id='{$pdtID}' AND msg_type='5' ";
     
         return $this->mysqlQuery($sql, 'all');
     }
+
+    private function __KnowledgeMsg($pdtID)
+    {
+        $sql = "SELECT msg_id,  msg_title,msg_content, msg_cdate, msg_state,msg_udate 
+                FROM idt_msgs 
+                WHERE 1=1 AND msg_state>=0 AND msg_pdt_id='{$pdtID}' AND msg_type='4' ";
+
+        return $this->mysqlQuery($sql, 'all');
+    }
+
 
     private function __getMsgType($msgID)
     {
