@@ -125,7 +125,7 @@ class ServiceModel extends AgentModel
      * 2: only user msg
      * 3: product msg with user ()
      * 4: product msg without user
-     *      5: knowledge base
+     * 5: knowledge base
      */
     public function msgList(array $data)
     {

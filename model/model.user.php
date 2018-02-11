@@ -1313,10 +1313,10 @@ class UserModel extends AgentModel
      *
      * @return bool
      */
-    public function checkToken($u_token)
+    public function checkToken($data)
     {
-        if (!empty($u_token)) {
-            $ret = $this->__checkToken($u_token);
+        if (!empty($data['token']) and !empty($data['userID'])) {
+            $ret = $this->__checkToken($data['token'], $data['userID']);
             return count($ret) == 1;
         } else {
             return false;
@@ -1684,11 +1684,12 @@ class UserModel extends AgentModel
      *
      * @return array|string
      */
-    private function __checkToken($u_token)
+    private function __checkToken($u_token, $u_id)
     {
-        $sql = "SELECT u_id,u_token FROM idt_user WHERE u_token='{$u_token}'";
+        $sql = "SELECT u_id,u_token FROM idt_user WHERE u_token='{$u_token}' and u_id='{$u_id}'";
         return $this->mysqlQuery($sql, 'all');
     }
+
 
     /**
      * check company state
@@ -2355,6 +2356,7 @@ class UserModel extends AgentModel
                       idt_permissions_number.end_date,
                       idt_product.pdt_state,
                       idt_product.pdt_name,
+                      idt_product.pdt_ename,
                       now() AS now
                     FROM idt_licence
                       LEFT JOIN idt_product ON idt_product.pdt_id = idt_licence.pdt_id
