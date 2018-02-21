@@ -21,7 +21,7 @@ class PointsModel extends AgentModel
         ----------------------------
         减法：
             6： 定制报告
-            7： 撤销分值（减）
+            7： 撤销分值(减)
     */
 
     public function __construct($classname)
