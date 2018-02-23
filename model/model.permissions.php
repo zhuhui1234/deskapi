@@ -607,7 +607,7 @@ class PermissionsModel extends AgentModel
 //                    艾瑞数据产品组
 //
 //                ", "邮箱验证邮件【系统邮件】");
-                return true;
+//                return true;
             } else {
                 return false;
             }
@@ -617,7 +617,7 @@ class PermissionsModel extends AgentModel
                 write_to_log('not your mail', 'check_mail');
                 write_to_log('userID: ' . $data['userID'] . ' , ' . 'mail: ' . $data['mail']);
                 $saveData['check_mail'] = 1;
-                return true;
+//                return true;
             } else {
                 $saveData['check_mail'] = 1;
             }
