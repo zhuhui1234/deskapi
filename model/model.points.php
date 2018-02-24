@@ -622,7 +622,7 @@ class PointsModel extends AgentModel
     private function __computingBalancePoint($u_id)
     {
         $positiveNumSQL = "SELECT sum(point_value) as positiveNum 
-                           FROM idt_points WHERE (type =22 and u_id='{$u_id}'AND state!=1";
+                           FROM idt_points WHERE (type =22 or type=2) and u_id='{$u_id}'AND state!=1";
 
         $negativeNumSQL = "SELECT sum(point_value) as negativeNum 
                            FROM idt_points WHERE (type = 6 and type =7 AND type=21 )and u_id='{$u_id}' AND state!=1";
