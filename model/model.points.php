@@ -260,10 +260,8 @@ class PointsModel extends AgentModel
     public function removeUserPoint($data)
     {
         $userPoint = $this->__computingBalancePoint($data['u_id']);
-        $tr_ret = $this->__transferAccountBackCompany($data['cpy_id'], $data['u_id'], $userPoint, $data['by_u_id']);
-
         $update_ret = $this->mysqlEdit('idt_points', ['state' => 1], "u_id='{$data['u_id']}'");
-
+        $tr_ret = $this->__transferAccountBackCompany($data['cpy_id'], $data['u_id'], $userPoint, $data['by_u_id']);
         if ($tr_ret and $update_ret) {
             _SUCCESS('000000', 'OK', []);
         } else {
