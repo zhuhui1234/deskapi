@@ -12,14 +12,27 @@ class PointsController extends Controller
     point type:
     包含5分以及以上为增加积分，大于5的时候，则减积分
 
-    1： 充值
-    2： 撤回分值（加）
-    3： 赠送分值
-    4： 预留
-    5： 预留
-    ----------------------------
-    6： 定制报告
-    7： 预留
+        加法：
+            1： 充值
+            2： 撤回分值（加）
+            3： 赠送分值
+            4： 预留
+            5： 预留
+
+        ----------------------------
+        减法：
+            6： 定制报告
+            7： 撤销分值（减）
+
+        ----------------------------
+        转账计算
+            21： 公司加法，用户减法
+            22： 公司减法，用户加法
+
+    state
+        - 0: 为有效
+        - 1：为失效，通常情况
+
 */
 
     private $model;
@@ -57,9 +70,21 @@ class PointsController extends Controller
         $this->model->cancel($data);
     }
 
+    public function allotUser()
+    {
+        $data = _POST();
+        $this->model->allotUser($data);
+    }
+
+
+    public function putBackPointToCompany()
+    {
+        $data = _POST();
+        $this->model->putBackPointToCompany($data);
+    }
 
     /**
-     * get point
+     * get user total point
      */
     public function getPoint()
     {
@@ -67,4 +92,30 @@ class PointsController extends Controller
         $this->model->computePoint($data);
     }
 
+    /**
+     * get company total points
+     */
+    public function getCompanyPoint()
+    {
+        $data = _POST();
+        $this->model->computePointForCompany($data);
+    }
+
+    /**
+     * history points list for company
+     */
+    public function getPointListCompany()
+    {
+        $data = _POST();
+        $this->model->getPointListCompany($data);
+    }
+
+    /**
+     * history poins list for user
+     */
+    public function getPointListUser()
+    {
+        $data = _POST();
+        $this->model->getPointListUser($data);
+    }
 }
