@@ -18,10 +18,17 @@ class PointsModel extends AgentModel
             3： 赠送分值
             4： 预留
             5： 预留
+
         ----------------------------
         减法：
             6： 定制报告
             7： 撤销分值（减）
+
+        ----------------------------
+        转账计算
+            21： 公司加法，用户减法
+            22： 公司减法，用户加法
+
     */
 
     public function __construct($classname)
@@ -36,6 +43,7 @@ class PointsModel extends AgentModel
     public function addCustomizationReport($data)
     {
         if (is_array($data)) {
+
             $data['type'] = 6;
 
             if (empty($data['pdt_id'])) {
@@ -45,24 +53,38 @@ class PointsModel extends AgentModel
             if (empty($data['u_id'])) {
                 _ERROR('000002', 'NO User id');
             }
-            $sql = "select licence_key from idt_licence where u_id = '{$data['u_id']}' and pdt_id = {$data['pdt_id']}";
+
+
+            $sql = "select licence_key,cpy_id 
+                    from idt_licence where u_id = '{$data['u_id']}' and pdt_id = {$data['pdt_id']}";
+
             $ret = $this->mysqlQuery($sql, 'all');
-            if(count($ret)>0){
-                $data['licence_key'] = $ret[0]['licence_key'];
-                $data['balance'] = $this->__computingBalancePoint($data['licence_key']);
-            }else{
+
+
+            if (count($ret) > 0) {
+                $balance = $this->__computingBalancePoint($data['u_id']);
+                if (empty($data['cpy_id'])) {
+                    $data['cpy_id'] = $ret[0]['cpy_id'];
+                }
+
+            } else {
+                $balance = 0;
                 _ERROR('000001', '无许可证');
             }
 
-            if ($data['balance'] - $data['point_value'] >= 0) {
+            if ($balance - $data['point_value'] >= 0) {
                 $ret = $this->__insertRow($data);
 
                 if ($ret) {
                     $lastSql = "SELECT point_id FROM idt_points
-                                WHERE licence_key='{$data['licence_key']}' AND point_explain='{$data['point_explain']}'
+                                WHERE u_id='{$data['u_id']}' AND point_explain='{$data['point_explain']}'
                                 ORDER BY point_id DESC ";
                     $last = $this->mysqlQuery($lastSql, 'all');
+
                     $last = $last[0]['point_id'];
+                } else {
+                    $last = false;
+                    _ERROR('0000002', '积分变动失败');
                 }
 
                 _SUCCESS('000000', 'ok', ['point_id' => $last]);
@@ -109,7 +131,7 @@ class PointsModel extends AgentModel
                 _ERROR('000004', '已经被处理过');
             }
 
-            $data['balance'] = $this->__computingBalancePoint($data['licence_key']);
+//            $data['balance'] = $this->__computingBalancePoint($data['licence_key']);
 
             //get point value
 
@@ -135,79 +157,311 @@ class PointsModel extends AgentModel
     public function cancel($data)
     {
 
-        if (is_array($data)) {
-            if (!empty($data['pointID'])) {
-                $sql = "SELECT type FROM idt_points where point_id='{$data['pointID']}'";
-                $ret = $this->mysqlQuery($sql, 'all');
-
-                if ($ret) {
-                    $getValue = $this->__getPointValue($data['pointID']);
-                    $data['point_value'] = $getValue;
-                    $data['balance'] = $this->__computingBalancePoint($data['dev_id']);
-                    $data['sub_point_id'] = $data['pointID'];
-                    $checkPoint = $this->__checkPoint($data['pointID']);
-                    if (!$checkPoint) {
-                        _ERROR('0000002', '该ID已撤回过了');
-                    }
-                    unset($data['pointID']);
-                    if ($ret[0]['type'] <= 5 and $ret[0]['type'] != 2 and $ret[0]['type'] != 7 and $ret[0]['type'] > 0) {
-                        //原数据为加
-                        $data['type'] = 2;
-                        $ret = $this->__insertRow($data);
-
-                        _SUCCESS('000000', 'ok', $ret);
-                    } elseif ($ret[0]['type'] > 5 and $ret[0]['type'] != 2 and $ret[0]['type'] != 7 and $ret[0]['type'] > 0) {
-                        //原数据为减
-
-                        $data['type'] = 7;
-                        $ret = $this->__insertRow($data);
-
-                        _SUCCESS('0000000', 'ok', $ret);
-                    } else {
-                        _ERROR('000002', '异常');
-                    }
-                } else {
-                    _ERROR('000002', '无记录');
-                }
-            } else {
-                _ERROR('000002', 'id不能为空');
-            }
-        } else {
+        if (!is_array($data)) {
             _ERROR('000003', '参数不对');
         }
+
+
+        if (empty($data['pointID'])) {
+            _ERROR('000002', 'id不能为空');
+        }
+
+
+        $ret = $this->__getPointInfoForPointID($data['pointID']);
+
+        if (!$ret) {
+            _ERROR('000002', '无记录');
+        }
+
+
+        $data['point_value'] = $ret[0]['point_value'];
+        $data['sub_point_id'] = $data['pointID'];
+        $checkPoint = $this->__checkPoint($data['pointID']);
+
+        if (!$checkPoint) {
+            _ERROR('0000002', '该ID已撤回过了');
+        }
+
+        unset($data['pointID']);
+
+        if (
+            $ret[0]['type'] <= 5
+            and $ret[0]['type'] != 2
+            and $ret[0]['type'] != 7
+            and $ret[0]['type'] > 0
+            and $ret[0]['type'] != 21
+            and $ret[0]['type'] != 22
+        ) {
+
+            //原数据为加
+            $data['type'] = 2;
+            $ret = $this->__insertRow($data);
+
+            _SUCCESS('000000', 'ok', $ret);
+
+        } elseif (
+            $ret[0]['type'] > 5
+            and $ret[0]['type'] != 2
+            and $ret[0]['type'] != 7
+            and $ret[0]['type'] > 0
+            and $ret[0]['type'] != 21
+            and $ret[0]['type'] != 22
+        ) {
+
+            //原数据为减
+            $data['type'] = 7;
+            $ret = $this->__insertRow($data);
+            _SUCCESS('0000000', 'ok', $ret);
+
+        } else {
+
+            _ERROR('000002', '异常');
+
+        }
+
     }
 
     /**
-     * compute point for dev id
+     * compute point for user
+     *
      * @param $data
-     * @return array
      */
     public function computePoint($data)
     {
         if (empty($data['u_id'])) {
             _ERROR('000002', '参数错误');
         }
-        if (empty($data['pdt_id'])) {
+
+        _SUCCESS('000000', 'ok', [
+            'getValue' => $this->__computingBalancePoint($data['u_id'])
+        ]);
+
+    }
+
+    /**
+     * computing point for company
+     * @param $data
+     */
+    public function computePointForCompany($data)
+    {
+        if (empty($data['cpy_id'])) {
             _ERROR('000002', '参数错误');
         }
-        $sql = "select licence_key from idt_licence where u_id = '{$data['u_id']}' and pdt_id = {$data['pdt_id']}";
-        $ret = $this->mysqlQuery($sql, 'all');
-        if(count($ret)>0){
-            $licenceKey = $ret[0]['licence_key'];
-            _SUCCESS('000000', 'ok', [
-                'getValue' => $this->__computingBalancePoint($licenceKey)
-            ]);
-        }else{
-            _ERROR('000001', '无许可证');
+
+        _SUCCESS('000000', 'OK', [
+            'getValue' => $this->__computingBalancePointForCompany($data['cpy_id'])
+        ]);
+    }
+
+    /**
+     * remove user points
+     * @param $data
+     */
+    public function removeUserPoint($data)
+    {
+        $userPoint = $this->__computingBalancePoint($data['u_id']);
+        $tr_ret = $this->__transferAccountBackCompany($data['cpy_id'], $data['u_id'], $userPoint, $data['by_u_id']);
+
+        $update_ret = $this->mysqlEdit('idt_points', ['state' => 1], "u_id='{$data['u_id']}'");
+
+        if ($tr_ret and $update_ret) {
+            _SUCCESS('000000', 'OK', []);
+        } else {
+            _ERROR('000002', '删除失败');
         }
     }
 
+    /**
+     * transfer account to user
+     *
+     * @param $data
+     */
+    public function allotUser($data)
+    {
+        $ret = $this->__transferAccountToUser(
+            $data['cpy_id'], $data['userID'], $data['point_value'], $data['author']
+        );
+        if ($ret['status']) {
+            _SUCCESS('000000', $ret['msg'], $ret['data']);
+        } else {
+            _ERROR('000002', $ret['msg']);
+        }
+    }
+
+    /**
+     * put back point to company
+     *
+     * @param $data
+     */
+    public function putBackPointToCompany($data)
+    {
+        $ret = $this->__transferAccountBackCompany(
+            $data['cpy_id'], $data['userID'], $data['point_value'], $data['author']
+        );
+        if ($ret['status']) {
+            _SUCCESS('000000', $ret['msg'], $ret['data']);
+        } else {
+            _ERROR('000002', $ret['msg']);
+        }
+    }
+
+    public function getPointListCompany($data)
+    {
+        if (empty($data)) {
+            _ERROR('000002', '参数不能为空');
+        }
+
+        if (empty($data['cpy_id'])) {
+            _ERROR('000002', '公司ID不能为空');
+        }
+
+        $company_total_point = $this->__computingBalancePointForCompany($data['cpy_id']);
+
+        $data['pageSize'] == null ? $pageSize = '10' : $pageSize = $data['pageSize']; //查询数据
+        $data['pageNo'] == null ? $pageNo = '0' : $pageNo = ($data['pageNo'] - 1) * $pageSize; //查询页数
+        $sql = "SELECT
+                    point_id,
+                    idt_company.cpy_cname,
+                    idt_user.u_name,
+                    idt_user.u_mobile,
+                    point_explain,
+                    idt_points.state,
+                    point_value,
+                    type,
+                    balance,
+                    idt_product.pdt_ename,
+                    idt_points.cdate 
+                FROM
+                    idt_points
+                    LEFT JOIN idt_user ON idt_user.u_id = idt_points.u_id
+                    LEFT JOIN idt_company ON idt_company.cpy_id = idt_user.cpy_id
+                    LEFT JOIN idt_product ON idt_product.pdt_id = idt_points.pdt_id 
+                WHERE
+                    idt_points.cpy_id = '{$data['cpy_id']}' and idt_points.state !=1
+                    ORDER BY idt_points.cdate DESC limit {$pageNo},{$pageSize}";
+        $ret = $this->mysqlQuery($sql, 'all');
+
+        if (!$ret) {
+            _ERROR('000002', '查询失败');
+        }
+
+        if (empty($ret)) {
+            $rs = [];
+        } else {
+
+        }
+    }
+
+    public function getPointListUser($data)
+    {
+        $data['pageSize'] == null ? $pageSize = '10' : $pageSize = $data['pageSize']; //查询数据
+        $data['pageNo'] == null ? $pageNo = '0' : $pageNo = ($data['pageNo'] - 1) * $pageSize; //查询页数
+
+        $sql = "SELECT
+                    point_id,
+                    idt_company.cpy_cname,
+                    idt_user.u_name,
+                    idt_user.u_mobile,
+                    point_explain,
+                    idt_points.state,
+                    point_value,
+                    type,
+                    balance,
+                    idt_product.pdt_ename,
+                    idt_points.cdate 
+                FROM
+                    idt_points
+                    LEFT JOIN idt_user ON idt_user.u_id = idt_points.u_id
+                    LEFT JOIN idt_company ON idt_company.cpy_id = idt_user.cpy_id
+                    LEFT JOIN idt_product ON idt_product.pdt_id = idt_points.pdt_id 
+                WHERE
+                    idt_points.cpy_id = '{$data['cpy_id']}' 
+                    ORDER BY idt_points.cdate DESC limit {$pageNo},{$pageSize}";
+        $ret = $this->mysqlQuery($sql, 'all');
+    }
 
     ######################################################################################
     ##################################                     ###############################
     #################################   PRIVATE METHODS   ################################
     ################################                     #################################
     ######################################################################################
+
+
+    private function __transTypeValue($type)
+    {
+        $type = (int)$type;
+        switch ($type) {
+            case 1:
+                return '充值积分';
+                break;
+            case 2:
+                return '定制报告失败后退回积分';
+                break;
+            case 3:
+                return '赠送积分';
+                break;
+            case 6:
+                return '定制报告';
+                break;
+            case 7:
+                return '撤销获得积分';
+                break;
+            case 21:
+                return '积分转账给公司';
+                break;
+            case 22:
+                return '积分转账给用户';
+                break;
+        }
+    }
+
+    /**
+     * @param array $ret
+     * @param $type
+     * @return array
+     */
+    private function __formartPointDataList(array $ret = [], int $type = 0, $total)
+    {
+        $rs = [];
+        $max_array = count($ret);
+        $count = 0;
+        foreach ($ret as $key => $value) {
+            $rs[$key]['changedPoint'] = $ret[$key]['point_value'];
+            $rs[$key]['companyFullName'] = $ret[$key]['cpy_cname'];
+            $rs[$key]['userName'] = $ret[$key]['u_name'];
+            $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
+            $rs[$key]['type'] = $ret[$key]['type'];
+            $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
+            $rs[$key]['cDate'] = $ret[$key]['cdate'];
+
+            if ($ret[$key]['type'] != 1) {
+
+                $arr = json_decode($ret[$key]['point_explain'], true);
+
+                $rs[$key]['customReportName'] = $arr['Name'];
+                $rs[$key]['customReportTicketID'] = "{$arr['pdt_name']}-{$arr['ID']}";
+                $rs[$key]['log'] = $this->__transTypeValue($ret[$key]['type']);
+
+                if ($key == 0) {
+                    $rs[$key]['remainingPoints'] = $total;
+                } else {
+                    if ($ret[$key]['type'] == 6) {
+                        $rs[$key]['remainingPoints'] = $ret[$key]['balance'] - $ret[$key]['point_value'];
+                    } elseif ($ret[$key]['type'] == 2) {
+                        $rs[$key]['remainingPoints'] = $ret[$key]['balance'] + $ret[$key]['point_value'];
+                    }
+                }
+
+
+            } else {
+                $rs[$key]['remainingPoints'] = $ret[$key]['point_value'] + $ret[$key]['balance'];
+                $rs[$key]['customReportName'] = null;
+                $rs[$key]['customReportTicketID'] = null;
+                $rs[$key]['log'] = $ret[$key]['point_explain'];
+            }
+        }
+        return $rs;
+    }
 
     /**
      * insert row data
@@ -233,46 +487,152 @@ class PointsModel extends AgentModel
             _ERROR('000002', 'no comment');
         }
 
-        $ret = $this->mysqlInsert('idt_points', $data);
+        $ret = $this->mysqlInsert('idt_points', $data, 'single', true);
+
         if ($ret) {
             return $ret;
         } else {
             _ERROR('000002', '数据插入失败');
         }
+
     }
 
     /**
-     * computing balance point
+     * transfer account to user
      *
-     * @param $licenceKey
+     * @param $cpy_id
+     * @param $u_id
+     * @param $point_value
+     * @param $author
      * @return array
      */
-    private function __computingBalancePoint($licenceKey)
+    private function __transferAccountToUser($cpy_id, $u_id, $point_value, $author)
     {
-        $positiveNumSQL = "SELECT sum(point_value) as positiveNum FROM idt_points WHERE type <= 5 AND licence_key='{$licenceKey}'";
-        $negativeNumSQL = "SELECT sum(point_value) as negativeNum FROM idt_points WHERE type > 5 AND licence_key='{$licenceKey}'";
+        $company_points = $this->__computingBalancePoint($u_id);
+
+        if ($company_points > 0 and $company_points > $point_value) {
+            $ret = $this->mysqlInsert('idt_points', [
+                'u_id' => $u_id,
+                'type' => 22,
+                'cpy_id' => $cpy_id,
+                'point_value' => $point_value,
+                'point_explain' => "企业分配给用户:{$u_id} 积分，{$point_value} ",
+                'author' => $author
+
+            ]);
+            if ($ret) {
+                return ['status' => true, 'msg' => 'ok', 'data' => $ret];
+            } else {
+                return ['status' => false, 'msg' => '转账失败'];
+            }
+        } else {
+            return ['status' => false, 'msg' => '积分不足'];
+        }
+    }
+
+    /**
+     * transfer account back to company
+     *
+     * @param $cpy_id
+     * @param $u_id
+     * @param $point_value
+     * @param $author
+     * @return array
+     */
+    private function __transferAccountBackCompany($cpy_id, $u_id, $point_value, $author)
+    {
+        $user_point = $this->__computingBalancePoint($u_id);
+
+        if ($user_point > 0 and $user_point > $point_value) {
+            $ret = $this->mysqlInsert('idt_points', [
+                'u_id' => $u_id,
+                'type' => 21,
+                'cpy_id' => $cpy_id,
+                'point_value' => $point_value,
+                'point_explain' => "用户:{$u_id} 退回到企业积分",
+                'author' => $author
+
+            ]);
+            if ($ret) {
+                return ['status' => true, 'msg' => 'ok', 'data' => $ret];
+            } else {
+                return ['status' => false, 'msg' => '转账失败'];
+            }
+        } else {
+            return ['status' => false, 'msg' => '积分不足'];
+        }
+    }
+
+    /**
+     * computing balance point for company
+     * @param $cpy_id
+     * @return int
+     */
+    private function __computingBalancePointForCompany($cpy_id)
+    {
+        $positiveNumSQL = "SELECT sum(point_value) as positiveNum 
+                           FROM idata2.idt_points WHERE type= 1 and  cpy_id='{$cpy_id}'";
+
+        $negativeNumSQL = "SELECT sum(point_value) as negativeNum 
+                           FROM idata2.idt_points WHERE type=22 and cpy_id='{$cpy_id}'";
+
+        $positiveNum = $this->mysqlQuery($positiveNumSQL, 'all');
+        $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
+
+        if (empty($positiveNum)) {
+            $positiveNum = [['positivenum' => 0]];
+        }
+
+        if (empty($negativeNum)) {
+            $negativeNum = [['negativenum' => 0]];
+        }
+
+        return (int)$positiveNum[0]['positivenum'] - (int)$negativeNum[0]['negativenum'];
+    }
+
+    private function __computingCompanyBalancePointIncludeUser($cpy_id)
+    {
+        $positiveNumSQL = "SELECT sum(point_value) as positiveNum 
+                           FROM idt_points 
+                           WHERE type<=5 and state!=1 and  cpy_id='{$cpy_id}'";
+
+        $negativeNumSQL = "SELECT sum(point_value) as negativeNum 
+                           FROM idt_points 
+                           WHERE (type=6 or type=7 ) and cpy_id='{$cpy_id}'";
+
+        $positiveNum = $this->mysqlQuery($positiveNumSQL, 'all');
+        $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
+
+        if (empty($positiveNum)) {
+            $positiveNum = [['positivenum' => 0]];
+        }
+
+        if (empty($negativeNum)) {
+            $negativeNum = [['negativenum' => 0]];
+        }
+
+        return (int)$positiveNum[0]['positivenum'] - (int)$negativeNum[0]['negativenum'];
+    }
+
+
+    /**
+     * computing balance point for user
+     *
+     * @param $u_id
+     * @return int
+     */
+    private function __computingBalancePoint($u_id)
+    {
+        $positiveNumSQL = "SELECT sum(point_value) as positiveNum 
+                           FROM idt_points WHERE (type =22 and u_id='{$u_id}'AND state!=1";
+
+        $negativeNumSQL = "SELECT sum(point_value) as negativeNum 
+                           FROM idt_points WHERE (type = 6 and type =7 AND type=21 )and u_id='{$u_id}' AND state!=1";
+
         $positiveNum = $this->mysqlQuery($positiveNumSQL, 'all');
         $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
         $ret = (int)$positiveNum[0]['positivenum'] - (int)$negativeNum[0]['negativenum'];
         return $ret;
-    }
-
-    /**
-     * get point value
-     *
-     * @param $pointID
-     * @return bool
-     */
-    private function __getPointValue($pointID)
-    {
-        $sql = "SELECT point_value FROM idt_points WHERE point_id='{$pointID}'";
-
-        $ret = $this->mysqlQuery($sql, 'all');
-        if ($ret) {
-            return $ret[0]['point_value'];
-        } else {
-            return false;
-        }
     }
 
     /**
@@ -283,7 +643,8 @@ class PointsModel extends AgentModel
      */
     private function __getPointInfoForPointID($pointID)
     {
-        $sql = "SELECT licence_key,u_id,point_value FROM idt_points WHERE point_id='{$pointID}'";
+        $sql = "SELECT licence_key,u_id,point_value,type 
+                FROM idt_points WHERE point_id='{$pointID}' AND state!=1";
         $ret = $this->mysqlQuery($sql, 'all');
         if ($ret) {
             return $ret[0];
@@ -300,13 +661,17 @@ class PointsModel extends AgentModel
      */
     private function __checkPoint($subPointID)
     {
-        $sql = "SELECT count(sub_point_id) as has_spi FROM idt_points WHERE sub_point_id='{$subPointID}'";
+        $sql = "SELECT count(sub_point_id) as has_spi 
+                FROM idt_points WHERE sub_point_id='{$subPointID}' AND state!=1";
+
         $ret = $this->mysqlQuery($sql, 'all');
+
         if ($ret) {
             return (int)$ret[0]['has_spi'] == 0;
         } else {
             return false;
         }
+
     }
 
 }

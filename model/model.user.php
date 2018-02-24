@@ -1402,7 +1402,19 @@ class UserModel extends AgentModel
      */
     public function removeUser($data)
     {
+        $pointModel = Model::instance('points');
         if ($data['lic_author_uid'] != $data['toUserID']) {
+
+            if (empty($data['cpy_id'])) {
+                $userInfo = $this->mysqlQuery("select cpy_id from idt_user WHERE u_id='{$data['toUserID']}'");
+                if (!empty($userInfo)) {
+                    $cpy_id = $userInfo[0]['cpy_id'];
+                } else {
+                    $cpy_id = false;
+                }
+            } else {
+                $cpy_id = $data['cpy_id'];
+            }
 
             $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['lic_author_uid']}' where u_id = '{$data['toUserID']}'";
             $ret = $this->mysqlQuery($sql);
@@ -1418,6 +1430,13 @@ class UserModel extends AgentModel
 
 
             $rs = $this->mysqlQuery($sql);
+
+            if ($cpy_id) {
+                $pointModel->removeUserPoint([
+                    'u_id' => $data['toUserID'],
+                    'cpy_id' => $cpy_id
+                ]);
+            }
             if ($ret && $rs) {
                 _SUCCESS('000000', '移除成功');
             } else {

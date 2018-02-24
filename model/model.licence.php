@@ -76,7 +76,7 @@ class LicenceModel extends AgentModel
                 $own[$key]['productName'] = $ret[$key]['pdt_ename'];
                 $own[$key]['mobile'] = $ret[$key]['u_mobile'];
                 $own[$key]['initial_points'] = $ret[$key]['points'];
-                $own[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['licence_key']); //剩余积分
+                $own[$key]['remaining_points'] = $this->__computingBalancePoint($data['licenceUserID']); //剩余积分
                 $own[$key]['terminal'] = null;
                 if (!empty($ret[$key]['pc_due_time'])) {
                     $own[$key]['terminal']['pc'] = array($ret[$key]['pc_start_time'], $ret[$key]['pc_due_time']);
@@ -100,7 +100,7 @@ class LicenceModel extends AgentModel
                 $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
                 $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
                 $rs[$key]['initial_points'] = $ret[$key]['points'];
-                $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['licence_key']); //剩余积分
+                $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['u_id']); //剩余积分
                 $rs[$key]['terminal'] = null;
                 if (!empty($ret[$key]['pc_due_time'])) {
                     $rs[$key]['terminal']['pc'] = array($ret[$key]['pc_start_time'], $ret[$key]['pc_due_time']);
@@ -298,12 +298,12 @@ class LicenceModel extends AgentModel
                     }
                     _SUCCESS('000000', '修改成功');
                 } else {
-                    write_to_log('ird change ird fails','_ps_ird');
+                    write_to_log('ird change ird fails', '_ps_ird');
                     _ERROR('000001', $ird['message']);
                 }
 
             } else {
-                write_to_log('ird error'.json_encode($getList[0]['u_id']), '_ps_ird');
+                write_to_log('ird error' . json_encode($getList[0]['u_id']), '_ps_ird');
             }
             // ===  ird 删除权限 =====
             _SUCCESS('000000', '修改成功');
@@ -450,17 +450,28 @@ class LicenceModel extends AgentModel
 
 
     /**
-     * computing balance point
+     * computing balance point for user
      *
-     * @param $licenceKey
-     * @return array
+     * @param $u_id
+     * @return int
      */
-    private function __computingBalancePoint($licenceKey)
+    private function __computingBalancePoint($u_id)
     {
-        $positiveNumSQL = "SELECT sum(point_value) as positiveNum FROM idt_points WHERE type <= 5 AND licence_key='{$licenceKey}'";
-        $negativeNumSQL = "SELECT sum(point_value) as negativeNum FROM idt_points WHERE type > 5 AND licence_key='{$licenceKey}'";
+        $positiveNumSQL = "SELECT sum(point_value) as positiveNum 
+                          FROM idt_points WHERE type <= 5 AND type =22 and u_id='{$u_id}' and state=0;";
+
+        $negativeNumSQL = "SELECT sum(point_value) as negativeNum FROM idt_points 
+                          WHERE type > 5 and type <=20 AND type=21 and u_id='{$u_id}' and state=0;";
+
         $positiveNum = $this->mysqlQuery($positiveNumSQL, 'all');
         $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
+        if (empty($positiveNum)) {
+            $positiveNum = [['positivenum' => 0]];
+        }
+
+        if (empty($negativeNum)) {
+            $negativeNum = [['negativenum' => 0]];
+        }
         $ret = (int)$positiveNum[0]['positivenum'] - (int)$negativeNum[0]['negativenum'];
         return $ret;
     }
