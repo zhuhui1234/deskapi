@@ -313,10 +313,9 @@ class PointsModel extends AgentModel
             _ERROR('000002', '公司ID不能为空');
         }
 
-        $company_total_point = $this->__computingBalancePointForCompany($data['cpy_id']);
-
         $data['pageSize'] == null ? $pageSize = '10' : $pageSize = $data['pageSize']; //查询数据
         $data['pageNo'] == null ? $pageNo = '0' : $pageNo = ($data['pageNo'] - 1) * $pageSize; //查询页数
+
         $sql = "SELECT
                     point_id,
                     idt_company.cpy_cname,
@@ -336,18 +335,24 @@ class PointsModel extends AgentModel
                     LEFT JOIN idt_product ON idt_product.pdt_id = idt_points.pdt_id 
                 WHERE
                     idt_points.cpy_id = '{$data['cpy_id']}' and idt_points.state !=1
-                    ORDER BY idt_points.cdate DESC limit {$pageNo},{$pageSize}";
+                    ORDER BY idt_points.cdate DESC ";
         $ret = $this->mysqlQuery($sql, 'all');
 
         if (!$ret) {
             _ERROR('000002', '查询失败');
         }
-
+        $total = count($ret);
         if (empty($ret)) {
             $rs = [];
         } else {
-
+            if (is_array($ret)) {
+                $rs = $this->__formatPointCompanyDataList($ret);
+            }else{
+                $rs = [];
+            }
         }
+
+        _SUCCESS('000000','OK',['list'=>$rs,'totalSize'=>$total]);
     }
 
     public function getPointListUser($data)
@@ -373,9 +378,18 @@ class PointsModel extends AgentModel
                     LEFT JOIN idt_company ON idt_company.cpy_id = idt_user.cpy_id
                     LEFT JOIN idt_product ON idt_product.pdt_id = idt_points.pdt_id 
                 WHERE
-                    idt_points.cpy_id = '{$data['cpy_id']}' 
-                    ORDER BY idt_points.cdate DESC limit {$pageNo},{$pageSize}";
+                    idt_points.u_id = '{$data['u_id']}'  and state != 1 
+                    ORDER BY idt_points.cdate DESC ";
         $ret = $this->mysqlQuery($sql, 'all');
+        $total = count($ret);
+
+        if (empty($ret)) {
+            $rs = [];
+        } else {
+            $rs = $this->__formatPointUserDataList($ret);
+        }
+
+        _SUCCESS('000000','OK',['list'=>$rs,'totalSize'=>$total]);
     }
 
     ######################################################################################
@@ -414,15 +428,16 @@ class PointsModel extends AgentModel
     }
 
     /**
+     * format point array (user point history)
+     *
      * @param array $ret
-     * @param $type
      * @return array
      */
-    private function __formartPointDataList(array $ret = [], int $type = 0, $total)
+    private function __formatPointUserDataList(array $ret = [])
     {
         $rs = [];
-        $max_array = count($ret);
-        $count = 0;
+        krsort($ret);
+        $point_all_temp = 0;
         foreach ($ret as $key => $value) {
             $rs[$key]['changedPoint'] = $ret[$key]['point_value'];
             $rs[$key]['companyFullName'] = $ret[$key]['cpy_cname'];
@@ -432,32 +447,101 @@ class PointsModel extends AgentModel
             $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
             $rs[$key]['cDate'] = $ret[$key]['cdate'];
 
-            if ($ret[$key]['type'] != 1) {
+            $arr = json_decode($ret[$key]['point_explain'], true);
 
-                $arr = json_decode($ret[$key]['point_explain'], true);
+            if ($ret[$key]['type'] == 1 || $ret[$key]['type'] == 2) {
 
-                $rs[$key]['customReportName'] = $arr['Name'];
-                $rs[$key]['customReportTicketID'] = "{$arr['pdt_name']}-{$arr['ID']}";
-                $rs[$key]['log'] = $this->__transTypeValue($ret[$key]['type']);
+                $point_all_temp = $point_all_temp + $ret[$key]['point_value'];
 
-                if ($key == 0) {
-                    $rs[$key]['remainingPoints'] = $total;
-                } else {
-                    if ($ret[$key]['type'] == 6) {
-                        $rs[$key]['remainingPoints'] = $ret[$key]['balance'] - $ret[$key]['point_value'];
-                    } elseif ($ret[$key]['type'] == 2) {
-                        $rs[$key]['remainingPoints'] = $ret[$key]['balance'] + $ret[$key]['point_value'];
-                    }
+                if ($ret[$key]['type'] == 2) {
+                    $rs[$key]['customReportTicketID'] = "{$arr['pdt_name']}-{$arr['ID']}";
+                    $rs[$key]['customReportName'] = $arr['Name'];
+                }else{
+                    $rs[$key]['log'] = $ret[$key]['point_explain'];
+                    $rs[$key]['customReportName'] = null;
                 }
 
-
-            } else {
-                $rs[$key]['remainingPoints'] = $ret[$key]['point_value'] + $ret[$key]['balance'];
-                $rs[$key]['customReportName'] = null;
-                $rs[$key]['customReportTicketID'] = null;
-                $rs[$key]['log'] = $ret[$key]['point_explain'];
+            }else{
+                $rs[$key]['log'] = $this->__transTypeValue($ret[$key]['type']);
+                $rs[$key]['customReportTicketID'] = "{$arr['pdt_name']}-{$arr['ID']}";
+                $rs[$key]['customReportName'] = $arr['Name'];
             }
+
+            if ($ret[$key]['type'] == 6 || $ret[$key]['type'] == 7) {
+                $point_all_temp = $point_all_temp - $ret[$key]['point_value'];
+            }
+
+            if ($ret[$key]['type'] == 21 ) {
+                $point_all_temp = $point_all_temp - $ret[$key]['point_value'];
+            }
+
+            if ($ret[$key]['type'] == 22) {
+                $point_all_temp = $point_all_temp + $ret[$key]['point_value'];
+            }
+
+
+            $rs[$key]['remainingPointsAll'] = $point_all_temp;
+
         }
+
+        return $rs;
+    }
+
+    private function __formatPointCompanyDataList()
+    {
+        $rs = [];
+        krsort($ret);
+        $point_temp = 0;
+        $point_all_temp = 0;
+        foreach ($ret as $key => $value) {
+            $rs[$key]['changedPoint'] = $ret[$key]['point_value'];
+            $rs[$key]['companyFullName'] = $ret[$key]['cpy_cname'];
+            $rs[$key]['userName'] = $ret[$key]['u_name'];
+            $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
+            $rs[$key]['type'] = $ret[$key]['type'];
+            $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
+            $rs[$key]['cDate'] = $ret[$key]['cdate'];
+
+            $arr = json_decode($ret[$key]['point_explain'], true);
+
+            if ($ret[$key]['type'] == 1 || $ret[$key]['type'] == 2) {
+
+                $point_temp = $point_temp + $ret[$key]['point_value'];
+                $point_all_temp = $point_all_temp + $ret[$key]['point_value'];
+
+                if ($ret[$key]['type'] == 2) {
+                    $rs[$key]['customReportTicketID'] = "{$arr['pdt_name']}-{$arr['ID']}";
+                    $rs[$key]['customReportName'] = $arr['Name'];
+                }else{
+                    $rs[$key]['log'] = $ret[$key]['point_explain'];
+                    $rs[$key]['customReportName'] = null;
+                }
+
+            }else{
+                $rs[$key]['log'] = $this->__transTypeValue($ret[$key]['type']);
+                $rs[$key]['customReportTicketID'] = "{$arr['pdt_name']}-{$arr['ID']}";
+                $rs[$key]['customReportName'] = $arr['Name'];
+            }
+
+            if ($ret[$key]['type'] == 6 || $ret[$key]['type'] == 7) {
+                $point_temp = $point_temp - $ret[$key]['point_value'];
+                $point_all_temp = $point_all_temp - $ret[$key]['point_value'];
+            }
+
+            if ($ret[$key]['type'] == 21 ) {
+                $point_all_temp = $point_all_temp + $ret[$key]['point_value'];
+            }
+
+            if ($ret[$key]['type'] == 22) {
+                $point_all_temp = $point_all_temp - $ret[$key]['point_value'];
+            }
+
+            $rs[$key]['remainingPoints'] = $point_temp;
+
+            $rs[$key]['remainingPointsAll'] = $point_all_temp;
+
+        }
+
         return $rs;
     }
 
@@ -588,6 +672,11 @@ class PointsModel extends AgentModel
         return (int)$positiveNum[0]['positivenum'] - (int)$negativeNum[0]['negativenum'];
     }
 
+    /**
+     * computing company balance point (include user points)
+     * @param $cpy_id
+     * @return int
+     */
     private function __computingCompanyBalancePointIncludeUser($cpy_id)
     {
         $positiveNumSQL = "SELECT sum(point_value) as positiveNum 
@@ -622,10 +711,10 @@ class PointsModel extends AgentModel
     private function __computingBalancePoint($u_id)
     {
         $positiveNumSQL = "SELECT sum(point_value) as positiveNum 
-                           FROM idt_points WHERE (type =22 or type=2) and u_id='{$u_id}'AND state!=1";
+                           FROM idt_points WHERE (type =22 or type=2) and u_id='{$u_id}' AND state!=1";
 
         $negativeNumSQL = "SELECT sum(point_value) as negativeNum 
-                           FROM idt_points WHERE (type = 6 and type =7 AND type=21 )and u_id='{$u_id}' AND state!=1";
+                           FROM idt_points WHERE (type = 6 and type =7 AND type=21 ) and u_id='{$u_id}' AND state!=1";
 
         $positiveNum = $this->mysqlQuery($positiveNumSQL, 'all');
         $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
@@ -670,6 +759,16 @@ class PointsModel extends AgentModel
             return false;
         }
 
+    }
+
+
+    private function __makePaging(array $data, int $pageSize = 10)
+    {
+        if (empty($pageSize)) {
+            $pageSize = 10;
+        }
+        $ret = array_chunk($data, $pageSize);
+        return ['page'=>count($ret), 'data'=>$ret, 'pageSize'=>$pageSize];
     }
 
 }
