@@ -347,12 +347,12 @@ class PointsModel extends AgentModel
         } else {
             if (is_array($ret)) {
                 $rs = $this->__formatPointCompanyDataList($ret);
-            }else{
+            } else {
                 $rs = [];
             }
         }
 
-        _SUCCESS('000000','OK',['list'=>$rs,'totalSize'=>$total]);
+        _SUCCESS('000000', 'OK', ['list' => $rs, 'totalSize' => $total]);
     }
 
     public function getPointListUser($data)
@@ -389,7 +389,7 @@ class PointsModel extends AgentModel
             $rs = $this->__formatPointUserDataList($ret);
         }
 
-        _SUCCESS('000000','OK',['list'=>$rs,'totalSize'=>$total]);
+        _SUCCESS('000000', 'OK', ['list' => $rs, 'totalSize' => $total]);
     }
 
     ######################################################################################
@@ -456,12 +456,12 @@ class PointsModel extends AgentModel
                 if ($ret[$key]['type'] == 2) {
                     $rs[$key]['customReportTicketID'] = "{$arr['pdt_name']}-{$arr['ID']}";
                     $rs[$key]['customReportName'] = $arr['Name'];
-                }else{
+                } else {
                     $rs[$key]['log'] = $ret[$key]['point_explain'];
                     $rs[$key]['customReportName'] = null;
                 }
 
-            }else{
+            } else {
                 $rs[$key]['log'] = $this->__transTypeValue($ret[$key]['type']);
                 $rs[$key]['customReportTicketID'] = "{$arr['pdt_name']}-{$arr['ID']}";
                 $rs[$key]['customReportName'] = $arr['Name'];
@@ -471,12 +471,14 @@ class PointsModel extends AgentModel
                 $point_all_temp = $point_all_temp - $ret[$key]['point_value'];
             }
 
-            if ($ret[$key]['type'] == 21 ) {
+            if ($ret[$key]['type'] == 21) {
                 $point_all_temp = $point_all_temp - $ret[$key]['point_value'];
+                $rs[$key]['log'] = $ret[$key]['point_explain'];
             }
 
             if ($ret[$key]['type'] == 22) {
                 $point_all_temp = $point_all_temp + $ret[$key]['point_value'];
+                $rs[$key]['log'] = $ret[$key]['point_explain'];
             }
 
 
@@ -512,12 +514,12 @@ class PointsModel extends AgentModel
                 if ($ret[$key]['type'] == 2) {
                     $rs[$key]['customReportTicketID'] = "{$arr['pdt_name']}-{$arr['ID']}";
                     $rs[$key]['customReportName'] = $arr['Name'];
-                }else{
+                } else {
                     $rs[$key]['log'] = $ret[$key]['point_explain'];
                     $rs[$key]['customReportName'] = null;
                 }
 
-            }else{
+            } else {
                 $rs[$key]['log'] = $this->__transTypeValue($ret[$key]['type']);
                 $rs[$key]['customReportTicketID'] = "{$arr['pdt_name']}-{$arr['ID']}";
                 $rs[$key]['customReportName'] = $arr['Name'];
@@ -528,7 +530,7 @@ class PointsModel extends AgentModel
                 $point_all_temp = $point_all_temp - $ret[$key]['point_value'];
             }
 
-            if ($ret[$key]['type'] == 21 ) {
+            if ($ret[$key]['type'] == 21) {
                 $point_all_temp = $point_all_temp + $ret[$key]['point_value'];
             }
 
@@ -730,7 +732,7 @@ class PointsModel extends AgentModel
      */
     private function __getPointInfoForPointID($pointID)
     {
-        $sql = "SELECT licence_key,u_id,point_value,type 
+        $sql = "SELECT licence_key,u_id,point_value,type, cpy_id, author
                 FROM idt_points WHERE point_id='{$pointID}' AND state!=1";
         $ret = $this->mysqlQuery($sql, 'all');
         if ($ret) {
@@ -768,7 +770,7 @@ class PointsModel extends AgentModel
             $pageSize = 10;
         }
         $ret = array_chunk($data, $pageSize);
-        return ['page'=>count($ret), 'data'=>$ret, 'pageSize'=>$pageSize];
+        return ['page' => count($ret), 'data' => $ret, 'pageSize' => $pageSize];
     }
 
 }
