@@ -374,4 +374,15 @@ class UserController extends Controller
         $this->model->getIRVuserid($data);
     }
 
+    public function checkToken()
+    {
+        $data = _POST();
+        $ret = $this->model->checkToken($data);
+        if ($ret) {
+            _SUCCESS('0000000','OK');
+        }else{
+            _ERROR('000001','FAILS');
+        }
+    }
+
 }

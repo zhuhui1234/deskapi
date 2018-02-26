@@ -343,16 +343,21 @@ class PointsModel extends AgentModel
         }
         $total = count($ret);
         if (empty($ret)) {
-            $rs = [];
+            $pageNo=0;
+            $rs = [0=>0];
+            $total = 0;
         } else {
             if (is_array($ret)) {
                 $rs = $this->__formatPointCompanyDataList($ret);
+                $rs = $this->__makePaging($rs, $pageSize);
             } else {
-                $rs = [];
+                $pageNo=0;
+                $rs = [0=>0];
+                $total = 0;
             }
         }
 
-        _SUCCESS('000000', 'OK', ['list' => $rs, 'totalSize' => $total]);
+        _SUCCESS('000000', 'OK', ['list' => $rs[$pageNo], 'totalSize' => $total]);
     }
 
     public function getPointListUser($data)
@@ -384,12 +389,15 @@ class PointsModel extends AgentModel
         $total = count($ret);
 
         if (empty($ret)) {
-            $rs = [];
+            $pageNo=0;
+            $rs = [0=>0];
+            $total = 0;
         } else {
             $rs = $this->__formatPointUserDataList($ret);
+            $rs = $this->__makePaging($rs, $pageSize);
         }
 
-        _SUCCESS('000000', 'OK', ['list' => $rs, 'totalSize' => $total]);
+        _SUCCESS('000000', 'OK', ['list' => $rs[$pageNo], 'totalSize' => $total]);
     }
 
     ######################################################################################
