@@ -497,7 +497,7 @@ class PointsModel extends AgentModel
         return $rs;
     }
 
-    private function __formatPointCompanyDataList()
+    private function __formatPointCompanyDataList(array $ret = [])
     {
         $rs = [];
         krsort($ret);
