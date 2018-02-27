@@ -352,7 +352,7 @@ class PointsModel extends AgentModel
             }
         }
 
-        _SUCCESS('000000', 'OK', $rs);
+        _SUCCESS('000000', 'OK', ['list'=>$rs[$pageNo],'totleSize'=> count($ret)]);
     }
 
     public function getPointListUser($data)
@@ -389,7 +389,7 @@ class PointsModel extends AgentModel
             $rs = $this->__makePaging($rs, $pageSize);
         }
 
-        _SUCCESS('000000', 'OK', $rs);
+        _SUCCESS('000000', 'OK',['list'=>$rs[$pageNo],'totleSize'=> count($ret)] );
     }
 
     ######################################################################################
@@ -770,7 +770,7 @@ class PointsModel extends AgentModel
             $pageSize = 10;
         }
         $ret = array_chunk($data, $pageSize);
-        return ['page' => count($ret), 'list' => $ret, 'pageSize' => $pageSize, 'totalSize' => count($data)];
+        return $ret;
     }
 
 }
