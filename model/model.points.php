@@ -341,23 +341,18 @@ class PointsModel extends AgentModel
         if (!$ret) {
             _ERROR('000002', '查询失败');
         }
-        $total = count($ret);
         if (empty($ret)) {
-            $pageNo=0;
-            $rs = [0=>0];
-            $total = 0;
+            $rs = null;
         } else {
             if (is_array($ret)) {
                 $rs = $this->__formatPointCompanyDataList($ret);
                 $rs = $this->__makePaging($rs, $pageSize);
             } else {
-                $pageNo=0;
-                $rs = [0=>0];
-                $total = 0;
+                $rs = null;
             }
         }
 
-        _SUCCESS('000000', 'OK', ['list' => $rs[$pageNo], 'totalSize' => $total]);
+        _SUCCESS('000000', 'OK', $rs);
     }
 
     public function getPointListUser($data)
@@ -386,18 +381,15 @@ class PointsModel extends AgentModel
                     idt_points.u_id = '{$data['u_id']}'  and state != 1 
                     ORDER BY idt_points.cdate DESC ";
         $ret = $this->mysqlQuery($sql, 'all');
-        $total = count($ret);
 
         if (empty($ret)) {
-            $pageNo=0;
-            $rs = [0=>0];
-            $total = 0;
+            $rs = null;
         } else {
             $rs = $this->__formatPointUserDataList($ret);
             $rs = $this->__makePaging($rs, $pageSize);
         }
 
-        _SUCCESS('000000', 'OK', ['list' => $rs[$pageNo], 'totalSize' => $total]);
+        _SUCCESS('000000', 'OK', $rs);
     }
 
     ######################################################################################
@@ -778,7 +770,7 @@ class PointsModel extends AgentModel
             $pageSize = 10;
         }
         $ret = array_chunk($data, $pageSize);
-        return ['page' => count($ret), 'data' => $ret, 'pageSize' => $pageSize];
+        return ['page' => count($ret), 'list' => $ret, 'pageSize' => $pageSize, 'totalSize' => count($data)];
     }
 
 }
