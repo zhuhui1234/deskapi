@@ -120,12 +120,13 @@ class ServiceModel extends AgentModel
      * @param array $data
      *
      * -type:
-     *      -1: all, without user msg
+     * -1: all, without user msg
      * 1: all, just public msg list
      * 2: only user msg
      * 3: product msg with user ()
      * 4: product msg without user
      * 5: knowledge base
+     * 6: download file
      */
     public function msgList(array $data)
     {
@@ -289,7 +290,8 @@ class ServiceModel extends AgentModel
      *  2: only user msg without public msg
      *  3: product msg
      *  4: product msg without user
-     *  5: knowledge base
+     *  5: industry msgs
+     *  6: knowledge base
      *
      *
      */
@@ -345,6 +347,13 @@ class ServiceModel extends AgentModel
                     _ERROR('000001', '缺少参数');
                 }
                 return $this->__KnowledgeMsg($data['pdtID']);
+                break;
+
+            case '7':
+                if (empty($data['pdtID'])) {
+                    _ERROR('000001', '缺少参数');
+                }
+                return $this->__reportMsg($data['pdtID']);
                 break;
 
             default:
@@ -443,6 +452,14 @@ class ServiceModel extends AgentModel
         return $this->mysqlQuery($sql, 'all');
     }
 
+    private function __reportMsg($pdtID)
+    {
+        $sql = "SELECT msg_id,  msg_title,msg_content, msg_cdate, msg_state,msg_udate 
+                FROM idt_msgs 
+                WHERE 1=1 AND msg_state>=0 AND msg_pdt_id='{$pdtID}' AND msg_type='6' ";
+
+        return $this->mysqlQuery($sql, 'all');
+    }
 
     private function __getMsgType($msgID)
     {
