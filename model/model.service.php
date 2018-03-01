@@ -292,7 +292,7 @@ class ServiceModel extends AgentModel
      *  2: only user msg without public msg
      *  3: product msg
      *  4: product msg without user
-     *  5: industry msgs
+     *  5: industry msg
      *  6: knowledge base
      *
      *
@@ -304,9 +304,7 @@ class ServiceModel extends AgentModel
             case '-1':
                 return $this->__publicMsg();
                 break;
-
             case '1':
-
                 if (empty($data['userID'])) {
                     _ERROR('000001', '缺少参数');
                 }
@@ -321,7 +319,6 @@ class ServiceModel extends AgentModel
                 return $this->__userMsg($data['userID']);
                 break;
             case '3':
-
                 if (empty($data['userID'] or empty($data['pdtID']))) {
                     _ERROR('000001', '缺少参数');
                 }
@@ -329,35 +326,30 @@ class ServiceModel extends AgentModel
                 return $this->__pdtMsgs($data['userID'], $data['pdtID']);
                 break;
             case '4':
-
                 if (empty($data['pdtID'])) {
                     _ERROR('000001', '缺少参数');
                 }
 
                 return $this->__pdtMsgWithoutUserMsg($data['pdtID']);
                 break;
-
             case '5':
                 if (empty($data['pdtID'])) {
                     _ERROR('000001', '缺少参数');
                 }
                 return $this->__industryMsg($data['pdtID']);
                 break;
-
             case '6':
                 if (empty($data['pdtID'])) {
                     _ERROR('000001', '缺少参数');
                 }
                 return $this->__KnowledgeMsg($data['pdtID']);
                 break;
-
             case '7':
                 if (empty($data['pdtID'])) {
                     _ERROR('000001', '缺少参数');
                 }
                 return $this->__reportMsg($data['pdtID']);
                 break;
-
             default:
                 return $this->__publicMsg();
                 break;
