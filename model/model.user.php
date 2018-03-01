@@ -2362,7 +2362,6 @@ class UserModel extends AgentModel
 
         $lic_sql = "SELECT
                       idt_licence.u_id,
-                      idt_licence.licence_key,
                       idt_licence.cpy_id,
                       idt_licence.pdt_id,
                       idt_subproduct.pc_start_time,
@@ -2387,7 +2386,28 @@ class UserModel extends AgentModel
                           AND pdt_state = 0 AND start_date <= now() AND end_date >= now() AND
       idt_permissions_number.cpy_id = idt_licence.cpy_id;";
         $ret = $this->mysqlQuery($lic_sql, 'all');
-        return $ret;
+
+        $result = array();
+        foreach ($ret as $key => $value) {
+            if(isset($result[$value['pdt_id']])){
+                $old_key = $result[$value['pdt_id']]['key'];
+                if(!empty($value['pc_due_time'])){
+                    $ret[$old_key]['pc_start_time'] = $value['pc_start_time'];
+                    $ret[$old_key]['pc_due_time'] = $value['pc_due_time'];
+                } elseif(!empty($value['mobile_due_time'])) {
+                    $ret[$old_key]['mobile_start_time'] = $value['mobile_start_time'];
+                    $ret[$old_key]['mobile_due_time'] = $value['mobile_due_time'];
+                } elseif(!empty($value['ott_due_time'])) {
+                    $ret[$old_key]['ott_start_time'] = $value['ott_start_time'];
+                    $ret[$old_key]['ott_due_time'] = $value['ott_due_time'];
+                }
+                unset($ret[$key]);
+            }else{
+                $result[$value['pdt_id']]['key'] = $key;
+                $result[$value['pdt_id']]['pdt_id'] = $value['pdt_id'];
+            }
+        }
+        return array_values($ret);
     }
 
 }
