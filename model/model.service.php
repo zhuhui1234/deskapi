@@ -105,6 +105,7 @@ class ServiceModel extends AgentModel
                  2: product msg
                  3: product msg without user
                  4: knowledge base
+                 5: industry msgs
 
                - state:
                  0: unread
@@ -125,8 +126,9 @@ class ServiceModel extends AgentModel
      * 2: only user msg
      * 3: product msg with user ()
      * 4: product msg without user
-     * 5: knowledge base
-     * 6: download file
+     * 5: industry msgs
+     * 6: knowledge base
+     *
      */
     public function msgList(array $data)
     {
