@@ -716,7 +716,7 @@ class PointsModel extends AgentModel
                            FROM idt_points WHERE (type =22 or type=2) and u_id='{$u_id}' AND state!=1";
 
         $negativeNumSQL = "SELECT sum(point_value) as negativeNum 
-                           FROM idt_points WHERE (type = 6 and type =7 AND type=21 ) and u_id='{$u_id}' AND state!=1";
+                           FROM idt_points WHERE (type = 6 or type =7 or type=21 ) and u_id='{$u_id}' AND state!=1";
 
         $positiveNum = $this->mysqlQuery($positiveNumSQL, 'all');
         $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
