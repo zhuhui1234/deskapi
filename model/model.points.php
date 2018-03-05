@@ -655,10 +655,10 @@ class PointsModel extends AgentModel
     private function __computingBalancePointForCompany($cpy_id)
     {
         $positiveNumSQL = "SELECT sum(point_value) as positiveNum 
-                           FROM idata2.idt_points WHERE type= 1 and  cpy_id='{$cpy_id}'";
+                           FROM idt_points WHERE type= 1 and  cpy_id='{$cpy_id}'";
 
         $negativeNumSQL = "SELECT sum(point_value) as negativeNum 
-                           FROM idata2.idt_points WHERE type=22 and cpy_id='{$cpy_id}'";
+                           FROM idt_points WHERE type=22 and cpy_id='{$cpy_id}'";
 
         $positiveNum = $this->mysqlQuery($positiveNumSQL, 'all');
         $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
