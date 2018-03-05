@@ -664,14 +664,14 @@ class PointsModel extends AgentModel
         $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
 
         if (empty($positiveNum)) {
-            $positiveNum = [['positivenum' => 0]];
+            $positiveNum = [['positiveNum' => 0]];
         }
 
         if (empty($negativeNum)) {
-            $negativeNum = [['negativenum' => 0]];
+            $negativeNum = [['negativeNum' => 0]];
         }
 
-        return (int)$positiveNum[0]['positivenum'] - (int)$negativeNum[0]['negativenum'];
+        return (int)$positiveNum[0]['positiveNum'] - (int)$negativeNum[0]['negativeNum'];
     }
 
     /**
@@ -720,7 +720,7 @@ class PointsModel extends AgentModel
 
         $positiveNum = $this->mysqlQuery($positiveNumSQL, 'all');
         $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
-        $ret = (int)$positiveNum[0]['positivenum'] - (int)$negativeNum[0]['negativenum'];
+        $ret = (int)$positiveNum[0]['positiveNum'] - (int)$negativeNum[0]['negativeNum'];
         return $ret;
     }
 
