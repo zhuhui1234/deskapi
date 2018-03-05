@@ -593,7 +593,7 @@ class PointsModel extends AgentModel
     private function __transferAccountToUser($cpy_id, $u_id, $point_value, $author)
     {
         $company_points = $this->__computingBalancePoint($u_id);
-
+        $uptimes = date('Y-m-d H:i:s',time());
         if ($company_points > 0 and $company_points > $point_value) {
             $ret = $this->mysqlInsert('idt_points', [
                 'u_id' => $u_id,
@@ -601,8 +601,8 @@ class PointsModel extends AgentModel
                 'cpy_id' => $cpy_id,
                 'point_value' => $point_value,
                 'point_explain' => "企业分配给用户:{$u_id} 积分，{$point_value} ",
-                'author' => $author
-
+                'author' => $author,
+                'cdate' => $uptimes
             ]);
             if ($ret) {
                 return ['status' => true, 'msg' => 'ok', 'data' => $ret];
@@ -626,7 +626,7 @@ class PointsModel extends AgentModel
     private function __transferAccountBackCompany($cpy_id, $u_id, $point_value, $author)
     {
         $user_point = $this->__computingBalancePoint($u_id);
-
+        $uptimes = date('Y-m-d H:i:s',time());
         if ($user_point > 0 and $user_point > $point_value) {
             $ret = $this->mysqlInsert('idt_points', [
                 'u_id' => $u_id,
@@ -634,8 +634,8 @@ class PointsModel extends AgentModel
                 'cpy_id' => $cpy_id,
                 'point_value' => $point_value,
                 'point_explain' => "用户:{$u_id} 退回到企业积分",
-                'author' => $author
-
+                'author' => $author,
+                'cdate' => $uptimes
             ]);
             if ($ret) {
                 return ['status' => true, 'msg' => 'ok', 'data' => $ret];
