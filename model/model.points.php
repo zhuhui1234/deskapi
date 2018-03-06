@@ -314,8 +314,17 @@ class PointsModel extends AgentModel
         }
 
         $data['pageSize'] == null ? $pageSize = '10' : $pageSize = $data['pageSize']; //查询数据
-        $data['pageNo'] == null ? $pageNo = '0' : $pageNo = ($data['pageNo'] - 1) * $pageSize; //查询页数
+        $data['pageNo'] == null ? $pageNo = '0' : $pageNo = $data['pageNo'] - 1; //查询页数
 
+        if(isset($data['type'])){
+            if($data['type'] == 1){
+                $type = " and type in (1,21,22)";
+            }else{
+                $type = " and type in (2,6)";
+            }
+        }else{
+            $type = '';
+        }
         $sql = "SELECT
                     point_id,
                     idt_company.cpy_cname,
@@ -334,7 +343,7 @@ class PointsModel extends AgentModel
                     LEFT JOIN idt_company ON idt_company.cpy_id = idt_user.cpy_id
                     LEFT JOIN idt_product ON idt_product.pdt_id = idt_points.pdt_id 
                 WHERE
-                    idt_points.cpy_id = '{$data['cpy_id']}' and idt_points.state !=1
+                    idt_points.cpy_id = '{$data['cpy_id']}' and idt_points.state !=1{$type}
                     ORDER BY idt_points.cdate DESC ";
         $ret = $this->mysqlQuery($sql, 'all');
 
@@ -352,13 +361,13 @@ class PointsModel extends AgentModel
             }
         }
 
-        _SUCCESS('000000', 'OK', ['list'=>$rs[$pageNo],'totleSize'=> count($ret)]);
+        _SUCCESS('000000', 'OK', ['list'=>$rs[$pageNo],'totalSize'=> count($ret)]);
     }
 
     public function getPointListUser($data)
     {
         $data['pageSize'] == null ? $pageSize = '10' : $pageSize = $data['pageSize']; //查询数据
-        $data['pageNo'] == null ? $pageNo = '0' : $pageNo = ($data['pageNo'] - 1) * $pageSize; //查询页数
+        $data['pageNo'] == null ? $pageNo = '0' : $pageNo = $data['pageNo'] - 1; //查询页数
 
         $sql = "SELECT
                     point_id,
@@ -389,7 +398,7 @@ class PointsModel extends AgentModel
             $rs = $this->__makePaging($rs, $pageSize);
         }
 
-        _SUCCESS('000000', 'OK',['list'=>$rs[$pageNo],'totleSize'=> count($ret)] );
+        _SUCCESS('000000', 'OK',['list'=>$rs[$pageNo],'totalSize'=> count($ret)] );
     }
 
     ######################################################################################
@@ -592,9 +601,9 @@ class PointsModel extends AgentModel
      */
     private function __transferAccountToUser($cpy_id, $u_id, $point_value, $author)
     {
-        $company_points = $this->__computingBalancePoint($u_id);
+        $company_points = $this->__computingBalancePointForCompany($cpy_id);
         $uptimes = date('Y-m-d H:i:s',time());
-        if ($company_points > 0 and $company_points > $point_value) {
+        if ($company_points > 0 and $company_points >= $point_value) {
             $ret = $this->mysqlInsert('idt_points', [
                 'u_id' => $u_id,
                 'type' => 22,
@@ -627,7 +636,7 @@ class PointsModel extends AgentModel
     {
         $user_point = $this->__computingBalancePoint($u_id);
         $uptimes = date('Y-m-d H:i:s',time());
-        if ($user_point > 0 and $user_point > $point_value) {
+        if ($user_point > 0 and $user_point >= $point_value) {
             $ret = $this->mysqlInsert('idt_points', [
                 'u_id' => $u_id,
                 'type' => 21,
@@ -664,14 +673,14 @@ class PointsModel extends AgentModel
         $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
 
         if (empty($positiveNum)) {
-            $positiveNum = [['positiveNum' => 0]];
+            $positiveNum = [['positivenum' => 0]];
         }
 
         if (empty($negativeNum)) {
-            $negativeNum = [['negativeNum' => 0]];
+            $negativeNum = [['negativenum' => 0]];
         }
 
-        return (int)$positiveNum[0]['positiveNum'] - (int)$negativeNum[0]['negativeNum'];
+        return (int)$positiveNum[0]['positivenum'] - (int)$negativeNum[0]['negativenum'];
     }
 
     /**
@@ -720,7 +729,7 @@ class PointsModel extends AgentModel
 
         $positiveNum = $this->mysqlQuery($positiveNumSQL, 'all');
         $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
-        $ret = (int)$positiveNum[0]['positiveNum'] - (int)$negativeNum[0]['negativeNum'];
+        $ret = (int)$positiveNum[0]['positivenum'] - (int)$negativeNum[0]['negativenum'];
         return $ret;
     }
 
@@ -764,11 +773,12 @@ class PointsModel extends AgentModel
     }
 
 
-    private function __makePaging(array $data, int $pageSize = 10)
+    private function __makePaging(array $data,$pageSize)
     {
         if (empty($pageSize)) {
             $pageSize = 10;
         }
+        ksort($data);
         $ret = array_chunk($data, $pageSize);
         return $ret;
     }
