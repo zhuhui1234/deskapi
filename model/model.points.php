@@ -526,16 +526,16 @@ class PointsModel extends AgentModel
             }
 
             if ($ret[$key]['type'] == 6 || $ret[$key]['type'] == 7) {
-                $point_temp = $point_temp - $ret[$key]['point_value'];
                 $point_all_temp = $point_all_temp - $ret[$key]['point_value'];
+                $point_temp = $point_temp - $ret[$key]['point_value'];
             }
 
             if ($ret[$key]['type'] == 21) {
-                $point_all_temp = $point_all_temp + $ret[$key]['point_value'];
+                $point_temp = $point_temp + $ret[$key]['point_value'];
             }
 
             if ($ret[$key]['type'] == 22) {
-                $point_all_temp = $point_all_temp - $ret[$key]['point_value'];
+                $point_temp = $point_temp - $ret[$key]['point_value'];
             }
 
             $rs[$key]['remainingPoints'] = $point_temp;
