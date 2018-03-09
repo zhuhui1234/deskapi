@@ -247,6 +247,7 @@ class ServiceModel extends AgentModel
                                                WHERE 1=1 AND msg_id='{$msgID}'", 'all');
 
                 if (count($ret) > 0) {
+                    $ret[0]['msg_content'] = urldecode($ret[0]['msg_content']);
                     _SUCCESS('000000', 'ok', $ret);
                 } else {
                     _ERROR('000002', '没有找到该消息');
@@ -261,6 +262,7 @@ class ServiceModel extends AgentModel
                                                WHERE 1=1 AND msg_id='{$msgID}'", 'all');
 
                 if (count($ret) > 0) {
+                    $ret[0]['msg_content'] = urldecode($ret[0]['msg_content']);
                     _SUCCESS('000000', 'ok', $ret);
                 } else {
                     _ERROR('000002', '没有找到该消息');
