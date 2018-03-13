@@ -316,13 +316,13 @@ class PointsModel extends AgentModel
         $data['pageSize'] == null ? $pageSize = '10' : $pageSize = $data['pageSize']; //查询数据
         $data['pageNo'] == null ? $pageNo = '0' : $pageNo = $data['pageNo'] - 1; //查询页数
 
-        if(isset($data['type'])){
-            if($data['type'] == 1){
+        if (isset($data['type'])) {
+            if ($data['type'] == 1) {
                 $type = " and type in (1,21,22)";
-            }else{
+            } else {
                 $type = " and type in (2,6)";
             }
-        }else{
+        } else {
             $type = '';
         }
         $sql = "SELECT
@@ -361,7 +361,7 @@ class PointsModel extends AgentModel
             }
         }
 
-        _SUCCESS('000000', 'OK', ['list'=>$rs[$pageNo],'totalSize'=> count($ret)]);
+        _SUCCESS('000000', 'OK', ['list' => $rs[$pageNo], 'totalSize' => count($ret)]);
     }
 
     public function getPointListUser($data)
@@ -398,7 +398,7 @@ class PointsModel extends AgentModel
             $rs = $this->__makePaging($rs, $pageSize);
         }
 
-        _SUCCESS('000000', 'OK',['list'=>$rs[$pageNo],'totalSize'=> count($ret)] );
+        _SUCCESS('000000', 'OK', ['list' => $rs[$pageNo], 'totalSize' => count($ret)]);
     }
 
     ######################################################################################
@@ -602,7 +602,7 @@ class PointsModel extends AgentModel
     private function __transferAccountToUser($cpy_id, $u_id, $point_value, $author)
     {
         $company_points = $this->__computingBalancePointForCompany($cpy_id);
-        $uptimes = date('Y-m-d H:i:s',time());
+        $uptimes = date('Y-m-d H:i:s', time());
         if ($company_points > 0 and $company_points >= $point_value) {
             $ret = $this->mysqlInsert('idt_points', [
                 'u_id' => $u_id,
@@ -635,7 +635,7 @@ class PointsModel extends AgentModel
     private function __transferAccountBackCompany($cpy_id, $u_id, $point_value, $author)
     {
         $user_point = $this->__computingBalancePoint($u_id);
-        $uptimes = date('Y-m-d H:i:s',time());
+        $uptimes = date('Y-m-d H:i:s', time());
         if ($user_point > 0 and $user_point >= $point_value) {
             $ret = $this->mysqlInsert('idt_points', [
                 'u_id' => $u_id,
@@ -664,7 +664,7 @@ class PointsModel extends AgentModel
     private function __computingBalancePointForCompany($cpy_id)
     {
         $positiveNumSQL = "SELECT sum(point_value) as positiveNum 
-                           FROM idt_points WHERE type= 1 and  cpy_id='{$cpy_id}'";
+                           FROM idt_points WHERE type in (1,21) and  cpy_id='{$cpy_id}'";
 
         $negativeNumSQL = "SELECT sum(point_value) as negativeNum 
                            FROM idt_points WHERE type=22 and cpy_id='{$cpy_id}'";
@@ -773,7 +773,7 @@ class PointsModel extends AgentModel
     }
 
 
-    private function __makePaging(array $data,$pageSize)
+    private function __makePaging(array $data, $pageSize)
     {
         if (empty($pageSize)) {
             $pageSize = 10;
