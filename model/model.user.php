@@ -1588,6 +1588,18 @@ class UserModel extends AgentModel
         }
     }
 
+    public function industryList()
+    {
+        $sql = "select id,title from idt_industry where Enabled = 1";
+        return $this->mysqlQuery($sql, 'all');
+    }
+
+    public function regionList()
+    {
+        $sql = "select id,title from idt_region where Enabled = 1";
+        return $this->mysqlQuery($sql, 'all');
+    }
+
     ######################################################################################
     ##################################                     ###############################
     #################################   PRIVATE METHODS   ################################

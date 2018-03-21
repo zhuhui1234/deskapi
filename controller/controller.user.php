@@ -385,4 +385,25 @@ class UserController extends Controller
         }
     }
 
+    public function industryList()
+    {
+        $data = _POST();
+        $ret = $this->model->industryList();
+        if ($ret) {
+            _SUCCESS('0000000','OK',$ret);
+        }else{
+            _ERROR('000001','FAILS');
+        }
+    }
+
+    public function regionList()
+    {
+        $data = _POST();
+        $ret = $this->model->regionList();
+        if ($ret) {
+            _SUCCESS('0000000','OK',$ret);
+        }else{
+            _ERROR('000001','FAILS');
+        }
+    }
 }
