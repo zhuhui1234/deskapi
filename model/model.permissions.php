@@ -570,7 +570,9 @@ class PermissionsModel extends AgentModel
             'city' => $data['city'],
             'comment' => $data['comment'],
             'position' => $data['position'],
-            'region' => $data['region']
+            'region' => $data['region'],
+            'area' => $data['area'],
+            'comment' => $data['remark']
         ];
 
         $getApplyPermission = $this->__getApplyPermission($data);
@@ -627,7 +629,8 @@ class PermissionsModel extends AgentModel
         if ($data['pdt_id'] == 38) {
             $this->__sendMail('wanghaiyan@iresearch.com.cn',
                 "
-                        城市: {$data['city']}</br>
+                        地区: {$data['city']}</br>
+                        行业: {$data['area']}</br>
                         用戶ID:  {$data['userID']}</br>
                         用戶名稱: {$data['username']} </br>
                         公司名称: {$data['companyName']} </br>
