@@ -65,8 +65,7 @@ class Sms
     public static function instance($prefix = SITE_PREFIX)
     {
         static $instance;
-        if (! $instance)
-        {
+        if (!$instance) {
             $instance = new Sms($prefix);
         }
         return $instance;
@@ -149,9 +148,8 @@ class Sms
         $timeout = 300;
         $post_str = $keyVars;//要提交的内容.
 
-        $fp = fsockopen($srv_ip,$srv_port,$errno,$errstr,$timeout);
-        if (!$fp)
-        {
+        $fp = fsockopen($srv_ip, $srv_port, $errno, $errstr, $timeout);
+        if (!$fp) {
             echo('fp fail');
         }
 
@@ -159,25 +157,25 @@ class Sms
         $post_header = "POST $url HTTP/1.1\r\n";
         $post_header .= "Content-Type:application/x-www-form-urlencoded\r\n";
         $post_header .= "User-Agent: MSIE\r\n";
-        $post_header .= "Host: ".$srv_ip."\r\n";;
-        $post_header .= "Content-Length: ".$content_length."\r\n";
+        $post_header .= "Host: " . $srv_ip . "\r\n";;
+        $post_header .= "Content-Length: " . $content_length . "\r\n";
         $post_header .= "Connection: close\r\n\r\n";
-        $post_header .= $post_str."\r\n\r\n";
+        $post_header .= $post_str . "\r\n\r\n";
 
         //请求
-        fwrite($fp,$post_header);
+        fwrite($fp, $post_header);
 
         //接收返回值
         while (!feof($fp)) {
             //去除请求包的头只显示页面的返回数据
-            $line = fgets($fp,1024);
+            $line = fgets($fp, 1024);
         }
 
         //转义数据
-        $ret = json_decode($line,true);
-        write_to_log('send sms report: '. $line, '_sms');
+        $ret = json_decode($line, true);
+        write_to_log('send sms report: ' . $line, '_sms');
         //定义返回值
-        if($ret['LANZ_ROOT']['ErrorNum'] != 0){
+        if ($ret['LANZ_ROOT']['ErrorNum'] != 0) {
             $rs = $this->_catchError($ret['LANZ_ROOT']['ErrorNum']);
         } else {
             $rs = '发送成功';
@@ -194,17 +192,81 @@ class Sms
      */
     private function _convertsToUTF8($gb_text)
     {
-        return iconv("utf-8","gb2312//IGNORE",$gb_text);
+        return iconv("utf-8", "gb2312//IGNORE", $gb_text);
     }
 
     //发送短信
-    public function sendSms($content,$phones)
+    public function sendSms($content, $phones)
     {
         //GB2312编辑转义
-        $content = $this->_convertsToUTF8($this->signature.$content);
+        $content = $this->_convertsToUTF8($this->signature . $content);
         $keyVars = "UserID=$this->userID&Account=$this->account&Password=$this->password&Content=$content&Phones=$phones&ReturnXJ=1";
 
         return $this->httppost($keyVars);
+    }
+
+    public function sendSingleSMS($content, $mobile)
+    {
+        $text = json_encode(['mobile' => $mobile, 'apikey' => NATION_API, 'text' => $content]);
+        return $this->yunPian(sms/single_send.json, $content);
+    }
+
+    /**
+     * sms/single_send.json
+     * @param $body
+     * @return string
+     */
+    public function yunPian($sendPath = 'sms/single_send.json', $body)
+    {
+
+        //你的目标服务地址或频道
+        $srv_ip = NATION_SMS_URL;
+        $srv_port = 443;
+        //接收你post的URL具体地址
+        $url = $this->sURL;
+        $fp = '';
+        $resp_str = '';
+        $errno = 0;
+        $errstr = '';
+        $timeout = 300;
+        $post_str = $body;//要提交的内容.
+
+        $fp = fsockopen($srv_ip, $srv_port, $errno, $errstr, $timeout);
+        if (!$fp) {
+            echo('fp fail');
+        }
+
+        $content_length = strlen($post_str);
+        $post_header = "POST $url HTTP/1.1\r\n";
+        $post_header .= "Accept:application/json;charset=utf-8;";
+        $post_header .= "Content-Type:application/x-www-form-urlencoded;charset=utf-8\r\n";
+        $post_header .= "User-Agent: MSIE\r\n";
+        $post_header .= "Host: " . $srv_ip . "\r\n";;
+        $post_header .= "Content-Length: " . $content_length . "\r\n";
+        $post_header .= "Connection: close\r\n\r\n";
+        $post_header .= $post_str . "\r\n\r\n";
+
+        //请求
+        fwrite($fp, $post_header);
+
+        //接收返回值
+        while (!feof($fp)) {
+            //去除请求包的头只显示页面的返回数据
+            $line = fgets($fp, 1024);
+        }
+
+        //转义数据
+        $ret = json_decode($line, true);
+        write_to_log('send sms report: ' . $line, '_sms');
+        //定义返回值
+        if ($ret['LANZ_ROOT']['ErrorNum'] != 0) {
+            $rs = $this->_catchError($ret['LANZ_ROOT']['ErrorNum']);
+        } else {
+            $rs = '发送成功';
+        }
+
+        return $rs;
+
     }
 
 }

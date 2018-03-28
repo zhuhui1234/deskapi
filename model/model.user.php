@@ -802,7 +802,12 @@ class UserModel extends AgentModel
                 //var_dump('no mail');
             }
 
-            $sms = Sms::instance()->sendSms($content, $phones);
+            if(empty($data['nation'])) {
+                $sms = Sms::instance()->sendSingleSMS($content, $phones);
+            }else{
+                $sms = Sms::instance()->sendSms($content, $phones);
+            }
+
             if ($sms == '发送成功') {
                 _SUCCESS('000000', '发送成功');
             } else {
