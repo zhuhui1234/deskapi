@@ -68,7 +68,7 @@ define('SESSION_TIME_OUT', false);
 define('COOKIE_TIME_OUT', 7 * 24 * 3600);
 //redis 失效时间
 define('REDIS_TIME_OUT', 86400);
-define('TOKEN_TIME_OUT', 14400);
+define('TOKEN_TIME_OUT', 8); // hours
 define('VERSION', 'idata_desktop_api');
 //下拉框
 define('SELECT_HOUR', 24 * 3600);
