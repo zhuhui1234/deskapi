@@ -168,7 +168,7 @@ class PermissionsModel extends AgentModel
                                 if ($v3['menuEName'] == 'iUserTracker') {
                                     if ($ret_irdKey_format['iut']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iut']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iut']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'] .'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -177,7 +177,7 @@ class PermissionsModel extends AgentModel
                                     if ($ret_irdKey_format['iadt']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
 //                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iadt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://madt.irs01.net/ProductSelection.aspx?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://madt.irs01.net/ProductSelection.aspx?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -195,7 +195,7 @@ class PermissionsModel extends AgentModel
                                     if ($ret_irdKey_format['mut']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
 //                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mut']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://musertracker.itracker.cn/LLogin.aspx?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://musertracker.itracker.cn/LLogin.aspx?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -203,7 +203,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'iMediaMatix') {
                                     if ($ret_irdKey_format['imm']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['imm']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['imm']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -212,7 +212,7 @@ class PermissionsModel extends AgentModel
                                     if ($ret_irdKey_format['madt']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
 //                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['madt']['ppurl']."?guid=".$ret_irdKey['iRGuid'];
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://iadt-alpha.chinacloudsites.cn/ws_login.aspx?ProductSelection=ProductSelection&guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "http://iadt-alpha.chinacloudsites.cn/ws_login.aspx?ProductSelection=ProductSelection&guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -220,7 +220,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'iEcTracker') {
                                     if ($ret_irdKey_format['ect']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ect']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ect']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -228,7 +228,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'imBlogTracker') {
                                     if ($ret_irdKey_format['imbt']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['imbt']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['imbt']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -236,7 +236,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'TargetPlus') {
                                     if ($ret_irdKey_format['tgp']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['tgp']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['tgp']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -244,7 +244,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'iUserTracker-en') {
                                     if ($ret_irdKey_format['iut-en']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iut-en']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iut-en']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -252,7 +252,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'mUserTracker-en') {
                                     if ($ret_irdKey_format['mut-en']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mut-en']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mut-en']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -260,7 +260,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'loyaltyPlus') {
                                     if ($ret_irdKey_format['lps']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['lps']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['lps']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -268,7 +268,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'EcommercePlus') {
                                     if ($ret_irdKey_format['ecp']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ecp']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ecp']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -276,7 +276,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'iUserServey') {
                                     if ($ret_irdKey_format['ius']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ius']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ius']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -284,7 +284,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'EcommercePlus-en') {
                                     if ($ret_irdKey_format['ecp-en']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ecp-en']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ecp-en']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -292,7 +292,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'iMediaMatix-en') {
                                     if ($ret_irdKey_format['imm-en']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['imm-en']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['imm-en']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -300,7 +300,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'mGameTracker') {
                                     if ($ret_irdKey_format['mgt']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mgt']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mgt']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -308,7 +308,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'iAdMatrix') {
                                     if ($ret_irdKey_format['iadm']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iadm']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['iadm']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -316,7 +316,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'mStoreTracker') {
                                     if ($ret_irdKey_format['mst']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mst']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['mst']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -324,7 +324,7 @@ class PermissionsModel extends AgentModel
                                 } else if ($v3['menuEName'] == 'ECTracker') {
                                     if ($ret_irdKey_format['ect']) {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 1;
-                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ect']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'];
+                                        $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = $ret_irdKey_format['ect']['ppurl'] . "?guid=" . $ret_irdKey['iRGuid'].'&c=1';
                                     } else {
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['ptype'] = 0;
                                         $rs['dataList'][$a]['lowerTree'][$a2]['lowerTree'][$a3]['curl'] = "";
@@ -379,7 +379,7 @@ class PermissionsModel extends AgentModel
 
         if ($_GET['debug'] == 1) {
             pr('debug');
-            print_r($ret);
+            print_r($rs);
             pr('end debug');
         }
 
