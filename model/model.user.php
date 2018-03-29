@@ -1411,7 +1411,7 @@ class UserModel extends AgentModel
         if ($data['lic_author_uid'] != $data['toUserID']) {
 
             if (empty($data['cpy_id'])) {
-                $userInfo = $this->mysqlQuery("select cpy_id from idt_user WHERE u_id='{$data['toUserID']}'");
+                $userInfo = $this->mysqlQuery("select cpy_id from idt_user WHERE u_id='{$data['toUserID']}'","all");
                 if (!empty($userInfo)) {
                     $cpy_id = $userInfo[0]['cpy_id'];
                 } else {
@@ -2327,7 +2327,7 @@ class UserModel extends AgentModel
                 if (!$ret) {
                     _ERROR('000001', 'lic upload fails');
                 }
-                $updateUser = $this->mysqlEdit('idt_user', ['cpy_id' => $data['cpy_id'], 'u_permissions' => '1'], ['u_id' => $hasUser[0]['u_id']]);
+                $updateUser = $this->mysqlEdit('idt_user', ['cpy_id' => $data['cpy_id'], 'u_permissions' => '1','u_mail' => $data['u_mail']], ['u_id' => $hasUser[0]['u_id']]);
 
                 if ($updateUser) {
                     _SUCCESS('000000', 'ok');
