@@ -76,7 +76,7 @@ class LicenceModel extends AgentModel
                 $own[$key]['productName'] = $ret[$key]['pdt_ename'];
                 $own[$key]['mobile'] = $ret[$key]['u_mobile'];
                 $own[$key]['initial_points'] = $ret[$key]['points'];
-                $own[$key]['remaining_points'] = $this->__computingBalancePoint($data['licenceUserID']); //剩余积分
+//                $own[$key]['remaining_points'] = $this->__computingBalancePoint($data['licenceUserID']); //剩余积分
                 $own[$key]['terminal'] = null;
                 if (!empty($ret[$key]['pc_due_time'])) {
                     $own[$key]['terminal']['pc'] = array($ret[$key]['pc_start_time'], $ret[$key]['pc_due_time']);
@@ -100,7 +100,7 @@ class LicenceModel extends AgentModel
                 $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
                 $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
                 $rs[$key]['initial_points'] = $ret[$key]['points'];
-                $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['u_id']); //剩余积分
+//                $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['u_id']); //剩余积分
                 $rs[$key]['terminal'] = null;
                 if (!empty($ret[$key]['pc_due_time'])) {
                     $rs[$key]['terminal']['pc'] = array($ret[$key]['pc_start_time'], $ret[$key]['pc_due_time']);
@@ -157,7 +157,7 @@ class LicenceModel extends AgentModel
             $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
             $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
             $rs[$key]['initial_points'] = $ret[$key]['points'];//初始积分
-            $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['licence_key']); //剩余积分
+//            $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['licence_key']); //剩余积分
             $rs[$key]['createTime'] = $ret[$key]['lic_cdate'];
             $rs[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
             $rs[$key]['remark'] = $ret[$key]['lic_comment'];
@@ -173,11 +173,11 @@ class LicenceModel extends AgentModel
         if (empty($data['licenceKey'])) {
             _ERROR('000002', '许可证Key不能为空');
         }
-//        $sql = "select licence_id from idt_licence where u_id = '{$data['licenceUserID']}' and pdt_id = {$data['productID']}";
-//        $ret = $this->mysqlQuery($sql, "all");
-//        if (count($ret) > 0) {
-//            _ERROR('000001', '该用户已绑定许可证');
-//        }
+        $sql = "select licence_id from idt_licence where u_id = '{$data['licenceUserID']}' and pdt_id = {$data['productID']}";
+        $ret = $this->mysqlQuery($sql, "all");
+        if (count($ret) > 0) {
+            _ERROR('000001', '该用户已绑定许可证');
+        }
         $where_editUser['u_id'] = $data['licenceUserID']; //姓名
         $where_editUser['lic_author_uid'] = $data['userID']; //最后更新时间
         $where_editUser['lic_edate'] = $upTimes; //最后更新时间
