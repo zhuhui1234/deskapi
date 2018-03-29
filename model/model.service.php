@@ -64,6 +64,12 @@ class ServiceModel extends AgentModel
     //绑定微信
     public function setWxService($data)
     {
+        //检查微信是否已绑定
+        $sql_wxnum = "SELECT COUNT(1) weixin_num FROM idt_user WHERE u_wxopid='{$data['wxOpenid']}'";
+        $ret_wxnum = $this->mysqlQuery($sql_wxnum, "all");
+        if ($ret_wxnum[0]['weixin_num'] > 0) {
+            _ERROR('000002', '登录失败,该微信已绑定帐号');
+        }
         //绑定微信
         $where['u_wxname'] = urlencode($data['wxName']); //微信名称
         $where['u_wxopid'] = $data['wxOpenid']; //微信Openid
@@ -77,7 +83,7 @@ class ServiceModel extends AgentModel
             _SUCCESS('000000', '绑定成功');
         } else {
             //绑定失败,,并返回响应结果
-            _SUCCESS('000001', '绑定失败');
+            _ERROR('000001', '绑定失败');
         }
     }
 
