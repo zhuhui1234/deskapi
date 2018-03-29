@@ -119,7 +119,13 @@ class LicenceModel extends AgentModel
         if (!empty($own)) {
             $rs = array_merge($own, $rs);
         }
-        $return['list'] = $rs;
+        if ($data['state'] == 1) {
+            $return['list'][] = $rs[0];
+        } elseif ($data['state'] == 2) {
+            $return['list'] = $rs;
+        } else {
+            $return['list'] = $rs;
+        }
         foreach ($return['list'] as $k => $v) {
             $return['list'][$k]['index'] = ($k + 1) * ($pageNo + 1);
         }
