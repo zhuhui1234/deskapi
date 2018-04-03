@@ -117,8 +117,10 @@ class LicenceModel extends AgentModel
                     $rs[$key]['remark'] = $ret[$key]['lic_comment'];
                 }
             }
-            if (!empty($own)) {
+            if (!empty($own) && !empty($rs)) {
                 $rs = array_merge($own, $rs);
+            }elseif(!empty($own)){
+                $rs = $own;
             }
             //返回参数-执行总数
             $sql_count = "select count(*) as count_num
@@ -130,7 +132,7 @@ class LicenceModel extends AgentModel
             $ret_count = $this->mysqlQuery($sql_count, 'all');
             $return['totalSize'] = $ret_count[0]['count_num'];
             if ($data['state'] == 1) {
-                $return['list'][] = $rs[0];
+                $return['list'] = $own;
                 $return['totalSize'] = 1;
             } elseif ($data['state'] == 2) {
                 $return['list'] = $rs;
