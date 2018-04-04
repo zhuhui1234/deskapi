@@ -132,7 +132,7 @@ class LicenceModel extends AgentModel
             $ret_count = $this->mysqlQuery($sql_count, 'all');
             $return['totalSize'] = $ret_count[0]['count_num'];
             if ($data['state'] == 1) {
-                $return['list'] = $own;
+                $return['list'][0] = $rs[0];
                 $return['totalSize'] = 1;
             } elseif ($data['state'] == 2) {
                 $return['list'] = $rs;
