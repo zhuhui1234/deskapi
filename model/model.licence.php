@@ -604,7 +604,7 @@ class LicenceModel extends AgentModel
         $ret = $this->request()->_curlRADPost(IRD_SERVER_URL_SUPER, ['v' => fnEncrypt(json_encode($ird_data), KEY)]);
 
         write_to_log('post data: ' . json_encode($ird_data), '_ps_ird');
-        write_to_log('code: ' . fnEncrypt(json_encode($ird_data)), '_ps_ird');
+//        write_to_log('code: ' . fnEncrypt(json_encode($ird_data)), '_ps_ird');
         write_to_log('receive data: ' . $ret, '_ps_ird');
         return json_decode($ret, true);
     }
@@ -694,7 +694,7 @@ class LicenceModel extends AgentModel
         $ret = $this->request()->_curlRADPost(IRD_SERVER_URL_SUPER, ['v' => fnEncrypt(json_encode($ird_data), KEY)]);
 
         write_to_log('rm per post data: ' . json_encode($ird_data), '_ps_ird');
-        write_to_log('code: ' . fnEncrypt(json_encode($ird_data)), '_ps_ird');
+//        write_to_log('code: ' . fnEncrypt(json_encode($ird_data)), '_ps_ird');
         write_to_log('receive data: ' . $ret, '_ps_ird');
         return json_decode($ret, true);
     }
