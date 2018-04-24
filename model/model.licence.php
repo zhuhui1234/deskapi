@@ -65,74 +65,85 @@ class LicenceModel extends AgentModel
                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                 where idt_licence.state = 1 and idt_licence.cpy_id = {$data['companyFullNameID']} and idt_licence.pdt_id = {$data['productID']}{$keyword}{$state}{$terminal} order by points desc LIMIT {$pageNo},{$pageSize}";
         $ret = $this->mysqlQuery($sql, "all");
-        foreach ($ret as $key => $value) {
-            if ($ret[$key]['u_id'] == $data['licenceUserID']) {
-                $own[$key]['licenceID'] = $ret[$key]['licence_id'];
-                $own[$key]['licenceKey'] = $ret[$key]['licence_key'];
-                $own[$key]['companyFullNameID'] = $ret[$key]['cpy_id'];
-                $own[$key]['userID'] = $ret[$key]['u_id'];
-                $own[$key]['userName'] = $ret[$key]['u_name'];
-                $own[$key]['productID'] = $ret[$key]['pdt_id'];
-                $own[$key]['productName'] = $ret[$key]['pdt_ename'];
-                $own[$key]['mobile'] = $ret[$key]['u_mobile'];
-                $own[$key]['initial_points'] = $ret[$key]['points'];
-                $own[$key]['remaining_points'] = $this->__computingBalancePoint($data['licenceUserID']); //剩余积分
-                $own[$key]['terminal'] = null;
-                if (!empty($ret[$key]['pc_due_time'])) {
-                    $own[$key]['terminal']['pc'] = array($ret[$key]['pc_start_time'], $ret[$key]['pc_due_time']);
+        if(empty($ret)){
+            _SUCCESS('000000', '查询成功', ['list' => null,'totalSize' =>0]);
+        }else{
+            foreach ($ret as $key => $value) {
+                if ($ret[$key]['u_id'] == $data['licenceUserID']) {
+                    $own[$key]['licenceID'] = $ret[$key]['licence_id'];
+                    $own[$key]['licenceKey'] = $ret[$key]['licence_key'];
+                    $own[$key]['companyFullNameID'] = $ret[$key]['cpy_id'];
+                    $own[$key]['userID'] = $ret[$key]['u_id'];
+                    $own[$key]['userName'] = $ret[$key]['u_name'];
+                    $own[$key]['productID'] = $ret[$key]['pdt_id'];
+                    $own[$key]['productName'] = $ret[$key]['pdt_ename'];
+                    $own[$key]['mobile'] = $ret[$key]['u_mobile'];
+                    $own[$key]['initial_points'] = $ret[$key]['points'];
+                    $own[$key]['terminal'] = null;
+                    if (!empty($ret[$key]['pc_due_time'])) {
+                        $own[$key]['terminal']['pc'] = array($ret[$key]['pc_start_time'], $ret[$key]['pc_due_time']);
+                    }
+                    if (!empty($ret[$key]['mobile_due_time'])) {
+                        $own[$key]['terminal']['mobile'] = array($ret[$key]['mobile_start_time'], $ret[$key]['mobile_due_time']);
+                    }
+                    if (!empty($ret[$key]['ott_due_time'])) {
+                        $own[$key]['terminal']['ott'] = array($ret[$key]['ott_start_time'], $ret[$key]['ott_due_time']);
+                    }
+                    $own[$key]['createTime'] = $ret[$key]['lic_cdate'];
+                    $own[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
+                    $own[$key]['remark'] = $ret[$key]['lic_comment'];
+                } else {
+                    $rs[$key]['licenceID'] = $ret[$key]['licence_id'];
+                    $rs[$key]['licenceKey'] = $ret[$key]['licence_key'];
+                    $rs[$key]['companyFullNameID'] = $ret[$key]['cpy_id'];
+                    $rs[$key]['userID'] = $ret[$key]['u_id'];
+                    $rs[$key]['userName'] = $ret[$key]['u_name'];
+                    $rs[$key]['productID'] = $ret[$key]['pdt_id'];
+                    $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
+                    $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
+                    $rs[$key]['initial_points'] = $ret[$key]['points'];
+                    $rs[$key]['terminal'] = null;
+                    if (!empty($ret[$key]['pc_due_time'])) {
+                        $rs[$key]['terminal']['pc'] = array($ret[$key]['pc_start_time'], $ret[$key]['pc_due_time']);
+                    }
+                    if (!empty($ret[$key]['mobile_due_time'])) {
+                        $rs[$key]['terminal']['mobile'] = array($ret[$key]['mobile_start_time'], $ret[$key]['mobile_due_time']);
+                    }
+                    if (!empty($ret[$key]['ott_due_time'])) {
+                        $rs[$key]['terminal']['ott'] = array($ret[$key]['ott_start_time'], $ret[$key]['ott_due_time']);
+                    }
+                    $rs[$key]['createTime'] = $ret[$key]['lic_cdate'];
+                    $rs[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
+                    $rs[$key]['remark'] = $ret[$key]['lic_comment'];
                 }
-                if (!empty($ret[$key]['mobile_due_time'])) {
-                    $own[$key]['terminal']['mobile'] = array($ret[$key]['mobile_start_time'], $ret[$key]['mobile_due_time']);
-                }
-                if (!empty($ret[$key]['ott_due_time'])) {
-                    $own[$key]['terminal']['ott'] = array($ret[$key]['ott_start_time'], $ret[$key]['ott_due_time']);
-                }
-                $own[$key]['createTime'] = $ret[$key]['lic_cdate'];
-                $own[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
-                $own[$key]['remark'] = $ret[$key]['lic_comment'];
-            } else {
-                $rs[$key]['licenceID'] = $ret[$key]['licence_id'];
-                $rs[$key]['licenceKey'] = $ret[$key]['licence_key'];
-                $rs[$key]['companyFullNameID'] = $ret[$key]['cpy_id'];
-                $rs[$key]['userID'] = $ret[$key]['u_id'];
-                $rs[$key]['userName'] = $ret[$key]['u_name'];
-                $rs[$key]['productID'] = $ret[$key]['pdt_id'];
-                $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
-                $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
-                $rs[$key]['initial_points'] = $ret[$key]['points'];
-                $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['u_id']); //剩余积分
-                $rs[$key]['terminal'] = null;
-                if (!empty($ret[$key]['pc_due_time'])) {
-                    $rs[$key]['terminal']['pc'] = array($ret[$key]['pc_start_time'], $ret[$key]['pc_due_time']);
-                }
-                if (!empty($ret[$key]['mobile_due_time'])) {
-                    $rs[$key]['terminal']['mobile'] = array($ret[$key]['mobile_start_time'], $ret[$key]['mobile_due_time']);
-                }
-                if (!empty($ret[$key]['ott_due_time'])) {
-                    $rs[$key]['terminal']['ott'] = array($ret[$key]['ott_start_time'], $ret[$key]['ott_due_time']);
-                }
-                $rs[$key]['createTime'] = $ret[$key]['lic_cdate'];
-                $rs[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
-                $rs[$key]['remark'] = $ret[$key]['lic_comment'];
             }
-        }
-        if (!empty($own)) {
-            $rs = array_merge($own, $rs);
-        }
-        $return['list'] = $rs;
-        foreach ($return['list'] as $k => $v) {
-            $return['list'][$k]['index'] = ($k + 1) * ($pageNo + 1);
-        }
-        //返回参数-执行总数
-        $sql_count = "select count(*) as count_num
+            if (!empty($own) && !empty($rs)) {
+                $rs = array_merge($own, $rs);
+            }elseif(!empty($own)){
+                $rs = $own;
+            }
+            //返回参数-执行总数
+            $sql_count = "select count(*) as count_num
                 from idt_licence
                 left join idt_product on idt_product.pdt_id = idt_licence.pdt_id
                 left join idt_user on idt_user.u_id = idt_licence.u_id
                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
                 where idt_licence.state = 1 and idt_licence.cpy_id = {$data['companyFullNameID']} and idt_licence.pdt_id = {$data['productID']}{$keyword}{$state}{$terminal}";
-        $ret_count = $this->mysqlQuery($sql_count, 'all');
-        $return['totalSize'] = $ret_count[0]['count_num'];
-        _SUCCESS('000000', '查询成功', $return);
+            $ret_count = $this->mysqlQuery($sql_count, 'all');
+            $return['totalSize'] = $ret_count[0]['count_num'];
+            if ($data['state'] == 1) {
+                $return['list'][0] = $rs[0];
+                $return['totalSize'] = 1;
+            } elseif ($data['state'] == 2) {
+                $return['list'] = $rs;
+            } else {
+                $return['list'] = $rs;
+            }
+            foreach ($return['list'] as $k => $v) {
+                $return['list'][$k]['index'] = ($k + 1) * ($pageNo + 1);
+            }
+            _SUCCESS('000000', '查询成功', $return);
+        }
     }
 
     public function getLicencesByUserID($data)
@@ -157,7 +168,7 @@ class LicenceModel extends AgentModel
             $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
             $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
             $rs[$key]['initial_points'] = $ret[$key]['points'];//初始积分
-            $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['licence_key']); //剩余积分
+//            $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['licence_key']); //剩余积分
             $rs[$key]['createTime'] = $ret[$key]['lic_cdate'];
             $rs[$key]['lastUpdateTime'] = $ret[$key]['lic_edate'];
             $rs[$key]['remark'] = $ret[$key]['lic_comment'];
@@ -173,11 +184,11 @@ class LicenceModel extends AgentModel
         if (empty($data['licenceKey'])) {
             _ERROR('000002', '许可证Key不能为空');
         }
-//        $sql = "select licence_id from idt_licence where u_id = '{$data['licenceUserID']}' and pdt_id = {$data['productID']}";
-//        $ret = $this->mysqlQuery($sql, "all");
-//        if (count($ret) > 0) {
-//            _ERROR('000001', '该用户已绑定许可证');
-//        }
+        $sql = "select licence_id from idt_licence where u_id = '{$data['licenceUserID']}' and pdt_id = {$data['productID']}";
+        $ret = $this->mysqlQuery($sql, "all");
+        if (count($ret) > 0) {
+            _ERROR('000001', '该用户已绑定许可证');
+        }
         $where_editUser['u_id'] = $data['licenceUserID']; //姓名
         $where_editUser['lic_author_uid'] = $data['userID']; //最后更新时间
         $where_editUser['lic_edate'] = $upTimes; //最后更新时间
@@ -593,7 +604,7 @@ class LicenceModel extends AgentModel
         $ret = $this->request()->_curlRADPost(IRD_SERVER_URL_SUPER, ['v' => fnEncrypt(json_encode($ird_data), KEY)]);
 
         write_to_log('post data: ' . json_encode($ird_data), '_ps_ird');
-        write_to_log('code: ' . fnEncrypt(json_encode($ird_data)), '_ps_ird');
+//        write_to_log('code: ' . fnEncrypt(json_encode($ird_data)), '_ps_ird');
         write_to_log('receive data: ' . $ret, '_ps_ird');
         return json_decode($ret, true);
     }
@@ -683,7 +694,7 @@ class LicenceModel extends AgentModel
         $ret = $this->request()->_curlRADPost(IRD_SERVER_URL_SUPER, ['v' => fnEncrypt(json_encode($ird_data), KEY)]);
 
         write_to_log('rm per post data: ' . json_encode($ird_data), '_ps_ird');
-        write_to_log('code: ' . fnEncrypt(json_encode($ird_data)), '_ps_ird');
+//        write_to_log('code: ' . fnEncrypt(json_encode($ird_data)), '_ps_ird');
         write_to_log('receive data: ' . $ret, '_ps_ird');
         return json_decode($ret, true);
     }

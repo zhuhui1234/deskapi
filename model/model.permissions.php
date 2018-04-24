@@ -1535,15 +1535,16 @@ class PermissionsModel extends AgentModel
                                         WHERE idt_subproduct.licence_key in (
                                             SELECT idt_licence.licence_key FROM idt_licence
                                             WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
-                                            AND licence_key.pdt_id='{$rq['parentID']}' AND state='1'
+                                            AND idt_licence.pdt_id='{$rq['parentID']}' AND state='1'
                                         ) AND idt_subproduct.pdt_id = {$rq['parentID']}
                                         AND pc_due_time>='{$now}' AND pc_start_time<='{$now}'";
+                        write_to_log($terminalSql, '_test');
                     } elseif ($rq['terminal'] == 'mobile') {
                         $terminalSql = "SELECT COUNT(*) co FROM idt_subproduct 
                                         WHERE idt_subproduct.licence_key in (
                                             SELECT idt_licence.licence_key FROM idt_licence
                                             WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
-                                            AND licence_key.pdt_id='{$rq['parentID']}' AND state='1'
+                                            AND idt_licence.pdt_id='{$rq['parentID']}' AND state='1'
                                         ) AND idt_subproduct.pdt_id = {$rq['parentID']}
                                         AND mobile_due_time>='{$now}' AND mobile_start_time<='{$now}'";
                     } elseif ($rq['terminal'] == 'ott') {
@@ -1551,7 +1552,7 @@ class PermissionsModel extends AgentModel
                                         WHERE idt_subproduct.licence_key in (
                                             SELECT idt_licence.licence_key FROM idt_licence
                                             WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
-                                            AND licence_key.pdt_id='{$rq['parentID']}' AND state='1'
+                                            AND idt_licence.pdt_id='{$rq['parentID']}' AND state='1'
                                         ) AND idt_subproduct.pdt_id = {$rq['parentID']}
                                         AND ott_due_time>='{$now}' AND ott_start_time<='{$now}'";
                     }
@@ -1598,7 +1599,7 @@ class PermissionsModel extends AgentModel
                                         WHERE idt_subproduct.licence_key in (
                                             SELECT idt_licence.licence_key FROM idt_licence
                                             WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
-                                            AND licence_key.pdt_id='{$pdt_id}' AND state='1'
+                                            AND idt_licence.pdt_id='{$pdt_id}' AND state='1'
                                         ) AND idt_subproduct.pdt_id = {$pdt_id}
                                         AND pc_due_time>='{$now}' AND pc_start_time<='{$now}'";
                                 break;
@@ -1607,7 +1608,7 @@ class PermissionsModel extends AgentModel
                                         WHERE idt_subproduct.licence_key in (
                                             SELECT idt_licence.licence_key FROM idt_licence
                                             WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
-                                            AND licence_key.pdt_id='{$pdt_id}' AND state='1'
+                                            AND idt_licence.pdt_id='{$pdt_id}' AND state='1'
                                         ) AND idt_subproduct.pdt_id = {$pdt_id}
                                         AND mobile_due_time>='{$now}' AND mobile_start_time<='{$now}'";
                                 break;
@@ -1616,7 +1617,7 @@ class PermissionsModel extends AgentModel
                                         WHERE idt_subproduct.licence_key in (
                                             SELECT idt_licence.licence_key FROM idt_licence
                                             WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
-                                            AND licence_key.pdt_id='{$pdt_id}' AND state='1'
+                                            AND idt_licence.pdt_id='{$pdt_id}' AND state='1'
                                         ) AND idt_subproduct.pdt_id = {$pdt_id}
                                         AND ott_due_time>='{$now}' AND ott_start_time<='{$now}'";
                                 break;
@@ -1625,7 +1626,7 @@ class PermissionsModel extends AgentModel
                                         WHERE idt_subproduct.licence_key in (
                                             SELECT idt_licence.licence_key FROM idt_licence
                                             WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
-                                            AND licence_key.pdt_id='{$pdt_id}' AND state='1'
+                                            AND idt_licence.pdt_id='{$pdt_id}' AND state='1'
                                         ) AND idt_subproduct.pdt_id = {$pdt_id}
                                         AND pc_due_time>='{$now}' AND pc_start_time<='{$now}'";
                                 break;

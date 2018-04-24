@@ -565,9 +565,9 @@ class PointsModel extends AgentModel
     private function __insertRow(array $data)
     {
         unset($data['token']);
-        if (empty($data['licence_key'])) {
-            _ERROR('000002', 'no licence key');
-        }
+//        if (empty($data['licence_key'])) {
+//            _ERROR('000002', 'no licence key');
+//        }
         if (empty($data['u_id'])) {
             _ERROR('000002', 'no user id');
         }
