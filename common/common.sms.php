@@ -208,7 +208,8 @@ class Sms
 
     public function sendSingleSMS($content, $mobile)
     {
-        return $this->yunPian('sms/single_send.json', $mobile, $content);
+        $sms = json_decode($this->yunPian('sms/single_send.json', $mobile, $content),true);
+        return $sms['msg'];
     }
 
     /**
@@ -242,6 +243,8 @@ class Sms
         $ret = $this->__send($ch, $url, $data);
 
         curl_close($ch);
+
+
         return $ret;
     }
 

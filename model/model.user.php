@@ -768,7 +768,14 @@ class UserModel extends AgentModel
         }
     }
 
-    //发送验证码
+    /**
+     * 发送验证码
+     * 需要一个nation 参数有值，则使用国际短信
+     *
+     * @param $data
+     * @throws phpmailerException
+     */
+
     public function setMobileKey($data)
     {
         //当前时间
@@ -858,7 +865,16 @@ class UserModel extends AgentModel
                 //var_dump('no mail');
             }
 
-            $sms = Sms::instance()->sendSms($content, $phones);
+//            $sms = Sms::instance()->sendSms($content, $phones);
+
+            if (empty($data['nation'])) {
+                $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT_NATION);
+                $sms = Sms::instance()->sendSingleSMS($content, $phones);
+            } else {
+                $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT);
+                $sms = Sms::instance()->sendSms($content, $phones);
+            }
+
             if ($sms == '发送成功') {
                 _SUCCESS('000000', '发送成功');
             } else {
