@@ -59,6 +59,7 @@ class Sms
 
     /**
      * 返回Sms的单例
+     * @param  $prefix
      * @access public
      * @return object Session类的实例
      */
@@ -207,66 +208,61 @@ class Sms
 
     public function sendSingleSMS($content, $mobile)
     {
-        $text = json_encode(['mobile' => $mobile, 'apikey' => NATION_API, 'text' => $content]);
-        return $this->yunPian(sms/single_send.json, $content);
+        return $this->yunPian('sms/single_send.json', $mobile, $content);
     }
 
     /**
      * sms/single_send.json
+     * @param $sendPath
      * @param $body
      * @return string
      */
-    public function yunPian($sendPath = 'sms/single_send.json', $body)
+    public function yunPian($sendPath = 'sms/single_send.json', $mobile, $body)
     {
-
         //你的目标服务地址或频道
-        $srv_ip = NATION_SMS_URL;
-        $srv_port = 443;
-        //接收你post的URL具体地址
-        $url = $this->sURL;
-        $fp = '';
-        $resp_str = '';
-        $errno = 0;
-        $errstr = '';
-        $timeout = 300;
-        $post_str = $body;//要提交的内容.
+        $url = NATION_SMS_URL . $sendPath;
 
-        $fp = fsockopen($srv_ip, $srv_port, $errno, $errstr, $timeout);
-        if (!$fp) {
-            echo('fp fail');
-        }
+        $ch = curl_init();
 
-        $content_length = strlen($post_str);
-        $post_header = "POST $url HTTP/1.1\r\n";
-        $post_header .= "Accept:application/json;charset=utf-8;";
-        $post_header .= "Content-Type:application/x-www-form-urlencoded;charset=utf-8\r\n";
-        $post_header .= "User-Agent: MSIE\r\n";
-        $post_header .= "Host: " . $srv_ip . "\r\n";;
-        $post_header .= "Content-Length: " . $content_length . "\r\n";
-        $post_header .= "Connection: close\r\n\r\n";
-        $post_header .= $post_str . "\r\n\r\n";
+        curl_setopt($ch, CURLOPT_URL, $url);
+        /* 设置验证方式 */
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept:text/plain;charset=utf-8',
+            'Content-Type:application/x-www-form-urlencoded', 'charset=utf-8'));
+        /* 设置返回结果为流 */
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        //请求
-        fwrite($fp, $post_header);
+        /* 设置超时时间*/
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
-        //接收返回值
-        while (!feof($fp)) {
-            //去除请求包的头只显示页面的返回数据
-            $line = fgets($fp, 1024);
-        }
+        /* 设置通信方式 */
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
-        //转义数据
-        $ret = json_decode($line, true);
-        write_to_log('send sms report: ' . $line, '_sms');
-        //定义返回值
-        if ($ret['LANZ_ROOT']['ErrorNum'] != 0) {
-            $rs = $this->_catchError($ret['LANZ_ROOT']['ErrorNum']);
+        $data = ['text' => $body, 'apikey' => NATION_API, 'mobile' => $mobile];
+        $ret = $this->__send($ch, $url, $data);
+
+        curl_close($ch);
+        return $ret;
+    }
+
+
+    private function __send($ch, $url, $data)
+    {
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        $result = curl_exec($ch);
+        $error = curl_error($ch);
+        $this->checkErr($result, $error);
+        return $result;
+    }
+
+    public function checkErr($result, $error)
+    {
+        if ($result === false) {
+            echo 'Curl error: ' . $error;
         } else {
-            $rs = '发送成功';
+            //echo '操作完成没有任何错误';
         }
-
-        return $rs;
-
     }
 
 }
