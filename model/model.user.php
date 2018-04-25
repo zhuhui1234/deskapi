@@ -768,7 +768,14 @@ class UserModel extends AgentModel
         }
     }
 
-    //发送验证码
+    /**
+     * 发送验证码
+     * 需要一个nation 参数有值，则使用国际短信
+     *
+     * @param $data
+     * @throws phpmailerException
+     */
+
     public function setMobileKey($data)
     {
         //当前时间
@@ -781,7 +788,7 @@ class UserModel extends AgentModel
         if ($ret_codeSend) {
             $data = $ret_codeSend;
             //调用SMS,发送验证码
-            $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT);
+
             $phones = $data['Mobile'];
             $mail = $this->__checkHasEmail($data['Mobile']);
             write_to_log('the mobile: ' . $data['Mobile'] . 'ready to send mail: ' . $mail, '_mail');
@@ -801,10 +808,13 @@ class UserModel extends AgentModel
                 write_to_log('no email send ', '_mail');
                 //var_dump('no mail');
             }
+            //国际发短信
 
-            if(empty($data['nation'])) {
+            if (empty($data['nation'])) {
+                $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT_NATION);
                 $sms = Sms::instance()->sendSingleSMS($content, $phones);
-            }else{
+            } else {
+                $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT);
                 $sms = Sms::instance()->sendSms($content, $phones);
             }
 
@@ -855,7 +865,16 @@ class UserModel extends AgentModel
                 //var_dump('no mail');
             }
 
-            $sms = Sms::instance()->sendSms($content, $phones);
+//            $sms = Sms::instance()->sendSms($content, $phones);
+
+            if (empty($data['nation'])) {
+                $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT_NATION);
+                $sms = Sms::instance()->sendSingleSMS($content, $phones);
+            } else {
+                $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT);
+                $sms = Sms::instance()->sendSms($content, $phones);
+            }
+
             if ($sms == '发送成功') {
                 _SUCCESS('000000', '发送成功');
             } else {
@@ -1412,7 +1431,7 @@ class UserModel extends AgentModel
         if ($data['lic_author_uid'] != $data['toUserID']) {
 
             if (empty($data['cpy_id'])) {
-                $userInfo = $this->mysqlQuery("select cpy_id from idt_user WHERE u_id='{$data['toUserID']}'","all");
+                $userInfo = $this->mysqlQuery("select cpy_id from idt_user WHERE u_id='{$data['toUserID']}'", "all");
                 if (!empty($userInfo)) {
                     $cpy_id = $userInfo[0]['cpy_id'];
                 } else {
@@ -2328,7 +2347,7 @@ class UserModel extends AgentModel
                 if (!$ret) {
                     _ERROR('000001', 'lic upload fails');
                 }
-                $updateUser = $this->mysqlEdit('idt_user', ['cpy_id' => $data['cpy_id'], 'u_permissions' => '1','u_mail' => $data['u_mail']], ['u_id' => $hasUser[0]['u_id']]);
+                $updateUser = $this->mysqlEdit('idt_user', ['cpy_id' => $data['cpy_id'], 'u_permissions' => '1', 'u_mail' => $data['u_mail']], ['u_id' => $hasUser[0]['u_id']]);
 
                 if ($updateUser) {
                     _SUCCESS('000000', 'ok');
@@ -2407,20 +2426,20 @@ class UserModel extends AgentModel
 
         $result = array();
         foreach ($ret as $key => $value) {
-            if(isset($result[$value['pdt_id']])){
+            if (isset($result[$value['pdt_id']])) {
                 $old_key = $result[$value['pdt_id']]['key'];
-                if(!empty($value['pc_due_time'])){
+                if (!empty($value['pc_due_time'])) {
                     $ret[$old_key]['pc_start_time'] = $value['pc_start_time'];
                     $ret[$old_key]['pc_due_time'] = $value['pc_due_time'];
-                } elseif(!empty($value['mobile_due_time'])) {
+                } elseif (!empty($value['mobile_due_time'])) {
                     $ret[$old_key]['mobile_start_time'] = $value['mobile_start_time'];
                     $ret[$old_key]['mobile_due_time'] = $value['mobile_due_time'];
-                } elseif(!empty($value['ott_due_time'])) {
+                } elseif (!empty($value['ott_due_time'])) {
                     $ret[$old_key]['ott_start_time'] = $value['ott_start_time'];
                     $ret[$old_key]['ott_due_time'] = $value['ott_due_time'];
                 }
                 unset($ret[$key]);
-            }else{
+            } else {
                 $result[$value['pdt_id']]['key'] = $key;
                 $result[$value['pdt_id']]['pdt_id'] = $value['pdt_id'];
             }
