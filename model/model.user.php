@@ -1023,11 +1023,11 @@ class UserModel extends AgentModel
 
         $ret = $this->mysqlQuery($sql, "all");
 
-        if (!empty($data['productID'])) {
+        if (!empty($data['pdt_id'])) {
 
             $getExpDateSQL = "SELECT end_date ,pnum_type
                               FROM idt_permissions_number 
-                              WHERE cpy_id='{$ret[0]['cpy_id']}' AND pdt_id='{$data['productID']}'";
+                              WHERE cpy_id='{$ret[0]['cpy_id']}' AND pdt_id='{$data['pdt_id']}'";
             $getExpDate = $this->mysqlQuery($getExpDateSQL, 'all');
 
             if ($getExpDate) {
