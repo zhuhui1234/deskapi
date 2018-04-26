@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by iResearch
  * Logs 数据层
@@ -16,7 +17,11 @@ class LogsModel extends AgentModel
         parent::__construct($className);
     }
 
-    //获取日志LIST
+    /**
+     * log list
+     *
+     * @param $data
+     */
     public function logList($data)
     {
         //查询初始化条件
@@ -37,7 +42,7 @@ class LogsModel extends AgentModel
         $ret_count = $this->mysqlQuery($sql_count, "all");
 
         //返回参数-执行结果
-        foreach($ret as $a=>$v){
+        foreach ($ret as $a => $v) {
             $rs['dataList'][$a]['logID'] = (int)$v['logid']; //日志ID
             $rs['dataList'][$a]['logUser'] = $v['loguser']; //操作用户
             $rs['dataList'][$a]['resMsg'] = $v['resmsg']; //操作内容
@@ -49,10 +54,12 @@ class LogsModel extends AgentModel
         $rs['totalSize'] = $ret_count[0]['count_num'];
 
         //返回响应结果
-        _SUCCESS('000000','查询日志',$rs);
+        _SUCCESS('000000', '查询日志', $rs);
     }
 
     /**
+     * push log
+     *
      * @param $data
      * @return array|bool|int|string
      */
@@ -61,8 +68,12 @@ class LogsModel extends AgentModel
         if (isset($data['user']) && isset($data['action'])) {
             $data = $this->__checkLogData($data);
 
+            if (!empty($data['log_ip'])) {
+                $this->__createIPLog($data['log_ip']);
+            }
+
             if (!empty($data['user']) AND !empty($data['action'])) {
-//                var_dump($data);
+
                 $where = [
                     'log_user' => $data['user'],
                     'log_companyID' => $data['companyID'],
@@ -77,7 +88,9 @@ class LogsModel extends AgentModel
                     'log_datetime' => time(),
                     'log_action' => $data['action'],
                 ];
+
                 return $this->mysqlInsert('idt_logs', $where);
+
             } else {
                 return false;
             }
@@ -86,12 +99,87 @@ class LogsModel extends AgentModel
         }
     }
 
-    private function __checkLogData(array $data) {
+    public function test($data)
+    {
+        if (!empty($data['log_ip'])) {
+            $ret = $this->__createIPLog($data['log_ip']);
+        }
+
+        return $ret;
+    }
+
+
+    ######################################################################################
+    ##################################                     ###############################
+    #################################   PRIVATE METHODS   ################################
+    ################################                     #################################
+    ######################################################################################
+
+    /**
+     * create ip log
+     * @param $ip
+     */
+    private function __createIPLog($ip)
+    {
+        if ($this->__hasIpLog($ip)) {
+            write_to_log('ip: ' . $ip, '_ip');
+            if ($ip != '127.0.0.1' and $ip != '10.110.91.127') {
+                $ip_api = IpInfo::query($ip);
+                write_to_log('get ip: ' . $ip . ':   ' . json_encode((array)$ip_api), '_ip');
+            } else {
+                $ip_api = null;
+            }
+
+            if (!empty($ip_api)) {
+                $ret = $this->mysqlInsert('idt_iplog', [
+                    'ipl_as' => $ip_api->as,
+                    'ipl_city' => $ip_api->city,
+                    'ipl_country' => $ip_api->country,
+                    'ipl_country_code' => $ip_api->countryCode,
+                    'ipl_region' => $ip_api->region,
+                    'ipl_region_name' => $ip_api->regionName,
+                    'ipl_lat' => $ip_api->lat,
+                    'ipl_lon' => $ip_api->lon,
+                    'ipl_timezone' => $ip_api->timezone,
+                    'ipl_isp' => $ip_api->isp,
+                    'ipl_org' => $ip_api->org,
+                    'ipl_reverse' => $ip_api->reverse,
+                    'ipl_ip' => $ip_api->query,
+                    'ipl_mobile' => $ip_api->mobile,
+                    'ipl_proxy' => (bool)$ip_api->proxy,
+                    'ipl_create_time' => time()
+                ]);
+                write_to_log($ret, '_ip');
+            } else {
+                write_to_log('ip not found: ' . $ip, '_ip');
+            }
+
+        } else {
+            $sql = "select * from idt_iplog where ipl_ip='{$ip}'";
+            $ret = $this->mysqlQuery($sql, 'all');
+            write_to_log('db: ' . json_encode($ret), '_ip');
+        }
+    }
+
+    /**
+     * has ip ?
+     * @param $ip
+     * @return bool
+     */
+    private function __hasIpLog($ip)
+    {
+        $sql = "select count(ipl_ip) as co_ip from idt_iplog where ipl_ip='{$ip}'";
+        $ret = $this->mysqlQuery($sql, 'all');
+        return $ret[0]['co_ip'] <= 0;
+    }
+
+    private function __checkLogData(array $data)
+    {
         if (!isset($data['companyID'])) {
             $data['companyID'] = null;
         }
 
-        if (!isset($data['status'])){
+        if (!isset($data['status'])) {
             $data['status'] = null;
         }
 
@@ -100,7 +188,7 @@ class LogsModel extends AgentModel
         }
 
         if (!isset($data['content'])) {
-            $data['content']  = null;
+            $data['content'] = null;
         }
 
         if (!isset($data['level'])) {
