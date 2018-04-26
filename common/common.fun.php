@@ -397,12 +397,12 @@ function getIp($type = '')
 {
 
     if (isset($_SERVER)) {
-        if (isset($_SERVER[HTTP_X_FORWARDED_FOR])) {
-            $realip = $_SERVER[HTTP_X_FORWARDED_FOR];
-        } elseif (isset($_SERVER[HTTP_CLIENT_IP])) {
-            $realip = $_SERVER[HTTP_CLIENT_IP];
+        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $realip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
+            $realip = $_SERVER['HTTP_CLIENT_IP'];
         } else {
-            $realip = $_SERVER[REMOTE_ADDR];
+            $realip = $_SERVER['REMOTE_ADDR'];
         }
     } else {
         if (getenv("HTTP_X_FORWARDED_FOR")) {
@@ -983,11 +983,11 @@ function _SUCCESS($resCode = '000000', $resMsg = '处理成功', $data = '')
 //    header('Content-type: application/json;charset=utf-8');
 //    header('Content-Encoding: utf-8');
     echo $ret;
-    if (isset($data['avatar_base'] )) {
+    if (isset($data['avatar_base'])) {
         unset($data['avatar_base64']);
     }
 
-    if (isset($data['avatar_base64'] )) {
+    if (isset($data['avatar_base64'])) {
         unset($data['avatar_base64']);
     }
 
@@ -997,7 +997,7 @@ function _SUCCESS($resCode = '000000', $resMsg = '处理成功', $data = '')
         'resMsg' => $resMsg,
         'data' => $data,
     );
-    write_to_log(' RESPONSE SUCCESS ' .  json_encode($arr, JSON_UNESCAPED_UNICODE), '_conapi');
+    write_to_log(' RESPONSE SUCCESS ' . json_encode($arr, JSON_UNESCAPED_UNICODE), '_conapi');
 
     die;
 }
