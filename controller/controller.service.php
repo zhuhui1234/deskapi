@@ -187,4 +187,11 @@ class ServiceController extends Controller
         $userModel->hasProductList($data['u_id']);
 
     }
+
+    public function testIp()
+    {
+        $data = _POST();
+        $log_model = Model::instance('Logs')->test($data);
+        var_dump($log_model);
+    }
 }

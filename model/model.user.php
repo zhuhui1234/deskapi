@@ -46,6 +46,22 @@ class UserModel extends AgentModel
     }
 
     /**
+     * get user info by ird id
+     * @param $ird
+     * @return array|bool|string
+     */
+    public function getUserInfoByIRD($ird)
+    {
+        if (!empty($ird)) {
+            $userInfo = $this->__getUserInfo($ird);
+            return empty($userInfo) ? false : $userInfo;
+        } else {
+            return false;
+        }
+    }
+
+
+    /**
      * app login for mobile
      *
      * @param $mobile
@@ -1166,7 +1182,7 @@ class UserModel extends AgentModel
         $data['pageNo'] == null ? $pageNo = '0' : $pageNo = ($data['pageNo'] - 1) * $pageSize; //查询页数
         $data['keyword'] == null ? $keyword = '' : $keyword = " AND (dba.u_mobile LIKE '%" . $data['keyword'] .
             "%' OR dbb.cpy_cname LIKE '%" . $data['keyword'] . "%' OR dba.u_name LIKE '%" . $data['keyword'] .
-            "%' OR dba.u_mail LIKE '%". $data['keyword'] ."%')"; //查询条件
+            "%' OR dba.u_mail LIKE '%" . $data['keyword'] . "%')"; //查询条件
 
         //获取当前用户所属公司ID
         $sql_companyID = "SELECT cpy_id FROM idt_user WHERE 1=1 AND u_id='{$data['userID']}'";

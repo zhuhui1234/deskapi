@@ -265,7 +265,7 @@ class UserController extends Controller
         if (!isset($data['type'])) {
             header('Content-Type: application/json');
             echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
-        }else {
+        } else {
             if ($data['type'] == 'wechat') {
                 //wechat login
                 if (!isset($data['key']) or !isset($data['uuid'])) {
@@ -311,7 +311,7 @@ class UserController extends Controller
                     header('Content-Type: application/json');
                     echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
                 }
-            }else{
+            } else {
                 //error login
                 header('Content-Type: application/json');
                 echo json_encode(['code' => '500', 'state' => false, 'msg' => '缺少参数或是参数不能为空']);
@@ -339,7 +339,7 @@ class UserController extends Controller
         }
 
         if (!empty($data['key']) and !empty($data['uuid']) and !empty($data['u_mobile'])) {
-            $ret = $this->model->appBindAccount($data['u_mobile'],$data['uuid']);
+            $ret = $this->model->appBindAccount($data['u_mobile'], $data['uuid']);
             header('Content-Type: application/json');
             echo json_encode($ret);
         } else {
@@ -379,9 +379,9 @@ class UserController extends Controller
         $data = _POST();
         $ret = $this->model->checkToken($data);
         if ($ret) {
-            _SUCCESS('0000000','OK');
-        }else{
-            _ERROR('000001','FAILS');
+            _SUCCESS('0000000', 'OK');
+        } else {
+            _ERROR('000001', 'FAILS');
         }
     }
 
@@ -390,9 +390,9 @@ class UserController extends Controller
         $data = _POST();
         $ret = $this->model->industryList();
         if ($ret) {
-            _SUCCESS('0000000','OK',$ret);
-        }else{
-            _ERROR('000001','FAILS');
+            _SUCCESS('0000000', 'OK', $ret);
+        } else {
+            _ERROR('000001', 'FAILS');
         }
     }
 
@@ -401,9 +401,32 @@ class UserController extends Controller
         $data = _POST();
         $ret = $this->model->regionList();
         if ($ret) {
-            _SUCCESS('0000000','OK',$ret);
-        }else{
-            _ERROR('000001','FAILS');
+            _SUCCESS('0000000', 'OK', $ret);
+        } else {
+            _ERROR('000001', 'FAILS');
         }
+    }
+
+    /**
+     * 通过IRD获取用户信息
+     */
+    public function getUserInfoByIRD()
+    {
+        $data = _POST();
+
+        if (empty($data))
+            _ERROR('000001', '缺少参数');
+
+        if (empty($data['iUserID']))
+            _ERROR('000001', '缺少参数');
+
+        $ret = $this->model->getUserInfoByIRD($data['iUserID']);
+
+        if ($ret) {
+            return _SUCCESS('0000000','ok', $ret[0]);
+        }else {
+            _ERROR('000001','没有绑定');
+        }
+
     }
 }

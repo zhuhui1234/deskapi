@@ -229,6 +229,7 @@ class Request
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'ircLogin')
             OR (strtolower($_GET['m']) == 'logs' AND $_GET['a'] == 'pushLog')
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'appLogin')
+            OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'getUserInfoByIRD')
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'appBindingAccount')
             OR (strtolower($_GET['m']) == 'service' AND $_GET['a'] == 'createSingleMsg')
             OR (strtolower($_GET['m']) == 'points')
