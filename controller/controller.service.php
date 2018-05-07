@@ -178,6 +178,9 @@ class ServiceController extends Controller
 
     }
 
+    /**
+     * get msg head for idata
+     */
     public function msgHeads()
     {
         $data = _POST();
@@ -193,5 +196,124 @@ class ServiceController extends Controller
         $data = _POST();
         $log_model = Model::instance('Logs')->test($data);
         var_dump($log_model);
+    }
+
+    /*
+    ==============================
+           TEXT SMS SERVICE
+
+    ==============================
+    */
+
+    public function sendSingleSMS()
+    {
+        $header = getRequestHeaders();
+
+        if (!isset($header['Userid'])) {
+            _ERROR('000001', 'VERIFY FAILS');
+        }
+
+        if (empty($header['Sign'])) {
+            _ERROR('000001', 'VERIFY FAILS');
+        }
+
+        if (empty($header['Timestamp']) and (int)$header['Timestamp'] > 0) {
+            _ERROR('000001', 'VERIFY FAILS');
+        }
+
+        if (empty($header['Appversion'])) {
+            _ERROR('000001', 'VERIFY FAILS');
+        }
+
+
+        if ($this->__verify($header['Userid'], $header['Appversion'], $header['Timestamp'],
+            1, 3600, Android_APP_key, $header['Sign'])) {
+
+            $data = _POST();
+            switch ($data['type']) {
+                default:
+                case 'register':
+                    $sms = SMS::instance()->sendSingleSMS($this->__registerText($data), null, true);
+                    break;
+
+                case 'event_notice':
+                    $sms = SMS::instance()->sendSingleSMS($this->__irsResearchText($data), null, true);
+                    break;
+            }
+
+            if ($sms == '发送成功') {
+                _SUCCESS('000000', '发送成功');
+            } else {
+                _ERROR('000002', '发送失败,SMS错误');
+            }
+
+        }
+
+    }
+
+
+    /**
+     * @param int $user_id
+     * @param $appVersion
+     * @param int $timestamp
+     * @param int $check_time_value
+     * @param int $v_value
+     * @param string $api_key
+     * @param $md
+     * @return bool
+     */
+    private function __verify($user_id = 0, $appVersion, int $timestamp, $check_time_value = 1, $v_value = 3600,
+                              $api_key = Android_APP_key, $md)
+    {
+
+        if (checkTimeOut($timestamp, $v_value, $check_time_value)) {
+            //生成方式md5(userId + appVersion + iData +timestamp)然后大写
+            $key = mb_strtoupper(md5($user_id . $appVersion . $api_key . $timestamp));
+
+            if ($key == $md) {
+                return true;
+            } else {
+                _ERROR('000001', 'VERIFY FAILS');
+            }
+
+        } else {
+            _ERROR('000001', 'Sign TIME OUT');
+        }
+
+    }
+
+    private function __irsResearchText($data)
+    {
+        $ret = ['tpl_id' => '2287054',
+            'tpl_value' =>
+                urlencode('#event_name#') . '=' . urlencode($data['event_name']) . '&'
+                . urlencode('#event_address#') . '=' . urlencode($data['event_address']) . '&'
+                . urlencode('#event_datetime#') . '=' . urlencode($data['event_datetime']),
+            'apikey' => NATION_API, 'mobile' => $data['mobile']
+
+        ];
+
+        return $ret;
+    }
+
+    /**
+     * register text for mobile
+     * @param $data
+     * @return array
+     */
+    private function __registerText($data)
+    {
+        if (!isset($data['timeout_value']))
+            $data['timeout_value'] = 30;
+
+        $ret = ['tpl_id' => '2287068',
+            'tpl_value' =>
+                urlencode('#code#') . '=' . urlencode($data['code']) . '&'
+                . urlencode('#event_datetime#') . '=' . urlencode($data['timeout_value']),
+            'apikey' => NATION_API, 'mobile' => $data['mobile']
+
+        ];
+
+        return $ret;
     }
 }

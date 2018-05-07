@@ -206,11 +206,20 @@ class Sms
         return $this->httppost($keyVars);
     }
 
-    public function sendSingleSMS($content, $mobile)
+    public function sendSingleSMS($content, $mobile, $useTpl = false)
     {
-        $sms = json_decode($this->yunPian('sms/single_send.json', $mobile, $content),true);
+        if ($useTpl) {
+            $path = 'sms/tpl_single_send.json';
+        } else {
+            $path = 'sms/single_send.json';
+        }
+
+        $sms = json_decode($this->yunPian($path, $mobile, $content), true);
+
+        var_dump($sms);
         return $sms['msg'];
     }
+
 
     /**
      * sms/single_send.json
@@ -238,8 +247,11 @@ class Sms
         /* 设置通信方式 */
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-        $data = ['text' => $body, 'apikey' => NATION_API, 'mobile' => $mobile];
+        if (is_array($body)) {
+            $data = $body;
+        } else {
+            $data = ['text' => $body, 'apikey' => NATION_API, 'mobile' => $mobile];
+        }
         $ret = $this->__send($ch, $url, $data);
 
         curl_close($ch);

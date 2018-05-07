@@ -46,12 +46,14 @@ define('SMS_CONTENT', '您的验证码为(CODE)，该验证码5分钟内有效�
 define('SMS_CONTENT_CHECK', '您的手机验证码为(CODE)，该验证码5分钟内有效。如非本人操作请忽略此短信！');
 //************************* 国际短信 **************************
 define('NATION_SMS_URL', 'https://sms.yunpian.com/v2/');
-define('NATION_API', 'a2bb4bd8287acc2115db17fa300ca766');
+//define('NATION_API', 'a2bb4bd8287acc2115db17fa300ca766');
+define('NATION_API', 'd409b7b08bfc58fd6aa0ef7993b9323f');
 define('SMS_CONTENT_NATION', '【iResearch】Your verification code: #CODE#');
-
+define('Android_APP_key','iDataApp');
 //************* IP-API *****************
 
-define('IP-API', 'http://ip-api.com/xml/?fields=262143');
+define('IP_API', 'http://ip-api.com/php/');
+define('IP_FIELDS', 262143);
 //******************************************************************
 //站点配置
 //	define('WEBSITE','http://localhost');
@@ -110,6 +112,7 @@ require_once(ROOT_PATH . COMMON . DS . COMMON . '.request.php');
 require_once(ROOT_PATH . COMMON . DS . COMMON . '.session.php');
 require_once(ROOT_PATH . COMMON . DS . COMMON . '.response.php');
 require_once(ROOT_PATH . COMMON . DS . COMMON . '.cookie.php');
+require_once(ROOT_PATH . COMMON . DS . COMMON . '.ipinfo.php');
 //    require_once(ROOT_PATH . COMMON . DS . COMMON . '.page.php');
 //    require_once(ROOT_PATH . COMMON . DS . COMMON . '.ajaxpage.php');
 //require_once(ROOT_PATH . COMMON . DS . COMMON . '.email.php');//开启邮件服务
