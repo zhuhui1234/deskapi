@@ -1069,3 +1069,43 @@ function fnEncrypt($sValue, $sSecretKey)
         , "\0"
     );
 }
+
+/**
+ * get request headers
+ *
+ * @return array
+ */
+function getRequestHeaders()
+{
+    $headers = array();
+    foreach ($_SERVER as $key => $value) {
+        if (substr($key, 0, 5) <> 'HTTP_') {
+            continue;
+        }
+        $header = str_replace(' ', '-', ucwords(str_replace('_', ' ', strtolower(substr($key, 5)))));
+        $headers[$header] = $value;
+    }
+    return $headers;
+}
+
+
+/**
+ * check time out
+ *
+ * @param int $time
+ * @param int $v_value
+ * @param int $checkTime
+ * @return bool
+ */
+function checkTimeOut(int $time, $v_value = 60, $checkTime = 60)
+{
+
+    if ((time() - $time) / $v_value > $checkTime)
+        return false;
+
+    if (empty($time))
+        return false;
+
+
+    return true;
+}
