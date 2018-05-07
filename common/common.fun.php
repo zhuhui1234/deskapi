@@ -980,8 +980,8 @@ function _SUCCESS($resCode = '000000', $resMsg = '处理成功', $data = '')
     //写日志
 
 
-//    header('Content-type: application/json;charset=utf-8');
-//    header('Content-Encoding: utf-8');
+    header('Content-type: application/json;charset=utf-8');
+    header('Content-Encoding: utf-8');
     echo $ret;
     if (isset($data['avatar_base'])) {
         unset($data['avatar_base64']);

@@ -216,7 +216,7 @@ class Sms
 
         $sms = json_decode($this->yunPian($path, $mobile, $content), true);
 
-        var_dump($sms);
+//        var_dump($sms);
         return $sms['msg'];
     }
 

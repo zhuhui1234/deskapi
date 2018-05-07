@@ -269,7 +269,6 @@ class ServiceController extends Controller
         if (checkTimeOut($timestamp, $v_value, $check_time_value)) {
             //生成方式md5(userId + appVersion + iData +timestamp)然后大写
             $key = mb_strtoupper(md5($user_id . $appVersion . $api_key . $timestamp));
-
             if ($key == $md) {
                 return true;
             } else {
@@ -282,6 +281,12 @@ class ServiceController extends Controller
 
     }
 
+    /**
+     * 研究院
+     *
+     * @param $data
+     * @return array
+     */
     private function __irsResearchText($data)
     {
         $ret = ['tpl_id' => '2287054',
@@ -309,7 +314,7 @@ class ServiceController extends Controller
         $ret = ['tpl_id' => '2287068',
             'tpl_value' =>
                 urlencode('#code#') . '=' . urlencode($data['code']) . '&'
-                . urlencode('#event_datetime#') . '=' . urlencode($data['timeout_value']),
+                . urlencode('#timeout_value#') . '=' . urlencode($data['timeout_value']),
             'apikey' => NATION_API, 'mobile' => $data['mobile']
 
         ];
