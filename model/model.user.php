@@ -159,6 +159,145 @@ class UserModel extends AgentModel
 
 
     /**
+     * login // 研究院
+     *
+     * @param $data
+     *      状态:
+     *      000010 : 您的帐号当前为冻结状态
+     *      000004 : 登录失败,更新微信名称失败
+     *      000002 : 登录失败,更新验证码状态失败
+     *      000005 : 登录失败,更新token失败
+     *      000001 : 未知登录类型
+     *      000003 : 手机号已存在
+     */
+    public function loginApp($data)
+    {
+        if (empty($data['wxOpenid'])) {
+            $data['wxOpenid'] = null;
+        }
+
+
+        if (empty($data['appName'])) {
+            $data['appName'] = 'app_null';
+        }
+        //当前时间
+        $upTimes = date("Y-m-d H:i:s");
+        //创建TOKEN
+        $upToken = md5(rand(1000000001, 9999999999));
+
+        $logsModel = Model::instance('logs');
+        //登录方式
+        if ($data['LoginType'] === 'mobile') {
+            //游客注册
+
+            $ret_checkMUser = $this->checkMobile($data['loginMobile']);
+
+            if ($ret_checkMUser) {
+                //创建游客
+
+                $ret_addUser = $this->__addGuest($data, $upToken, $upTimes, 'mobile');
+
+                if ($ret_addUser != '1') {
+                    _ERROR('000002', '登录失败,创建游客失败');
+                }
+            }
+
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
+                    dba.u_head headimg,dba.u_product_key productkey,
+                    dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
+                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat
+                    FROM idt_user dba 
+                    LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
+                    WHERE dba.u_mobile='{$data['loginMobile']}'";
+
+        } else if ($data['LoginType'] === 'weixin') {
+            $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.dev_id,
+                    dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,
+                    dba.u_permissions permissions,dba.u_token token,
+                    dba.u_state u_state, dba.u_department department , dba.u_wxname as wechat
+                    FROM idt_user dba 
+                    LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
+                    WHERE dba.u_wxunid='{$data['wxunid']}' ";
+        } else {
+            //登录失败,参数错误
+            _ERROR('000001', '未知登录类型');
+        }
+
+        //登录
+        if (isset($sql)) {
+            $ret = $this->mysqlQuery($sql, "all");
+        } else {
+            if (DEBUG_LOG) {
+                write_to_log('login function no sql execute');
+            }
+        }
+
+
+        if (isset($ret)) {
+
+
+            //验证冰结用户
+            if ($ret[0]['u_state'] == 1) {
+                _ERROR('000010', '您的帐号当前为冻结状态');
+            }
+
+            //验证登录&USER GUID不为空
+            if (count($ret) > 0 AND ($ret[0]['userid'] != null OR $ret[0]['userid'] != "")) {
+                //更新TOKEN
+                $this->redisHere(VERSION . '_' . $ret[0]['userid'] . '_ird', true);
+                $where_upToken['u_token'] = $upToken;//更新TOKEN
+                $where_upToken['u_edate'] = $upTimes;//更新登录时间
+                $id_upToken = " u_id='" . $ret[0]['userid'] . "'";//用户GUID
+                $ret_upToken = $this->mysqlEdit('idt_user', $where_upToken, $id_upToken);
+
+                //验证登录状态
+                if ($ret_upToken == '1') {
+
+
+                    //返回用户信息
+                    $rs = [
+                        'headImg' => $ret[0]['headimg'], //avatar
+                        'mobile' => $ret[0]['mobile'],
+                        'companyID' => $ret[0]['cpy_id'],
+                        'companyName' => $ret[0]['cpy_cname'],
+                        'permissions' => $ret[0]['permissions'], //用户身份 0游客 1企业用户 2企业管理员
+                        'dev_id' => $ret[0]['dev_id'],
+                        'token' => $upToken,
+                        'wechat' => $ret[0]['wechat'],
+                        'uname' => $ret[0]['uname'],
+                        'userID' => $ret[0]['userid'],
+                        'validity' => $ret[0]['validity'] //账号有效期
+                    ];
+
+
+                    $log_db = $logsModel->pushLog([
+                        'user' => $rs['userID'],
+                        'companyID' => $rs['companyID'],
+                        'type' => 'irv用户日志',
+                        'action' => '睿见登入',
+                        'resource' => 'irv登入',
+                        'status' => '20000',
+                        'level' => '2'
+                    ]);
+
+                    if (!$log_db) {
+                        write_to_log('log error', '_log');
+                    }
+
+                    _SUCCESS('000000', '登录成功', $rs);
+
+                } else {
+                    _ERROR('000005', '登录失败,更新token失败');
+                }
+            } else {
+
+                _ERROR('000002', '登录失败');
+            }
+        }
+    }
+
+
+    /**
      * login
      *
      * @param $data
@@ -1931,7 +2070,7 @@ class UserModel extends AgentModel
                 'u_id' => getGUID(),
                 'u_mobile' => $data['loginMobile'],
                 'u_wxname' => $data['wxName'],
-                'u_wxopid' => $data['wxOpenid'],
+                'u_wxopid' => $data[' '],
                 'u_wxunid' => $data['wxUnionid'],
                 'u_permissions' => 0, //用户身份(0游客 1公司用户)
                 'u_token' => $upToken,

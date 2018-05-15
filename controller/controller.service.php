@@ -207,27 +207,9 @@ class ServiceController extends Controller
 
     public function sendSingleSMS()
     {
-        $header = getRequestHeaders();
 
-        if (!isset($header['Userid'])) {
-            _ERROR('000001', 'VERIFY FAILS');
-        }
-
-        if (empty($header['Sign'])) {
-            _ERROR('000001', 'VERIFY FAILS');
-        }
-
-        if (empty($header['Timestamp']) and (int)$header['Timestamp'] > 0) {
-            _ERROR('000001', 'VERIFY FAILS');
-        }
-
-        if (empty($header['Appversion'])) {
-            _ERROR('000001', 'VERIFY FAILS');
-        }
-
-
-        if ($this->__verify($header['Userid'], $header['Appversion'], $header['Timestamp'],
-            1, 3600, Android_APP_key, $header['Sign'])) {
+        $v = $this->__checkHead();
+        if ($v) {
 
             $data = _POST();
             switch ($data['type']) {
@@ -251,12 +233,58 @@ class ServiceController extends Controller
 
     }
 
+    /**
+     * for app login
+     */
+    public function verifyUserFromApp()
+    {
+        $v = $this->__checkHead();
+
+        if ($v) {
+
+            $data = _POST();
+            if (empty($data['LoginType'])) {
+                _ERROR('0000002', '没有提交验证类型');
+            }
+            $userModel = Model::instance('user');
+
+            $userModel->loginApp($data);
+
+        } else {
+            _ERROR('000001', '未知错误');
+        }
+    }
+
+
+    private function __checkHead()
+    {
+        $header = getRequestHeaders();
+
+        if (!isset($header['Userid'])) {
+            _ERROR('000001', 'VERIFY FAILS');
+        }
+
+        if (empty($header['Sign'])) {
+            _ERROR('000001', 'VERIFY FAILS');
+        }
+
+        if (empty($header['Timestamp']) and (int)$header['Timestamp'] > 0) {
+            _ERROR('000001', 'VERIFY FAILS');
+        }
+
+        if (empty($header['Appversion'])) {
+            _ERROR('000001', 'VERIFY FAILS');
+        }
+
+        return $this->__verify($header['Userid'], $header['Appversion'], $header['Timestamp'],
+            1, 3600, Android_APP_key, $header['Sign']);
+    }
 
     /**
      * @param int $user_id
      * @param $appVersion
-     * @param int $timestamp
-     * @param int $check_time_value
+     * @param int $timestamp 时间
+     * @param int $check_time_value 检查
      * @param int $v_value
      * @param string $api_key
      * @param $md
