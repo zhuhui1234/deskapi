@@ -56,7 +56,7 @@ class LicenceModel extends AgentModel
                 $terminal = " and mobile_due_time != null and mobile_due_time is not null and pc_due_time != null and pc_due_time is not null and ott_due_time != null and ott_due_time is not null";
                 break;
         }
-        $data['keyword'] == null ? $keyword = '' : $keyword = " AND (idt_user.u_mobile LIKE '%" . $data['keyword'] . "%' or idt_user.u_mobile LIKE '%" . $data['keyword'] . "%')"; //查询条件
+        $data['keyword'] == null ? $keyword = '' : $keyword = " AND (idt_user.u_mobile LIKE '%" . $data['keyword'] . "%' or idt_user.u_name LIKE '%" . $data['keyword'] . "%')"; //查询条件
         $sql = "select licence_id,idt_licence.licence_key,idt_licence.cpy_id,idt_licence.u_id,idt_licence.pdt_id,points,lic_cdate,lic_edate,lic_comment,u_mobile,u_name,pdt_ename,
                 pc_due_time,mobile_due_time,ott_due_time,pc_start_time,mobile_start_time,ott_start_time 
                 from idt_licence
@@ -176,20 +176,42 @@ class LicenceModel extends AgentModel
         _SUCCESS('000000', '查询成功', $rs);
     }
 
-
     public function editLicencesByUserID($data)
     {
-
-        $upTimes = date("Y-m-d H:i:s");
-        if (empty($data['licenceKey'])) {
-            _ERROR('000002', '许可证Key不能为空');
+        if(!empty($data['licence_type'])){
+            $arr = explode('+',$data['licence_type']);
+            $licence_type = '';
+            foreach ($arr as $key => $value){
+                if($value == 'pc'){
+                    $licence_type .= " and pc_due_time is not null";
+                }
+                if($value == 'mobile'){
+                    $licence_type .= " and mobile_due_time is not null";
+                }
+                if($value == 'ott'){
+                    $licence_type .= " and ott_due_time is not null";
+                }
+            }
+        }else{
+            $licence_type = '';
         }
-        $sql = "select licence_id from idt_licence where u_id = '{$data['licenceUserID']}' and pdt_id = {$data['productID']}";
+        $sql = "select licence_id from idt_licence
+                where u_id = '{$data['u_id']}' and  pdt_id = {$data['pdt_id']}";
         $ret = $this->mysqlQuery($sql, "all");
         if (count($ret) > 0) {
             _ERROR('000001', '该用户已绑定许可证');
         }
-        $where_editUser['u_id'] = $data['licenceUserID']; //姓名
+        $sql = "select idt_licence.licence_key from idt_licence
+                left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                where idt_licence.pdt_id = {$data['pdt_id']} and state = 1 and cpy_id = {$data['cpy_id']} and u_id is null {$licence_type}";
+        $ret = $this->mysqlQuery($sql, "all");
+        if(empty($ret)){
+            _ERROR('000003', '无可分配许可证');
+        }else{
+            $data['licenceKey'] = $ret[0]['licence_key'];
+        }
+        $upTimes = date("Y-m-d H:i:s");
+        $where_editUser['u_id'] = $data['u_id']; //姓名
         $where_editUser['lic_author_uid'] = $data['userID']; //最后更新时间
         $where_editUser['lic_edate'] = $upTimes; //最后更新时间
         $where_editUser['lic_comment'] = $data['remark']; //备注
@@ -199,56 +221,56 @@ class LicenceModel extends AgentModel
         //验证并返回响应结果
         if ($ret == 1) {
             $this->logsModel->pushLog([
-                'user' => $data['licenceUserID'],
+                'user' => $data['userID'],
                 'status' => '20000',
                 'type' => 'irv用户日志',
                 'resource' => 'iData',
-                'subid' => $data['productID'],
+                'subid' => $data['pdt_id'],
                 'level' => '2',
                 'action' => '修改License',
                 'content' => json_encode($where_editUser)
             ]);
 
             // ird 权限变更
-            $user = Model::instance('user')->getUserInfoClean([
-                'userID' => $data['licenceUserID']
-            ]);
-            $ird = $this->__addIRDPermission($data['licenceUserID']);
-
-            if ($ird) {
-                if ((int)$ird['iUserID'] > 0) {
-
-                    $ret = $this->mysqlEdit(
-                        'idt_user',
-                        ['u_product_key' => $ird['iUserID']],
-                        "u_id = '{$data['licenceUserID']}'"
-                    );
-
-                    if ($ret == 1) {
-                        write_to_log('update product key: ' . $user['ird_user_Id'] . ' change to ' . $ird['iUserID'], '_ps_ird');
-                    } else {
-                        write_to_log('update product key fails  ' . $user['ird_user_Id'], '_ps_ird');
-                    }
+//            $user = Model::instance('user')->getUserInfoClean([
+//                'userID' => $data['u_id']
+//            ]);
+//            $ird = $this->__addIRDPermission($data['u_id']);
+//
+//            if ($ird) {
+//                if ((int)$ird['iUserID'] > 0) {
+//
+//                    $ret = $this->mysqlEdit(
+//                        'idt_user',
+//                        ['u_product_key' => $ird['iUserID']],
+//                        "u_id = '{$data['u_id']}'"
+//                    );
+//
+//                    if ($ret == 1) {
+//                        write_to_log('update product key: ' . $user['ird_user_Id'] . ' change to ' . $ird['iUserID'], '_ps_ird');
+//                    } else {
+//                        write_to_log('update product key fails  ' . $user['ird_user_Id'], '_ps_ird');
+//                    }
                     _SUCCESS('000000', '修改成功');
-
-                } else {
-                    write_to_log('ird change ird fails', '_ps_ird');
-                    _ERROR('000001', $ird['message']);
-                }
-
-            } else {
-                write_to_log('权限修改失败', '_ps_ird');
-                _ERROR('000001', '权限修改失败');
-            }
+//
+//                } else {
+//                    write_to_log('ird change ird fails', '_ps_ird');
+//                    _ERROR('000001', $ird['message']);
+//                }
+//
+//            } else {
+//                write_to_log('权限修改失败', '_ps_ird');
+////                _ERROR('000001', '权限修改失败');
+//            }
             // ird 权限变更 结束
 //            _SUCCESS('000000', '修改成功');
         } else {
             $this->logsModel->pushLog([
-                'user' => $data['licenceUserID'],
+                'user' => $data['userID'],
                 'status' => '40000',
                 'type' => 'irv用户日志',
                 'resource' => 'iData',
-                'subid' => $data['productID'],
+                'subid' => $data['pdt_id'],
                 'level' => '2',
                 'action' => '修改License',
                 'content' => json_encode($where_editUser)
@@ -260,18 +282,16 @@ class LicenceModel extends AgentModel
     public function removeLicencesByLicenceKey($data)
     {
         $upTimes = date("Y-m-d H:i:s");
-        if (empty($data['licenceKey'])) {
-            _ERROR('000002', '许可证Key不能为空');
-        }
-
-        $sql = "select licence_id,pdt_id, u_id from idt_licence where licence_key = '{$data['licenceKey']}'";
+        $sql = "select licence_id,pdt_id, u_id from idt_licence 
+                where pdt_id = '{$data['pdt_id']}' and u_id = '{$data['u_id']}'";
         $getList = $this->mysqlQuery($sql, "all");
 
-        $sql = "update idt_licence set u_id = null,lic_edate = '$upTimes',lic_author_uid = '{$data['userID']}' where licence_key = '{$data['licenceKey']}'";
+        $sql = "update idt_licence set u_id = null,lic_edate = '$upTimes',lic_author_uid = '{$data['userID']}' 
+                where pdt_id = '{$data['pdt_id']}' and u_id = '{$data['u_id']}'";
         $ret = $this->mysqlQuery($sql);
         if ($ret) {
-
-            write_to_log('removeLicence' . $data['licenceKey'], '_licence');
+            write_to_log('removeUser' . $data['u_id'], '_licence');
+            write_to_log('productID' . $data['pdt_id'], '_licence');
             //验证并返回响应结果
 
             $this->logsModel->pushLog([
@@ -282,40 +302,40 @@ class LicenceModel extends AgentModel
                 'subid' => $getList[0]['pdt_id'],
                 'level' => '2',
                 'action' => '删除License',
-                'content' => $data['licenceKey'],
+                'content' => $getList[0]['licence_id'],
             ]);
 
 
-            $user = Model::instance('user')->getUserInfoClean([
-                'userID' => $getList[0]['u_id']
-            ]);
+//            $user = Model::instance('user')->getUserInfoClean([
+//                'userID' => $getList[0]['u_id']
+//            ]);
 
             //ird 删除权限
-            $ird = $this->__rmIRDPermission($getList[0]['u_id']);
-
-            if ($ird) {
-                if ((int)$ird['iUserID'] > 0) {
-
-                    $ret = $this->mysqlEdit(
-                        'idt_user',
-                        ['u_product_key' => $ird['iUserID']],
-                        "u_id = '{$data['licenceUserID']}'"
-                    );
-
-                    if ($ret == 1) {
-                        write_to_log('update product key[remove]: ' . $user['ird_user_Id'] . ' change to ' . $ird['iUserID'], '_ps_ird');
-                    } else {
-                        write_to_log('update product key fails  ' . $user['ird_user_Id'], '_ps_ird');
-                    }
-                    _SUCCESS('000000', '修改成功');
-                } else {
-                    write_to_log('ird change ird fails', '_ps_ird');
-                    _ERROR('000001', $ird['message']);
-                }
-
-            } else {
-                write_to_log('ird error' . json_encode($getList[0]['u_id']), '_ps_ird');
-            }
+//            $ird = $this->__rmIRDPermission($getList[0]['u_id']);
+//
+//            if ($ird) {
+//                if ((int)$ird['iUserID'] > 0) {
+//
+//                    $ret = $this->mysqlEdit(
+//                        'idt_user',
+//                        ['u_product_key' => $ird['iUserID']],
+//                        "u_id = '{$data['u_id']}'"
+//                    );
+//
+//                    if ($ret == 1) {
+//                        write_to_log('update product key[remove]: ' . $user['ird_user_Id'] . ' change to ' . $ird['iUserID'], '_ps_ird');
+//                    } else {
+//                        write_to_log('update product key fails  ' . $user['ird_user_Id'], '_ps_ird');
+//                    }
+//                    _SUCCESS('000000', '修改成功');
+//                } else {
+//                    write_to_log('ird change ird fails', '_ps_ird');
+//                    _ERROR('000001', $ird['message']);
+//                }
+//
+//            } else {
+//                write_to_log('ird error' . json_encode($getList[0]['u_id']), '_ps_ird');
+//            }
             // ===  ird 删除权限 =====
             _SUCCESS('000000', '修改成功');
         } else {
@@ -327,7 +347,7 @@ class LicenceModel extends AgentModel
                 'subid' => $getList[0]['pdt_id'],
                 'level' => '2',
                 'action' => '删除License',
-                'content' => $data['licenceKey'],
+                'content' => $getList[0]['licence_id'],
             ]);
             _ERROR('000001', '修改失败');
         }

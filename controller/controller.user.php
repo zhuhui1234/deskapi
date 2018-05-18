@@ -206,6 +206,18 @@ class UserController extends Controller
     }
 
     /**
+     * 用户产品列表
+     */
+    public function userProductInfo()
+    {
+        //获取POST请求数据
+        $data = _POST();
+
+        //查询成功,并返回响应结果
+        $this->model->userProductInfo($data);
+    }
+
+    /**
      * 获取产品List
      */
     public function getProductList()

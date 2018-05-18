@@ -1315,7 +1315,7 @@ class UserModel extends AgentModel
     public function userList($data)
     {
         //查询初始化条件
-        $data['orderByColumn'] == null ? $orderByColumn = 'permissions' : $orderByColumn = $data['orderByColumn']; //排序字段
+        $data['orderByColumn'] == null ? $orderByColumn = 'dba.u_udate' : $orderByColumn = $data['orderByColumn']; //排序字段
         $data['orderByType'] == null ? $orderByType = 'DESC' : $orderByType = $data['orderByType']; //排序方式
         $data['pageSize'] == null ? $pageSize = '10' : $pageSize = $data['pageSize']; //查询数据
         $data['pageNo'] == null ? $pageNo = '0' : $pageNo = ($data['pageNo'] - 1) * $pageSize; //查询页数
@@ -1352,20 +1352,18 @@ class UserModel extends AgentModel
             "AND dbb.cpy_state=0 " .
             "AND (dba.u_permissions=1 OR dba.u_permissions=2) {$keyword}";
         $ret_count = $this->mysqlQuery($sql_count, "all");
-//        $ret_count = $this->__countUsersByCompany($ret_companyID[0]['cpy_id']);
         //返回结果
         $rs = array();
         //返回参数-执行结果
         foreach ($ret as $a => $v) {
-            $lic_sql = "select idt_licence.pdt_id,pdt_ename,pc_start_time,pc_due_time,mobile_start_time,mobile_due_time,ott_start_time,ott_due_time,
-                        DATE_FORMAT(`start_date`,'%Y-%m-%d') start_date,DATE_FORMAT(`end_date`,'%Y-%m-%d') end_date from idt_licence 
-                        left join idt_product on idt_product.pdt_id = idt_licence.pdt_id
-                        left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
-                        left join idt_permissions_number on idt_permissions_number.pdt_id = idt_licence.pdt_id
-                        where state = 1 and idt_licence.u_id = '{$v['u_id']}' and idt_permissions_number.cpy_id = {$ret_companyID[0]['cpy_id']}";
-            $rs['list'][$a]['productInfo'] = $this->mysqlQuery($lic_sql, "all");
+//            $lic_sql = "select idt_licence.pdt_id,pdt_ename,pc_start_time,pc_due_time,mobile_start_time,mobile_due_time,ott_start_time,ott_due_time,
+//                        DATE_FORMAT(`start_date`,'%Y-%m-%d') start_date,DATE_FORMAT(`end_date`,'%Y-%m-%d') end_date from idt_licence
+//                        left join idt_product on idt_product.pdt_id = idt_licence.pdt_id
+//                        left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+//                        left join idt_permissions_number on idt_permissions_number.pdt_id = idt_licence.pdt_id
+//                        where state = 1 and idt_licence.u_id = '{$v['u_id']}' and idt_permissions_number.cpy_id = {$ret_companyID[0]['cpy_id']}";
+//            $rs['list'][$a]['productInfo'] = $this->mysqlQuery($lic_sql, "all");
             $rs['list'][$a]['userID'] = $v['u_id']; //用户GUID
-//            $rs['list'][$a]['head'] = $v['u_head']; //头像
             $rs['list'][$a]['mobile'] = $v['mobile']; //手机
             $rs['list'][$a]['power'] = $v['power']; //被分配许可证数
             $rs['list'][$a]['mail'] = $v['u_mail']; //邮箱
@@ -1383,6 +1381,65 @@ class UserModel extends AgentModel
         $rs['totalSize'] = $ret_count[0]['count_num'];
 
         //查询成功,返回响应结果
+        _SUCCESS('000000', '查询成功', $rs);
+    }
+
+    /**
+     * 用户产品列表
+     * @param $data
+     */
+    public function userProductInfo($data)
+    {
+        $sql = "select idt_product.pdt_id,pdt_ename,DATE_FORMAT(`start_date`,'%Y-%m-%d') start_date,DATE_FORMAT(`end_date`,'%Y-%m-%d') end_date,false as state from idt_permissions_number
+                left join idt_product on idt_permissions_number.pdt_id = idt_product.pdt_id
+                where idt_product.pdt_vtype = 1 and pdt_sid<>0 and pdt_label is null and idt_product.pdt_state = 0 and cpy_id = {$data['cpy_id']} and meu_id = 0 order by pdt_ename asc";
+        $ret = $this->mysqlQuery($sql, "all");
+        $lic_sql = "select idt_licence.pdt_id,pdt_ename,pc_start_time,pc_due_time,mobile_start_time,mobile_due_time,ott_start_time,ott_due_time,
+                    DATE_FORMAT(`start_date`,'%Y-%m-%d') start_date,DATE_FORMAT(`end_date`,'%Y-%m-%d') end_date,true as state from idt_licence
+                    left join idt_product on idt_product.pdt_id = idt_licence.pdt_id
+                    left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
+                    left join idt_permissions_number on idt_permissions_number.pdt_id = idt_licence.pdt_id
+                    where state = 1 and idt_licence.u_id = '{$data['u_id']}' and idt_permissions_number.cpy_id = {$data['cpy_id']}";
+        $rs = $this->mysqlQuery($lic_sql, "all");
+        $hasProduct = array_column($rs,'pdt_id');
+        foreach ($ret as $key => $value){
+            if(!in_array($ret[$key]['pdt_id'],$hasProduct)){
+                $lic_type_sql = "select pc_due_time,mobile_due_time,ott_due_time from idt_licence
+                    left join idt_subproduct on idt_licence.licence_key = idt_subproduct.licence_key
+                    where cpy_id = {$data['cpy_id']} and idt_licence.pdt_id ={$ret[$key]['pdt_id']} and u_id is null and state =1
+                    group by pc_due_time,mobile_due_time,ott_due_time";
+                $lic_type_ret = $this->mysqlQuery($lic_type_sql, "all");
+                if(empty($lic_type_ret)){
+                    $ret[$key]['has_licence'] = 0;
+                }else{
+                    $ret[$key]['has_licence'] = 1;
+                    foreach($lic_type_ret as $k => $v){
+                        $state = false;
+                        if(!empty($lic_type_ret[$k]['pc_due_time'])){
+                            $ret[$key]['licence_type'][$k] = 'pc';
+                            $state = true;
+                        }
+                        if(!empty($lic_type_ret[$k]['mobile_due_time'])){
+                            if($state){
+                                $ret[$key]['licence_type'][$k] .= '+mobile';
+                            }else{
+                                $ret[$key]['licence_type'][$k] = 'mobile';
+                                $state = true;
+                            }
+                        }
+                        if(!empty($lic_type_ret[$k]['ott_due_time'])){
+                            if($state){
+                                $ret[$key]['licence_type'][$k] .= '+ott';
+                            }else{
+                                $ret[$key]['licence_type'][$k] = 'ott';
+                            }
+                        }
+                    }
+                }
+                array_push($rs,$ret[$key]);
+            }
+        }
+        array_multisort(array_column($rs,'pdt_id'),SORT_ASC,$rs);
         _SUCCESS('000000', '查询成功', $rs);
     }
 
@@ -1544,7 +1601,9 @@ class UserModel extends AgentModel
             $state = "";
             $data['keyword'] == null ? $keyword = '' : $keyword = " AND (idt_product.pdt_ename LIKE '%" . $data['keyword'] . "%')"; //查询条件
         }
-        $sql = "select idt_product.pdt_id,pdt_name,pdt_ename,IFNULL(pnum_number,0) pnum_number,start_date,end_date,IFNULL(pnum_type,-1) pnum_type from idt_permissions_number
+        $sql = "select idt_product.pdt_id,pdt_name,pdt_ename,IFNULL(pnum_number,0) pnum_number,
+                DATE_FORMAT(`start_date`,'%Y-%m-%d') start_date,DATE_FORMAT(`end_date`,'%Y-%m-%d') end_date,
+                IFNULL(pnum_type,-1) pnum_type from idt_permissions_number
                 left join idt_product on idt_permissions_number.pdt_id = idt_product.pdt_id
                 where idt_product.pdt_vtype = 1 {$state}{$keyword} and pdt_sid<>0 and pdt_label is null and idt_product.pdt_state = 0 and cpy_id = {$data['cpy_id']} and meu_id = 0 order by pdt_ename asc";
         $ret = $this->mysqlQuery($sql, "all");
@@ -2472,8 +2531,9 @@ class UserModel extends AgentModel
 
         if (empty($hasUser)) {
             //添加用户
+            $uid = getGUID();
             $ret = $this->mysqlInsert('idt_user', [
-                    'u_id' => getGUID(),
+                    'u_id' => $uid,
                     'u_name' => $data['uname'],
                     'u_position' => $data['position'],
                     'u_permissions' => '1',
@@ -2487,7 +2547,7 @@ class UserModel extends AgentModel
             );
 
             if ($ret) {
-                _SUCCESS('000000', 'ok');
+                _SUCCESS('000000', 'ok',['u_id' => $uid,]);
             } else {
                 _ERROR('000001', 'add erro');
             }
