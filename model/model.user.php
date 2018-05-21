@@ -2522,7 +2522,7 @@ class UserModel extends AgentModel
 //        $checkMobile = $this->__checkMobileKey($data['mobile'], $data['mobile_key'], 3);
 
         if (!$this->__check_mail_suffix($data)) {
-            _ERROR('000001', '所填写邮箱不包好在预设的邮箱域名范围之内');
+            _ERROR('000001', '所填写邮箱不包含在预设的邮箱域名范围之内');
         }
 
 //        if (!empty($checkMobile)) {
