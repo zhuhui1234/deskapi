@@ -347,9 +347,9 @@ class PointsModel extends AgentModel
                     ORDER BY idt_points.cdate DESC ";
         $ret = $this->mysqlQuery($sql, 'all');
 
-        if (!$ret) {
-            _ERROR('000002', '查询失败');
-        }
+//        if (!$ret) {
+//            _ERROR('000002', '查询失败');
+//        }
         if (empty($ret)) {
             $rs = null;
         } else {
