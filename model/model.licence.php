@@ -232,38 +232,38 @@ class LicenceModel extends AgentModel
             ]);
 
             // ird 权限变更
-//            $user = Model::instance('user')->getUserInfoClean([
-//                'userID' => $data['u_id']
-//            ]);
-//            $ird = $this->__addIRDPermission($data['u_id']);
-//
-//            if ($ird) {
-//                if ((int)$ird['iUserID'] > 0) {
-//
-//                    $ret = $this->mysqlEdit(
-//                        'idt_user',
-//                        ['u_product_key' => $ird['iUserID']],
-//                        "u_id = '{$data['u_id']}'"
-//                    );
-//
-//                    if ($ret == 1) {
-//                        write_to_log('update product key: ' . $user['ird_user_Id'] . ' change to ' . $ird['iUserID'], '_ps_ird');
-//                    } else {
-//                        write_to_log('update product key fails  ' . $user['ird_user_Id'], '_ps_ird');
-//                    }
+            $user = Model::instance('user')->getUserInfoClean([
+                'userID' => $data['u_id']
+            ]);
+            $ird = $this->__addIRDPermission($data['u_id']);
+
+            if ($ird) {
+                if ((int)$ird['iUserID'] > 0) {
+
+                    $ret = $this->mysqlEdit(
+                        'idt_user',
+                        ['u_product_key' => $ird['iUserID']],
+                        "u_id = '{$data['u_id']}'"
+                    );
+
+                    if ($ret == 1) {
+                        write_to_log('update product key: ' . $user['ird_user_Id'] . ' change to ' . $ird['iUserID'], '_ps_ird');
+                    } else {
+                        write_to_log('update product key fails  ' . $user['ird_user_Id'], '_ps_ird');
+                    }
                     _SUCCESS('000000', '修改成功');
-//
-//                } else {
-//                    write_to_log('ird change ird fails', '_ps_ird');
-//                    _ERROR('000001', $ird['message']);
-//                }
-//
-//            } else {
-//                write_to_log('权限修改失败', '_ps_ird');
-////                _ERROR('000001', '权限修改失败');
-//            }
+
+                } else {
+                    write_to_log('ird change ird fails', '_ps_ird');
+                    _ERROR('000001', $ird['message']);
+                }
+
+            } else {
+                write_to_log('权限修改失败', '_ps_ird');
+//                _ERROR('000001', '权限修改失败');
+            }
             // ird 权限变更 结束
-//            _SUCCESS('000000', '修改成功');
+            _SUCCESS('000000', '修改成功');
         } else {
             $this->logsModel->pushLog([
                 'user' => $data['userID'],
@@ -306,36 +306,36 @@ class LicenceModel extends AgentModel
             ]);
 
 
-//            $user = Model::instance('user')->getUserInfoClean([
-//                'userID' => $getList[0]['u_id']
-//            ]);
+            $user = Model::instance('user')->getUserInfoClean([
+                'userID' => $getList[0]['u_id']
+            ]);
 
             //ird 删除权限
-//            $ird = $this->__rmIRDPermission($getList[0]['u_id']);
-//
-//            if ($ird) {
-//                if ((int)$ird['iUserID'] > 0) {
-//
-//                    $ret = $this->mysqlEdit(
-//                        'idt_user',
-//                        ['u_product_key' => $ird['iUserID']],
-//                        "u_id = '{$data['u_id']}'"
-//                    );
-//
-//                    if ($ret == 1) {
-//                        write_to_log('update product key[remove]: ' . $user['ird_user_Id'] . ' change to ' . $ird['iUserID'], '_ps_ird');
-//                    } else {
-//                        write_to_log('update product key fails  ' . $user['ird_user_Id'], '_ps_ird');
-//                    }
-//                    _SUCCESS('000000', '修改成功');
-//                } else {
-//                    write_to_log('ird change ird fails', '_ps_ird');
-//                    _ERROR('000001', $ird['message']);
-//                }
-//
-//            } else {
-//                write_to_log('ird error' . json_encode($getList[0]['u_id']), '_ps_ird');
-//            }
+            $ird = $this->__rmIRDPermission($getList[0]['u_id']);
+
+            if ($ird) {
+                if ((int)$ird['iUserID'] > 0) {
+
+                    $ret = $this->mysqlEdit(
+                        'idt_user',
+                        ['u_product_key' => $ird['iUserID']],
+                        "u_id = '{$data['u_id']}'"
+                    );
+
+                    if ($ret == 1) {
+                        write_to_log('update product key[remove]: ' . $user['ird_user_Id'] . ' change to ' . $ird['iUserID'], '_ps_ird');
+                    } else {
+                        write_to_log('update product key fails  ' . $user['ird_user_Id'], '_ps_ird');
+                    }
+                    _SUCCESS('000000', '修改成功');
+                } else {
+                    write_to_log('ird change ird fails', '_ps_ird');
+                    _ERROR('000001', $ird['message']);
+                }
+
+            } else {
+                write_to_log('ird error' . json_encode($getList[0]['u_id']), '_ps_ird');
+            }
             // ===  ird 删除权限 =====
             _SUCCESS('000000', '修改成功');
         } else {

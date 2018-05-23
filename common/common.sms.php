@@ -175,6 +175,7 @@ class Sms
         //转义数据
         $ret = json_decode($line, true);
         write_to_log('send sms report: ' . $line, '_sms');
+        write_to_log('send sms value: ' . $keyVars, '_sms');
         //定义返回值
         if ($ret['LANZ_ROOT']['ErrorNum'] != 0) {
             $rs = $this->_catchError($ret['LANZ_ROOT']['ErrorNum']);
