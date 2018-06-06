@@ -199,7 +199,7 @@ class LicenceModel extends AgentModel
                 where u_id = '{$data['u_id']}' and  pdt_id = {$data['pdt_id']}";
         $ret = $this->mysqlQuery($sql, "all");
         if (count($ret) > 0) {
-            _ERROR('000001', '该用户已绑定许可证');
+            _ERROR('000003', '该用户已绑定许可证');
         }
         $sql = "select idt_licence.licence_key from idt_licence
                 left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
