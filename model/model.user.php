@@ -277,7 +277,8 @@ class UserModel extends AgentModel
                         'action' => '睿见登入',
                         'resource' => 'irv登入',
                         'status' => '20000',
-                        'level' => '2'
+                        'level' => '2',
+                        'log_ip' => getIp()
                     ]);
 
                     if (!$log_db) {
@@ -517,19 +518,19 @@ class UserModel extends AgentModel
 
                         }
                     }
-                    $log_db = $logsModel->pushLog([
-                        'user' => $rs['userID'],
-                        'companyID' => $rs['companyID'],
-                        'type' => 'irv用户日志',
-                        'action' => '睿见登入',
-                        'resource' => 'irv登入',
-                        'status' => '20000',
-                        'level' => '2'
-                    ]);
+//                    $log_db = $logsModel->pushLog([
+//                        'user' => $rs['userID'],
+//                        'companyID' => $rs['companyID'],
+//                        'type' => 'irv用户日志',
+//                        'action' => '睿见登入',
+//                        'resource' => 'irv登入',
+//                        'status' => '20000',
+//                        'level' => '2'
+//                    ]);
 
-                    if (!$log_db) {
-                        write_to_log('log error', '_log');
-                    }
+//                    if (!$log_db) {
+//                        write_to_log('log error', '_log');
+//                    }
 
                     _SUCCESS('000000', '登录成功', $rs);
 
@@ -575,6 +576,317 @@ class UserModel extends AgentModel
                             'status' => '20000',
                             'level' => '2'
                         ]);
+
+                        _SUCCESS('000000', '登录成功', $rs);
+                    }
+                }
+
+                _ERROR('000002', '登录失败,账号不存在或验证码失效');
+            }
+        }
+    }
+
+    public function b_login($data)
+    {
+
+        //当前时间
+        $upTimes = date("Y-m-d H:i:s");
+        //创建TOKEN
+        $upToken = md5(rand(1000000001, 9999999999));
+        $permission_model = Model::instance('Permissions');
+
+        $logsModel = Model::instance('logs');
+
+        switch ($data['LoginType']) {
+            case 'mobile':
+                $ret_checkMUser = $this->checkMobile($data['loginMobile']);
+
+                if ($ret_checkMUser) {
+                    //创建游客
+                    if (!empty($data['ird_guid'])) {
+                        //ird create user
+                        $ret_addUser = $this->__addUserFromIrd($data, $upToken, $upTimes, 'mobile');
+                    } else {
+                        $ret_addUser = $this->__addGuest($data, $upToken, $upTimes, 'mobile');
+                    }
+
+                    if ($ret_addUser != '1') {
+                        _ERROR('000002', '登录失败,创建游客失败');
+                    }
+                }
+
+                $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
+                    dba.u_head headimg,dba.u_product_key productkey,
+                    dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
+                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat
+                    FROM idt_user dba 
+                    LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
+                    LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
+                    WHERE dba.u_mobile='{$data['loginMobile']}' AND dbb.mik_key='{$data['LoginKey']}' 
+                    AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5";
+                break;
+            case 'weixin':
+                $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.dev_id,
+                    dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,
+                    dba.u_permissions permissions,dba.u_token token,
+                    dba.u_state u_state, dba.u_department department , dba.u_wxname as wechat
+                    FROM idt_user dba 
+                    LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
+                    WHERE dba.u_wxopid='{$data['Account']}' AND dba.u_wxunid='{$data['LoginKey']}'";
+                break;
+            case 'mail':
+
+                $mail_sql = "select u_mobile as mobile from idt_user where u_mail = '{$data['loginMail']}'";
+                $get_mobile = $this->mysqlQuery($mail_sql, 'all');
+                if (!empty($get_mobile) and !empty($get_mobile[0]['mobile'])) {
+                    $data['loginMobile'] = $get_mobile[0]['mobile'];
+                }
+
+                $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
+                    dba.u_head headimg,dba.u_product_key productkey,
+                    dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
+                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat
+                    FROM idt_user dba 
+                    LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
+                    LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
+                    WHERE dba.u_mail='{$data['loginMail']}' AND dbb.mik_key='{$data['LoginKey']}' 
+                    AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5";
+
+                break;
+            default:
+                _ERROR('000001', '未知登录类型');
+                break;
+        }
+
+
+        //登录
+        if (isset($sql)) {
+            $ret = $this->mysqlQuery($sql, "all");
+        } else {
+            if (DEBUG_LOG) {
+                write_to_log('login function no sql execute');
+            }
+        }
+
+
+        if (isset($ret)) {
+            $companyState = $this->__checkUserCompanyStateByUserID($ret[0]['userid']);
+
+            if ($ret[0]['userid'] == null AND $companyState) {
+                _ERROR('000010', '您的帐号当前为冻结状态');
+
+            }
+
+            //验证冰结用户
+            if ($ret[0]['u_state'] == 1) {
+                _ERROR('000010', '您的帐号当前为冻结状态');
+            }
+
+            //验证登录&USER GUID不为空
+            if (count($ret) > 0 AND ($ret[0]['userid'] != null OR $ret[0]['userid'] != "")) {
+                //更新TOKEN
+                $this->redisHere(VERSION . '_' . $ret[0]['userid'] . '_ird', true);
+                $where_upToken['u_token'] = $upToken;//更新TOKEN
+                $where_upToken['u_edate'] = $upTimes;//更新登录时间
+                $id_upToken = " u_id='" . $ret[0]['userid'] . "'";//用户GUID
+                $ret_upToken = $this->mysqlEdit('idt_user', $where_upToken, $id_upToken);
+
+                //验证登录状态
+                if ($ret_upToken == '1') {
+                    //更新微信名称
+                    if ($data['LoginType'] === 'weixin') {
+                        $where_upwxName['u_wxname'] = urlencode($data['wxName']);//微信名称
+                        $id_upwxName = " u_wxopid='" . $data['loginMobile'] . "' AND u_wxunid='" . $data['LoginKey'] . "'";//微信帐号
+                        $ret_upwxName = $this->mysqlEdit('idt_user', $where_upwxName, $id_upwxName);
+                        if ($ret_upwxName != '1') {
+                            _ERROR('000004', '登录失败,更新微信名称失败');
+                        }
+                    }
+
+                    //更新验证码状态
+                    if ($data['LoginType'] === 'mobile') {
+                        $where_upResCode['mik_state'] = 1; //验证码状态
+                        $id_upResCode = " mik_mobile='" . $data['loginMobile'] . "' AND mik_key='" . $data['LoginKey'] . "'";//用户帐号
+
+                        $ret_upResCode = $this->mysqlEdit('idt_mobilekey', $where_upResCode, $id_upResCode);
+
+                        if ($ret_upResCode != '1') {
+                            _ERROR('000002', '登录失败,更新验证码状态失败');
+                        }
+                    }
+
+                    if ($data['LoginType'] == 'mail') {
+                        $where_upResCode['mik_state'] = 1; //验证码状态
+                        $id_upResCode = " mik_mobile='" . $data['loginMobile'] . "' AND mik_key='" . $data['LoginKey'] . "'";//用户帐号
+
+                        $ret_upResCode = $this->mysqlEdit('idt_mobilekey', $where_upResCode, $id_upResCode);
+
+                        if ($ret_upResCode != '1') {
+                            _ERROR('000002', '登录失败,更新验证码状态失败');
+                        }
+                    }
+
+
+                    //产品权限
+                    if ($ret[0]['productkey'] == 0 OR $ret[0]['productkey'] == null OR $ret[0]['productkey'] == "") {
+                        $productKey = 0;
+                        $ird_ua_id = null;
+                    } else {
+                        $productKey = 1;
+                        $ird_ua_id = $ret[0]['productkey'];
+                    }
+
+                    //返回用户信息
+                    $rs = [
+                        'headImg' => $ret[0]['headimg'], //avatar
+                        'mobile' => $ret[0]['mobile'],
+                        'companyID' => $ret[0]['cpy_id'],
+                        'companyName' => $ret[0]['cpy_cname'],
+                        'permissions' => $ret[0]['permissions'], //用户身份 0游客 1企业用户 2企业管理员
+                        'productKey' => $productKey, //ird_user_id
+                        'dev_id' => $ret[0]['dev_id'],
+                        'token' => $upToken,
+                        'wechat' => $ret[0]['wechat'],
+                        'uname' => $ret[0]['uname'],
+                        'userID' => $ret[0]['userid'],
+                        'ird_user_id' => $ird_ua_id,
+                        'validity' => $ret[0]['validity'] //账号有效期
+                    ];
+
+                    //judge binding
+                    if ($ret[0]['permissions'] == 0) {
+                        //guest if the data has ird guid
+                        if (!empty($data['ird_user'])) {
+                            if ((int)$data['ird_user']['iUserID'] > 0) {
+                                //nobody binding this id
+                                $cpy_id = $this->__getCpyFromIRD($data['ird_user']['CompanyID']);
+                                if ($cpy_id) {
+                                    $binding_ird = $this->__bindingIRD($ret[0]['userid'], $data['ird_user']);
+                                    if ($binding_ird) {
+                                        $change_member = $this->__changeToMember($ret[0]['userid'], $cpy_id['cpy_id']);
+                                        $ret[0]['cpy_id'] = $cpy_id['cpy_id'];
+                                        if ($change_member) {
+                                            $rs['permissions'] = 1;
+                                            $rs['productKey'] = 1;
+                                            $rs['ird_user_id'] = $data['ird_user']['iUserID'];
+                                            $rs['companyName'] = $cpy_id['cpy_cname'];
+                                            $rs['dev_id'] = $cpy_id['cpy_id'];
+                                            $rs['ird'] = 'add permission';
+                                            $rs['bind_state'] = $permission_model->addPermission($data['ird_user']['pplist'], $ret[0], $data['ird_user']['iUserID']);
+                                        }
+                                    }
+
+                                }
+
+                            } else {
+                                write_to_log(json_encode($data['ird_user']), '_from_ird');
+                                write_to_log('iuser id 非法', '_from_ird');
+                            }
+
+                        }
+                    } elseif ($ret[0]['productkey'] == null) {
+                        //guest if the data has ird guid
+                        if (!empty($data['ird_user'])) {
+                            if ((int)$data['ird_user']['iUserID'] > 0) {
+                                //nobody binding this id
+                                $cpy_id = $this->__getCpyFromIRD($data['ird_user']['CompanyID']);
+                                if ($cpy_id['cpy_id'] != $ret[0]['cpy_id']) {
+                                    $ird_diff = [
+                                        'ird_user_id' => $data['ird_user']['iUserID'],
+                                        'idt_user_id' => $ret[0]['userid'],
+                                        'idt_old_cpy_id' => $ret[0]['cpy_id'],
+                                        'idt_new_cpy_id' => $cpy_id['cpy_id'],
+                                        'ird_email' => $data['ird_user']['UserName'],
+                                        'idt_email' => $ret[0]['email'],
+                                        'cdate' => $upTimes
+                                    ];
+                                    $this->mysqlInsert('ird_diff_user', $ird_diff);
+                                    $sql = "update idt_licence set u_id = null where u_id = '{$ret[0]['userid']}'";
+                                    $this->mysqlQuery($sql, "all");
+                                    $update_data = ['cpy_id' => $cpy_id['cpy_id']];
+                                    write_to_log('CHANGE COMPANY ' . json_encode($update_data), '_from_ird');
+                                    $this->mysqlEdit('idt_user', $update_data, "u_id='{$ret[0]['userid']}'");
+                                    $ret[0]['cpy_id'] = $cpy_id['cpy_id'];
+                                }
+                                if ($cpy_id) {
+                                    $binding_ird = $this->__bindingIRD($ret[0]['userid'], $data['ird_user']);
+                                    if ($binding_ird) {
+                                        $rs['permissions'] = $ret[0]['permissions'];
+                                        $rs['productKey'] = 1;
+                                        $rs['ird_user_id'] = $data['ird_user']['iUserID'];
+                                        $rs['companyName'] = $cpy_id['cpy_cname'];
+                                        $rs['dev_id'] = $cpy_id['cpy_id'];
+                                        $rs['ird'] = 'add permission';
+                                        $rs['bind_state'] = $permission_model->addPermission($data['ird_user']['pplist'], $ret[0], $data['ird_user']['iUserID']);
+                                    }
+
+                                }
+
+                            } else {
+                                write_to_log(json_encode($data['ird_user']), '_from_ird');
+                                write_to_log('iuser id 非法', '_from_ird');
+                            }
+
+                        }
+                    }
+//                    $log_db = $logsModel->pushLog([
+//                        'user' => $rs['userID'],
+//                        'companyID' => $rs['companyID'],
+//                        'type' => 'irv用户日志',
+//                        'action' => '睿见登入',
+//                        'resource' => 'irv登入',
+//                        'status' => '20000',
+//                        'level' => '2'
+//                    ]);
+
+//                    if (!$log_db) {
+//                        write_to_log('log error', '_log');
+//                    }
+
+                    _SUCCESS('000000', '登录成功', $rs);
+
+                } else {
+                    _ERROR('000005', '登录失败,更新token失败');
+                }
+            } else {
+                //for JAPANESE Values Inc.
+                $sqlb = "SELECT *
+                        FROM idt_user WHERE u_mobile='{$data['loginMobile']}' and u_auth_type='{$data['LoginKey']}'";
+
+                $sp_ret = $this->mysqlQuery($sqlb, 'all');
+
+                write_to_log('sp sql: ' . $sqlb, '_sp');
+                write_to_log('sp_ret' . json_encode($sp_ret), '_sp');
+
+                if (!empty($sp_ret)) {
+                    $this->redisHere(VERSION . '_' . $ret[0]['userid'] . '_ird', true);
+                    $where_upToken['u_token'] = $upToken;//更新TOKEN
+                    $where_upToken['u_edate'] = $upTimes;//更新登录时间
+                    $id_upToken = " u_id='" . $sp_ret[0]['u_id'] . "'";//用户GUID
+                    $ret_upToken = $this->mysqlEdit('idt_user', $where_upToken, $id_upToken);
+                    if ($ret_upToken == '1') {
+                        $rs = [
+                            'headImg' => $sp_ret[0]['headimg'], //avatar
+                            'mobile' => $sp_ret[0]['u_mobile'],
+                            'companyID' => $sp_ret[0]['cpy_id'],
+                            'permissions' => $sp_ret[0]['u_permissions'], //用户身份 0游客 1企业用户 2企业管理员
+                            'productKey' => $sp_ret[0]['u_product_key'], //ird_user_id
+                            'dev_id' => $sp_ret[0]['dev_id'],
+                            'token' => $upToken,
+                            'uname' => $sp_ret[0]['u_name'],
+                            'userID' => $sp_ret[0]['u_id'],
+                            'department' => $sp_ret[0]['u_department'],
+                            'ird_user_id' => $sp_ret[0]['u_product_key'],
+                        ];
+
+//                        $logsModel->pushLog([
+//                            'user' => $sp_ret[0]['u_id'],
+//                            'companyID' => $sp_ret[0]['cpy_id'],
+//                            'type' => 'irv用户日志',
+//                            'resource' => 'irv日本用户登入',
+//                            'status' => '20000',
+//                            'level' => '2'
+//                        ]);
 
                         _SUCCESS('000000', '登录成功', $rs);
                     }
@@ -782,20 +1094,6 @@ class UserModel extends AgentModel
 
 
         } else {
-            //创建用户
-//            $where_addWMuser = [
-//                'u_id' => getGUID(),
-//                'u_mobile' => $data['loginMobile'],
-//                'u_wxname' => $data['wxName'],
-//                'u_wxopid' => $data['wxOpenid'],
-//                'u_wxunid' => $data['wxUnionid'],
-//                'u_permissions' => 0, //用户身份(0游客 1公司用户)
-//                'u_token' => $upToken,
-//                'u_cdate' => $upTimes,
-//                'u_edate' => $upTimes
-//            ];
-//
-//            $ret_chk = $this->mysqlInsert('idt_user', $where_addWMuser);
 
             if (!empty($data['ird_guid'])) {
                 //ird create user
@@ -936,14 +1234,12 @@ class UserModel extends AgentModel
         //当前时间
         $upTimes = date("Y-m-d H:i:s");
 
-
         $ret_codeSend = $this->__setMobileKey($data, $upTimes, 0);
-
 
         if ($ret_codeSend) {
             $data = $ret_codeSend;
             //调用SMS,发送验证码
-
+            $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT);
             $phones = $data['Mobile'];
             $mail = $this->__checkHasEmail($data['Mobile']);
             write_to_log('the mobile: ' . $data['Mobile'] . 'ready to send mail: ' . $mail, '_mail');
@@ -963,16 +1259,8 @@ class UserModel extends AgentModel
                 write_to_log('no email send ', '_mail');
                 //var_dump('no mail');
             }
-            //国际发短信
 
-            if (empty($data['nation'])) {
-                $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT_NATION);
-                $sms = Sms::instance()->sendSingleSMS($content, $phones);
-            } else {
-                $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT);
-                $sms = Sms::instance()->sendSms($content, $phones);
-            }
-
+            $sms = Sms::instance()->sendSms($content, $phones);
             if ($sms == '发送成功') {
                 _SUCCESS('000000', '发送成功');
             } else {
@@ -985,8 +1273,109 @@ class UserModel extends AgentModel
         }
     }
 
+    /**
+     * verify sms and mail for login
+     * @param $getData
+     * @throws phpmailerException
+     */
+    public function setVerKey($getData)
+    {
+        //当前时间
+        $upTimes = date("Y-m-d H:i:s");
 
-    //发送验证码
+        if ($getData['LoginType'] == 'mail'){
+            $sql = "select u_mobile as mobile from idt_user where u_mail = '{$getData['Mail']}'";
+            $get_mobile = $this->mysqlQuery($sql, 'all');
+            if (!empty($get_mobile) and !empty($get_mobile[0]['mobile'])) {
+                $getData['Mobile'] = $get_mobile[0]['mobile'];
+            }
+        }
+
+        $ret_codeSend = $this->__setMobileKey($getData, $upTimes, 0);
+
+
+        if ($ret_codeSend) {
+            $data = $ret_codeSend;
+
+            //调用SMS,发送验证码
+
+            $phones = $data['Mobile'];
+            $mail = $this->__checkHasEmail($data['Mobile']);
+
+            write_to_log('the mobile: ' . $data['Mobile'] . 'ready to send mail: ' . $mail, '_mail');
+
+            switch ($getData['LoginType']) {
+                case 'mobile':
+                    if (!empty($mail)) {
+                        write_to_log('send mail: ' . $mail . ' and code is ' . $data['Code'], '_mail');
+                        foreach (NEED_MAIL as $wMail) {
+                            $t = strpos($mail, $wMail);
+                            if ($t !== false) {
+                                write_to_log('the mail in need send mail list : ' . $mail . ',' . $wMail, '_mail');
+                                $this->__sendCode($mail, $data['Code']);
+                            } else {
+                                write_to_log('the mail not in need send mail list : ' . $mail . ',' . $wMail, '_mail');
+                            }
+                        }
+                    } else {
+                        write_to_log('no email send ', '_mail');
+                        //var_dump('no mail');
+                    }
+
+//                    $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT_NATION);
+//                    $content = str_replace("#CODE#", $data['Code'], SMS_CONTENT_NATION);
+
+                    if (IS_TEST) {
+                        $sms = '发送成功';
+                    } else {
+                        if ($data['CountryCode'] == '86') {
+                            $sms = Sms::instance()->sendSingleSMS($this->__textTemple($data['Code'], $phones,
+                                SMS_TEMP_LOGIN), $phones, tr);
+                        } else {
+                            $sms = Sms::instance()->sendSingleSMS($this->__textTemple($data['Code'], $phones,
+                                SMS_TEMP_NATION_LOGIN), $phones, tr);
+                        }
+
+                    }
+                    if ($sms == '发送成功') {
+                        _SUCCESS('000000', '发送成功');
+                    } else {
+                        _ERROR('000002', '发送失败,SMS错误');
+                    }
+                    break;
+
+                case 'mail':
+                    $find_mail = $this->__checkHasEmailByMail($data['Mail']);
+                    if (!empty($find_mail)) {
+                        write_to_log('send mail: ' . $find_mail . ' and code is ' . $data['Code'], '_mail');
+                        $this->__sendCode($find_mail, $data['Code']);
+                        _SUCCESS('000000', '发送成功');
+
+                    } else {
+                        write_to_log('no email send ', '_mail');
+                        _ERROR('000002', '此邮箱没有登记，请联系客服');
+                    }
+
+                    break;
+                default:
+                    _ERROR('000002', '发送失败,数据异常');
+                    break;
+            }
+
+
+        } else {
+
+            _ERROR('000002', '发送失败,code数据异常');
+        }
+    }
+
+
+    /**
+     * 发送验证码 for manager
+     *
+     * @param $data
+     * @throws phpmailerException
+     */
     public function sendKey($data)
     {
         //当前时间
@@ -1020,16 +1409,7 @@ class UserModel extends AgentModel
                 //var_dump('no mail');
             }
 
-//            $sms = Sms::instance()->sendSms($content, $phones);
-
-            if (empty($data['nation'])) {
-                $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT_NATION);
-                $sms = Sms::instance()->sendSingleSMS($content, $phones);
-            } else {
-                $content = str_replace("(CODE)", $data['Code'], SMS_CONTENT);
-                $sms = Sms::instance()->sendSms($content, $phones);
-            }
-
+            $sms = Sms::instance()->sendSms($content, $phones);
             if ($sms == '发送成功') {
                 _SUCCESS('000000', '发送成功');
             } else {
@@ -1365,7 +1745,6 @@ class UserModel extends AgentModel
                         where state = 1 and idt_licence.u_id = '{$v['u_id']}' and idt_permissions_number.cpy_id = {$ret_companyID[0]['cpy_id']}";
             $rs['list'][$a]['productInfo'] = $this->mysqlQuery($lic_sql, "all");
             $rs['list'][$a]['userID'] = $v['u_id']; //用户GUID
-//            $rs['list'][$a]['head'] = $v['u_head']; //头像
             $rs['list'][$a]['mobile'] = $v['mobile']; //手机
             $rs['list'][$a]['power'] = $v['power']; //被分配许可证数
             $rs['list'][$a]['mail'] = $v['u_mail']; //邮箱
@@ -1849,6 +2228,13 @@ class UserModel extends AgentModel
         return $ret[0]['u_mail'];
     }
 
+    private function __checkHasEmailByMail($mail)
+    {
+        $sql = "select u_mail from idt_user WHERE u_mail='{$mail}'";
+        $ret = $this->mysqlQuery($sql, 'all');
+        return $ret[0]['u_mail'];
+    }
+
     /**
      * check mobile sql
      *
@@ -2270,8 +2656,10 @@ class UserModel extends AgentModel
         $phpMail->setFrom(EMAIL_SMTPUSER, 'iResearchGroup');
         $phpMail->addAddress($sender);
         $phpMail->isHTML(true);
+        $phpMail->CharSet = "UTF-8";
         $phpMail->Subject = '[iRD] Authentication Code';
-        $phpMail->Body = "The recent authentication code of acessing iRD is <span style='color: red'>{$code}</span>, which will be expired in 5 mins";
+        $phpMail->Body = "The recent authentication code of acessing iRD is <span style='color: red'>{$code}</span>, which will be expired in 5 mins \n";
+        $phpMail->Body = $phpMail->Body . "你的验证码是： <span style='color: red'>{$code}</span>, 并且五分钟过期 \n";
         if (!$phpMail->send()) {
             write_to_log("{$sender} sent error " . $phpMail->ErrorInfo, '_mail');
         } else {
@@ -2451,6 +2839,7 @@ class UserModel extends AgentModel
 
     }
 
+
     /**
      * add employee
      *
@@ -2459,6 +2848,7 @@ class UserModel extends AgentModel
     private function __addEmployee($data)
     {
         $hasUser = $this->__hasUser($data['mobile']);
+        $hasMail = $this->__hasMail($data['u_mail']);
         //手机验证码
 //        $checkMobile = $this->__checkMobileKey($data['mobile'], $data['mobile_key'], 3);
 
@@ -2500,17 +2890,17 @@ class UserModel extends AgentModel
                 $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['userID']}'  where u_id = '{$hasUser[0]['u_id']}'";
                 $ret = $this->mysqlQuery($sql);
                 if (!$ret) {
-                    _ERROR('000001', 'lic upload fails');
+                    _ERROR('000003', '权限授权失败');
                 }
                 $updateUser = $this->mysqlEdit('idt_user', ['cpy_id' => $data['cpy_id'], 'u_permissions' => '1', 'u_mail' => $data['u_mail']], ['u_id' => $hasUser[0]['u_id']]);
 
                 if ($updateUser) {
                     _SUCCESS('000000', 'ok');
                 } else {
-                    _ERROR('000001', 'error');
+                    _ERROR('000003', '更新用户失败');
                 }
             } else {
-                _ERROR('000001', '该手机号系统中已存在！');
+                _ERROR('000003', '该手机号系统中已存在！');
             }
 
         }
@@ -2600,6 +2990,24 @@ class UserModel extends AgentModel
             }
         }
         return array_values($ret);
+    }
+
+    /**
+     * sms template
+     *
+     * @param $code
+     * @param $mobile
+     * @param $templID
+     * @return array
+     */
+    private function __textTemple($code, $mobile, $templID)
+    {
+        $ret = ['tpl_id' => $templID,
+            'tpl_value' =>
+                urlencode('#code#') . '=' . urlencode($code),
+            'apikey' => NATION_API, 'mobile' => $mobile
+        ];
+        return $ret;
     }
 
 }

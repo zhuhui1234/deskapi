@@ -54,6 +54,36 @@ class UserController extends Controller
         $this->model->login($data);
     }
 
+
+    /**
+     * 新版用户登录
+     */
+    public function b_login()
+    {
+        //获取POST请求数据
+        $data = _POST();
+
+        switch ($data['LoginType']){
+            case 'mobile':
+                if (empty($data['loginMobile']) && empty($data['Account'])) {
+                    _ERROR('000001', '登录账号不能为空');
+                }
+                break;
+            case 'mail':
+                if (empty($data['loginMail']) ) {
+                    _ERROR('000001', '邮箱不能为空');
+                }
+            case 'weixin':
+                break;
+            default:
+                _ERROR('000001', '登录类型出错');
+        }
+
+
+        //登录成功,,并返回响应结果
+        $this->model->b_login($data);
+    }
+
     /**
      * 新增用户
      */
@@ -99,6 +129,40 @@ class UserController extends Controller
         //发送短信,,并返回响应结果
         $this->model->setMobileKey($data);
     }
+
+
+    /**
+     * new verify mobile func
+     */
+    public function setVerKey()
+    {
+        //获取POST请求数据
+        $data = _POST();
+
+        switch ($data['LoginType']) {
+
+            case 'mobile':
+                if (empty($data['Mobile'])) {
+                    _ERROR('000001', '手机号码不能为空');
+                }
+                break;
+            case 'mail':
+                if (empty($data['Mail'])) {
+                    _ERROR('000001', '邮箱不能为空');
+                }
+                break;
+
+            default:
+                //验证参数-手机号码
+                if (empty($data['Mobile'])) {
+                    _ERROR('000001', '手机号码不能为空');
+                }
+        }
+
+        //发送短信,,并返回响应结果
+        $this->model->setVerKey($data);
+    }
+
 
     /**
      * 绑定产品Key
@@ -203,6 +267,18 @@ class UserController extends Controller
 
         //查询成功,并返回响应结果
         $this->model->userList($data);
+    }
+
+    /**
+     * 用户产品列表
+     */
+    public function userProductInfo()
+    {
+        //获取POST请求数据
+        $data = _POST();
+
+        //查询成功,并返回响应结果
+        $this->model->userProductInfo($data);
     }
 
     /**
@@ -423,9 +499,9 @@ class UserController extends Controller
         $ret = $this->model->getUserInfoByIRD($data['iUserID']);
 
         if ($ret) {
-            return _SUCCESS('0000000','ok', $ret[0]);
-        }else {
-            _ERROR('000001','没有绑定');
+            return _SUCCESS('0000000', 'ok', $ret[0]);
+        } else {
+            _ERROR('000001', '没有绑定');
         }
 
     }

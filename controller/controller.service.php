@@ -223,7 +223,7 @@ class ServiceController extends Controller
                     break;
             }
 
-            if ($sms == '发送成功') {
+            if ($sms == 0) {
                 _SUCCESS('000000', '发送成功');
             } else {
                 _ERROR('000002', '发送失败,SMS错误');

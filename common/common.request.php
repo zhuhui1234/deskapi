@@ -216,6 +216,7 @@ class Request
     {
         if (
             ($_GET['m'] == 'User' AND $_GET['a'] == 'login') //登录
+            OR ($_GET['m'] == 'User' AND $_GET['a'] == 'b_login') //登录
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'getIRVuserid') //获取irv用户ID
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'setMobileKey') //短信服务
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'addUser') //用户注册
@@ -231,6 +232,7 @@ class Request
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'appLogin')
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'getUserInfoByIRD')
             OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'appBindingAccount')
+            OR (strtolower($_GET['m']) == 'user' AND $_GET['a'] == 'setVerKey')
             OR (strtolower($_GET['m']) == 'service' AND $_GET['a'] == 'createSingleMsg')
             OR (strtolower($_GET['m']) == 'points')
             OR (strtolower($_GET['m']) == 'service')

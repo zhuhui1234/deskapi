@@ -214,10 +214,10 @@ class Sms
             $path = 'sms/single_send.json';
         }
 
+
         $sms = json_decode($this->yunPian($path, $mobile, $content), true);
 
-//        var_dump($sms);
-        return $sms['msg'];
+        return $sms['code'];
     }
 
 
@@ -253,9 +253,10 @@ class Sms
             $data = ['text' => $body, 'apikey' => NATION_API, 'mobile' => $mobile];
         }
         $ret = $this->__send($ch, $url, $data);
+        write_to_log('send:  ' . json_encode($data), '_sms');
 
         curl_close($ch);
-
+        write_to_log('recived: ' . $ret, '_sms');
 
         return $ret;
     }
