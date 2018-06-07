@@ -1283,7 +1283,7 @@ class UserModel extends AgentModel
         //当前时间
         $upTimes = date("Y-m-d H:i:s");
 
-        if ($getData['LoginType'] == 'mail'){
+        if ($getData['LoginType'] == 'mail') {
             $sql = "select u_mobile as mobile from idt_user where u_mail = '{$getData['Mail']}'";
             $get_mobile = $this->mysqlQuery($sql, 'all');
             if (!empty($get_mobile) and !empty($get_mobile[0]['mobile'])) {
@@ -1781,45 +1781,45 @@ class UserModel extends AgentModel
                     left join idt_permissions_number on idt_permissions_number.pdt_id = idt_licence.pdt_id
                     where state = 1 and idt_licence.u_id = '{$data['u_id']}' and idt_permissions_number.cpy_id = {$data['cpy_id']}";
         $rs = $this->mysqlQuery($lic_sql, "all");
-        $hasProduct = array_column($rs,'pdt_id');
-        foreach ($ret as $key => $value){
-            if(!in_array($ret[$key]['pdt_id'],$hasProduct)){
+        $hasProduct = array_column($rs, 'pdt_id');
+        foreach ($ret as $key => $value) {
+            if (!in_array($ret[$key]['pdt_id'], $hasProduct)) {
                 $lic_type_sql = "select pc_due_time,mobile_due_time,ott_due_time from idt_licence
                     left join idt_subproduct on idt_licence.licence_key = idt_subproduct.licence_key
                     where cpy_id = {$data['cpy_id']} and idt_licence.pdt_id ={$ret[$key]['pdt_id']} and u_id is null and state =1
                     group by pc_due_time,mobile_due_time,ott_due_time";
                 $lic_type_ret = $this->mysqlQuery($lic_type_sql, "all");
-                if(empty($lic_type_ret)){
+                if (empty($lic_type_ret)) {
                     $ret[$key]['has_licence'] = 0;
-                }else{
+                } else {
                     $ret[$key]['has_licence'] = 1;
-                    foreach($lic_type_ret as $k => $v){
+                    foreach ($lic_type_ret as $k => $v) {
                         $state = false;
-                        if(!empty($lic_type_ret[$k]['pc_due_time'])){
+                        if (!empty($lic_type_ret[$k]['pc_due_time'])) {
                             $ret[$key]['licence_type'][$k] = 'pc';
                             $state = true;
                         }
-                        if(!empty($lic_type_ret[$k]['mobile_due_time'])){
-                            if($state){
+                        if (!empty($lic_type_ret[$k]['mobile_due_time'])) {
+                            if ($state) {
                                 $ret[$key]['licence_type'][$k] .= '+mobile';
-                            }else{
+                            } else {
                                 $ret[$key]['licence_type'][$k] = 'mobile';
                                 $state = true;
                             }
                         }
-                        if(!empty($lic_type_ret[$k]['ott_due_time'])){
-                            if($state){
+                        if (!empty($lic_type_ret[$k]['ott_due_time'])) {
+                            if ($state) {
                                 $ret[$key]['licence_type'][$k] .= '+ott';
-                            }else{
+                            } else {
                                 $ret[$key]['licence_type'][$k] = 'ott';
                             }
                         }
                     }
                 }
-                array_push($rs,$ret[$key]);
+                array_push($rs, $ret[$key]);
             }
         }
-        array_multisort(array_column($rs,'pdt_id'),SORT_ASC,$rs);
+        array_multisort(array_column($rs, 'pdt_id'), SORT_ASC, $rs);
         _SUCCESS('000000', '查询成功', $rs);
     }
 
@@ -2516,7 +2516,7 @@ class UserModel extends AgentModel
                 'u_id' => getGUID(),
                 'u_mobile' => $data['loginMobile'],
                 'u_wxname' => $data['wxName'],
-                'u_wxopid' => $data[' '],
+                'u_wxopid' => $data['wxOpenid'],
                 'u_wxunid' => $data['wxUnionid'],
                 'u_permissions' => 0, //用户身份(0游客 1公司用户)
                 'u_token' => $upToken,
@@ -2718,8 +2718,26 @@ class UserModel extends AgentModel
         $phpMail->isHTML(true);
         $phpMail->CharSet = "UTF-8";
         $phpMail->Subject = '[iRD] Authentication Code';
-        $phpMail->Body = "The recent authentication code of acessing iRD is <span style='color: red'>{$code}</span>, which will be expired in 5 mins \n";
-        $phpMail->Body = $phpMail->Body . "你的验证码是： <span style='color: red'>{$code}</span>, 并且五分钟过期 \n";
+//        $phpMail->Body = "The recent authentication code of acessing iRD is <span style='color: red'>{$code}</span>, which will be expired in 5 mins </br>";
+//        $phpMail->Body = $phpMail->Body . "你的验证码是： <span style='color: red'>{$code}</span>, 并且五分钟过期 \n";
+        $phpMail->Body = "
+        <p>尊敬的艾瑞数据用户：</p></br>
+
+        <p>您好，</p>
+        
+        <p>您的登录验证码为：{$code}，请在5分钟内使用该验证码登录。如非本人操作请忽略这封邮件！</p>
+        
+        <p>Your validation code is {$code}, which will be expired in 5 minues. Please ignore this email if you don't know what it is for.</p>
+        
+        <p>祝您生活愉快！</p>
+        
+        <p>Regards & Best wishes!</p>
+        
+         <p>艾瑞数据运营团队</p>
+        
+        <p>iResearch Tech Team.</p>
+        ";
+
         if (!$phpMail->send()) {
             write_to_log("{$sender} sent error " . $phpMail->ErrorInfo, '_mail');
         } else {
@@ -2938,7 +2956,7 @@ class UserModel extends AgentModel
             );
 
             if ($ret) {
-                _SUCCESS('000000', 'ok',['u_id' => $uid,]);
+                _SUCCESS('000000', 'ok', ['u_id' => $uid,]);
             } else {
                 _ERROR('000001', 'add erro');
             }
