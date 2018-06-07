@@ -347,9 +347,9 @@ class PointsModel extends AgentModel
                     ORDER BY idt_points.cdate DESC ";
         $ret = $this->mysqlQuery($sql, 'all');
 
-        if (!$ret) {
-            _ERROR('000002', '查询失败');
-        }
+//        if (!$ret) {
+//            _ERROR('000002', '查询失败');
+//        }
         if (empty($ret)) {
             $rs = null;
         } else {
@@ -459,7 +459,9 @@ class PointsModel extends AgentModel
             $arr = json_decode($ret[$key]['point_explain'], true);
 
             if ($ret[$key]['type'] == 1 || $ret[$key]['type'] == 2) {
-
+                if($rs[$key]['changedPoint'] != 0){
+                    $rs[$key]['changedPoint'] = '+'.$rs[$key]['changedPoint'];
+                }
                 $point_all_temp = $point_all_temp + $ret[$key]['point_value'];
 
                 if ($ret[$key]['type'] == 2) {
@@ -477,17 +479,26 @@ class PointsModel extends AgentModel
             }
 
             if ($ret[$key]['type'] == 6 || $ret[$key]['type'] == 7) {
+                if($rs[$key]['changedPoint'] != 0){
+                    $rs[$key]['changedPoint'] = '-'.$rs[$key]['changedPoint'];
+                }
                 $point_all_temp = $point_all_temp - $ret[$key]['point_value'];
             }
 
             if ($ret[$key]['type'] == 21) {
+                if($rs[$key]['changedPoint'] != 0){
+                    $rs[$key]['changedPoint'] = '-'.$rs[$key]['changedPoint'];
+                }
                 $point_all_temp = $point_all_temp - $ret[$key]['point_value'];
-                $rs[$key]['log'] = $ret[$key]['point_explain'];
+                $rs[$key]['log'] = '用户退回'.$ret[$key]['point_value'].'积分';
             }
 
             if ($ret[$key]['type'] == 22) {
+                if($rs[$key]['changedPoint'] != 0){
+                    $rs[$key]['changedPoint'] = '+'.$rs[$key]['changedPoint'];
+                }
                 $point_all_temp = $point_all_temp + $ret[$key]['point_value'];
-                $rs[$key]['log'] = $ret[$key]['point_explain'];
+                $rs[$key]['log'] = '分配给用户'.$ret[$key]['point_value'].'积分';
             }
 
 
