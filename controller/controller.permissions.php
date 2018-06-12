@@ -110,11 +110,9 @@ class PermissionsController extends Controller
         $data = json_decode(file_get_contents('php://input'), true);
 
         if (!empty($data['token'])) {
-
             $ret = $this->model->getPermissionInfo($data);
-
             if ($ret) {
-                $userInfoByToken = Model::instance('user')->_getUserInfoByToken($data);
+                $userInfoByToken = Model::instance('user')->_getUserInfoByToken_no_dev($data);
 
                 $exp = (time() - strtotime($userInfoByToken['tokenDate'])) / (60 * 60);
                 write_to_log('exp: '.$exp,'_time');

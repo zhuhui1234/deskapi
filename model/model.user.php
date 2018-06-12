@@ -1601,6 +1601,65 @@ class UserModel extends AgentModel
         ];
     }
 
+
+    public function _getUserInfoByToken_no_dev($data)
+    {
+        $sql = "SELECT dbb.cpy_cname,dbb.cpy_id,dba.u_mail,dba.u_head,
+                dba.u_mobile,dba.u_position,dba.u_permissions,dba.u_name,dba.u_id , dba.dev_id,dba.u_edate, dba.u_product_key, dba.u_wxname
+                FROM idt_user dba 
+                LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
+                WHERE dba.u_token='{$data['token']}'";
+
+        $key = md5($sql);
+        if ($this->redis()->exists($key)) {
+            $ret = json_decode($this->redis()->get($key), true);
+        } else {
+            $ret = $this->mysqlQuery($sql, "all");
+            $this->redis()->set(md5($sql), json_encode($ret), 500);
+        }
+
+        if (!empty($data['pdt_id'])) {
+
+            $getExpDateSQL = "SELECT end_date ,pnum_type
+                              FROM idt_permissions_number 
+                              WHERE cpy_id='{$ret[0]['cpy_id']}' AND pdt_id='{$data['pdt_id']}'";
+            $getExpDate = $this->mysqlQuery($getExpDateSQL, 'all');
+
+            if ($getExpDate) {
+                $pnum_type = $getExpDate[0]['pnum_type'];
+                $getExpDate = $getExpDate[0]['end_date'];
+            } else {
+                if ($ret[0]['cpy_id'] == 1 and OPEN_ME) {
+                    $getExpDate = '无限';
+                } else {
+                    $getExpDate = '已';
+                }
+            }
+        } else {
+            $getExpDate = '已';
+        }
+
+        //返回用户信息
+        return [
+            'company' => $ret[0]['cpy_cname'],
+            'companyID' => $ret[0]['cpy_id'],
+            'companyEmail' => $ret[0]['u_mail'],
+            'headImg' => 'upload/head/' . $ret[0]['u_head'],
+            'mobile' => $ret[0]['u_mobile'],
+            'position' => $ret[0]['u_position'],
+            'uname' => $ret[0]['u_name'],
+            'tokenDate' => $ret[0]['u_edate'],
+            'uid' => $ret[0]['u_id'],
+            'devID' => $ret[0]['dev_id'],
+            'devName' => $ret[0]['dev_name'],
+            'expDate' => $getExpDate,
+            'pnum_type' => $pnum_type,
+            'permissions' => $ret[0]['u_permissions'],
+            'wechat' => $ret[0]['u_wxname'],
+            'ird_user_id' => $ret[0]['product_key'],
+        ];
+    }
+
     /**
      * update user info
      *
@@ -1822,6 +1881,7 @@ class UserModel extends AgentModel
         array_multisort(array_column($rs, 'pdt_id'), SORT_ASC, $rs);
         _SUCCESS('000000', '查询成功', $rs);
     }
+
 
     /**
      * check user role
@@ -2931,7 +2991,7 @@ class UserModel extends AgentModel
 //        $checkMobile = $this->__checkMobileKey($data['mobile'], $data['mobile_key'], 3);
 
         if (!$this->__check_mail_suffix($data)) {
-            _ERROR('000001', '所填写邮箱不包含在预设的邮箱域名范围之内');
+            _ERROR('000003', '所填写邮箱不包好在预设的邮箱域名范围之内');
         }
 
 //        if (!empty($checkMobile)) {
@@ -2958,13 +3018,13 @@ class UserModel extends AgentModel
             if ($ret) {
                 _SUCCESS('000000', 'ok', ['u_id' => $uid,]);
             } else {
-                _ERROR('000001', 'add erro');
+                _ERROR('000003', '添加失败');
             }
 
         } else {
             //修改用户
             if ($hasUser[0]['cpy_id'] == $data['cpy_id']) {
-                _ERROR('000001', '该公司下，此用户已存在');
+                _ERROR('000003', '该公司下，此用户已存在');
             } elseif ($hasUser[0]['cpy_id'] == null || $hasUser[0]['cpy_id'] == 0) {
                 $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['userID']}'  where u_id = '{$hasUser[0]['u_id']}'";
                 $ret = $this->mysqlQuery($sql);
