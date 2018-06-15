@@ -417,7 +417,7 @@ class PermissionsModel extends AgentModel
 
         if ((OPEN_ME AND $userInfo['companyID'] == 1) and $data['pdt_id'] !== 38) {
 
-            return $this->getPdtInfo($data['pdt_id']);
+            return $this->getPdtInfoByCpyID($data['pdt_id'],$userInfo['companyID']);
 
         } else {
 
@@ -430,7 +430,7 @@ class PermissionsModel extends AgentModel
 
                 if ($this->__checkPermission($userInfo['uid'], $data['pdt_id'], $userInfo['companyID'], $data['terminal'])) {
 
-                    return $this->getPdtInfo($data['pdt_id']);
+                    return $this->getPdtInfoByCpyID($data['pdt_id'],$userInfo['companyID']);
 
                 } else {
 
@@ -454,11 +454,11 @@ class PermissionsModel extends AgentModel
     {
         $userInfo = Model::instance('user')->getUserInfoByUserID($data['userID']);
         if ((OPEN_ME AND $userInfo['companyID'] == 1) and $data['pdt_id'] !== 38) {
-            return $this->getPdtInfo($data['pdt_id']);
+            return $this->getPdtInfoByCpyID($data['pdt_id'],$userInfo['companyID']);
         } else {
             if (!empty($userInfo['u_id']) AND !empty($userInfo['cpy_id']) AND !empty($data['pdt_id'])) {
                 if ($this->__checkPermission($userInfo['u_id'], $data['pdt_id'], $userInfo['cpy_id'])) {
-                    return $this->getPdtInfo($data['pdt_id']);
+                    return $this->getPdtInfoByCpyID($data['pdt_id'],$userInfo['companyID']);
                 } else {
                     return false;
                 }
@@ -481,7 +481,7 @@ class PermissionsModel extends AgentModel
         if ((OPEN_ME AND $userInfo['companyID'] == 1) and $data['pdt_id'] !== 38) {
             if (!empty($data['uri'])) {
                 $pdt = $this->getPdtInfoByURI($data['uri']);
-                return $this->getPdtInfo($pdt['pdt_id']);
+                return $this->getPdtInfoByCpyID($pdt['pdt_id'],$userInfo['companyID']);
             } else {
                 return false;
             }
@@ -491,7 +491,7 @@ class PermissionsModel extends AgentModel
                 if ($pdt) {
                     if (!empty($userInfo['uid']) AND !empty($userInfo['companyID']) AND !empty($pdt['pdt_id'])) {
                         if ($this->__checkPermission($userInfo['uid'], $pdt['pdt_id'], $userInfo['companyID'])) {
-                            return $this->getPdtInfo($pdt['pdt_id']);
+                            return $this->getPdtInfoByCpyID($pdt['pdt_id'],$userInfo['companyID']);
                         } else {
                             return false;
                         }
@@ -514,13 +514,62 @@ class PermissionsModel extends AgentModel
      *
      * @return bool
      */
+    public function getPdtInfoByCpyID($pdt_id,$cpy_id)
+    {
+        if (!empty($pdt_id)) {
+            $sql_parent = "select pdt_label from idt_product where pdt_id = {$pdt_id}";
+            $ret_parent = $this->mysqlQuery($sql_parent, 'all');
+            if (!empty($ret_parent[0]['pdt_label'])) {
+                $rq = json_decode($ret_parent[0]['pdt_label'], true);
+                $sql = "SELECT pdt_name, pdt_url,pdt_try_cdate,pdt_try_edate FROM idt_product WHERE pdt_id='{$pdt_id}' 
+                        AND pdt_state=0 AND pdt_vtype=1";
+                $ret = $this->mysqlQuery($sql, 'all');
+                if(empty($ret[0]['pdt_try_edate']) && $ret[0]['pnum_type'] ==1){
+                    $try_date_sql = "select pdt_try_cdate,pdt_try_edate from idt_product where pdt_id = {$rq['parentID']}";
+                    $try_date = $this->mysqlQuery($try_date_sql, 'all');
+                    $ret[0]['pdt_try_cdate'] = $try_date[0]['pdt_try_cdate'];
+                    $ret[0]['pdt_try_edate'] = $try_date[0]['pdt_try_edate'];
+                }
+            }else{
+                $sql = "SELECT pdt_name, pdt_url,pnum_try_cdate as pdt_try_cdate,pnum_try_edate as pdt_try_edate,pnum_type 
+                    FROM idt_permissions_number 
+                    left join idt_product on idt_product.pdt_id = idt_permissions_number.pdt_id
+                    WHERE idt_permissions_number.pdt_id='{$pdt_id}' AND cpy_id = $cpy_id and pdt_state=0 AND pdt_vtype=1";
+                $ret = $this->mysqlQuery($sql, 'all');
+                if(empty($ret[0]['pdt_try_edate']) && $ret[0]['pnum_type'] ==1){
+                    $try_date_sql = "select pdt_try_cdate,pdt_try_edate from idt_product where pdt_id = {$pdt_id}";
+                    $try_date = $this->mysqlQuery($try_date_sql, 'all');
+                    $ret[0]['pdt_try_cdate'] = $try_date[0]['pdt_try_cdate'];
+                    $ret[0]['pdt_try_edate'] = $try_date[0]['pdt_try_edate'];
+                }
+            }
+            return $ret[0];
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 获取产品信息
+     *
+     * @param $pdt_id
+     *
+     * @return bool
+     */
     public function getPdtInfo($pdt_id)
     {
         if (!empty($pdt_id)) {
             $sql = "SELECT pdt_name, pdt_url,pdt_try_cdate,pdt_try_edate FROM idt_product WHERE pdt_id='{$pdt_id}' 
                 AND pdt_state=0 AND pdt_vtype=1";
-            $ret = $this->mysqlQuery($sql, 'all');
-            return $ret[0];
+
+            $mk = md5($sql);
+            if ($this->redis()->exists($mk)) {
+                $ret = json_decode($this->redis()->get($mk), true);
+            } else {
+                $ret = $this->mysqlQuery($sql, 'all');
+                $this->redis()->set($mk, json_encode($ret), 43200);
+            }
+            return empty($ret[0]) ? false : $ret[0];
         } else {
             return false;
         }
