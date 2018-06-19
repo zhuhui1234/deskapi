@@ -210,12 +210,12 @@ class ServiceController extends Controller
 
         $v = $this->__checkHead();
         if ($v) {
-
+            $sms = SMS::instance();
             $data = _POST();
             switch ($data['type']) {
                 default:
                 case 'register':
-                    $sms = SMS::instance()->sendSingleSMS($this->__registerText($data), null, true);
+                    $sms = $sms->aliSMS($data['mobile'], SMS_137315006, $this->__registerText($data));
                     break;
 
                 case 'event_notice':
@@ -223,15 +223,19 @@ class ServiceController extends Controller
                     break;
             }
 
-            if ($sms == 0) {
+            if ($sms->Code == 'OK') {
                 _SUCCESS('000000', '发送成功');
             } else {
+                write_to_log(json_encode((array)$sms), '_sms');
                 _ERROR('000002', '发送失败,SMS错误');
             }
 
+
         }
 
+
     }
+
 
     /**
      * for app login
@@ -339,14 +343,7 @@ class ServiceController extends Controller
         if (!isset($data['timeout_value']))
             $data['timeout_value'] = 30;
 
-        $ret = ['tpl_id' => '2287068',
-            'tpl_value' =>
-                urlencode('#code#') . '=' . urlencode($data['code']) . '&'
-                . urlencode('#timeout_value#') . '=' . urlencode($data['timeout_value']),
-            'apikey' => NATION_API, 'mobile' => $data['mobile']
+        return $data;
 
-        ];
-
-        return $ret;
     }
 }

@@ -1260,10 +1260,19 @@ class UserModel extends AgentModel
                 //var_dump('no mail');
             }
 
-            $sms = Sms::instance()->sendSms($content, $phones);
-            if ($sms == '发送成功') {
+            $sms = Sms::instance()->aliSMS($phones, 'SMS_137315006', ['code'=>$data['Code']]);
+
+
+//            if ($sms == '发送成功') {
+//                _SUCCESS('000000', '发送成功');
+//            } else {
+//                _ERROR('000002', '发送失败,SMS错误');
+//            }
+
+            if ($sms->Code == 'OK') {
                 _SUCCESS('000000', '发送成功');
             } else {
+                write_to_log(json_encode((array)$sms), '_sms');
                 _ERROR('000002', '发送失败,SMS错误');
             }
 
