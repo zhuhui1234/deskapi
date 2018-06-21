@@ -483,6 +483,17 @@ class UserController extends Controller
         }
     }
 
+    public function productInfo()
+    {
+        $data = _POST();
+        $ret = $this->model->productInfo($data);
+        if ($ret) {
+            _SUCCESS('0000000', 'OK', $ret);
+        } else {
+            _ERROR('000001', 'FAILS');
+        }
+    }
+
     /**
      * 通过IRD获取用户信息
      */
