@@ -2294,6 +2294,12 @@ class UserModel extends AgentModel
         return $this->mysqlQuery($sql, 'all');
     }
 
+    public function productInfo($data)
+    {
+        $sql = "select pdt_logo_url,pdt_intro from idt_product where pdt_id = {$data['pdt_id']}";
+        return $this->mysqlQuery($sql, 'all');
+    }
+
     ######################################################################################
     ##################################                     ###############################
     #################################   PRIVATE METHODS   ################################
