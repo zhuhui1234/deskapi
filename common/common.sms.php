@@ -298,7 +298,7 @@ class Sms
             $params["TemplateParam"] = json_encode($params["TemplateParam"], JSON_UNESCAPED_UNICODE);
         }
         $helper = new SignatureHelper();
-
+        write_to_log(json_encode($params), '__alisms');
         try {
             // 此处可能会抛出异常，注意catch
             $content = $helper->request(
@@ -314,7 +314,7 @@ class Sms
             // ,true
             );
         } catch (Exception $exception) {
-            write_to_log(json_encode($exception, '_sendmail'));
+            write_to_log(json_encode($exception, '_alisms'));
         }
 
         return $content;
