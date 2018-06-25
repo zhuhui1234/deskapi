@@ -219,7 +219,8 @@ class ServiceController extends Controller
                     break;
 
                 case 'event_notice':
-                    $sms = SMS::instance()->sendSingleSMS($this->__irsResearchText($data), null, true);
+//                    $sms = SMS::instance()->sendSingleSMS($this->__irsResearchText($data), null, true);
+                    $sms = $sms->aliSMS($data['mobile'], SMS_137659871, $data, '艾瑞研究院APP');
                     break;
             }
 
