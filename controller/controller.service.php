@@ -215,12 +215,12 @@ class ServiceController extends Controller
             switch ($data['type']) {
                 default:
                 case 'register':
-                    $sms = $sms->aliSMS($data['mobile'], SMS_137315006, $this->__registerText($data));
+                    $sms = $sms->aliSMS($data['mobile'], 'SMS_137955318', $this->__registerText($data));
                     break;
 
                 case 'event_notice':
 //                    $sms = SMS::instance()->sendSingleSMS($this->__irsResearchText($data), null, true);
-                    $sms = $sms->aliSMS($data['mobile'], SMS_137659871, $data, '艾瑞研究院APP');
+                    $sms = $sms->aliSMS($data['mobile'], 'SMS_138065649', $data, '艾瑞咨询');
                     break;
             }
 

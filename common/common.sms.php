@@ -265,7 +265,7 @@ class Sms
         return $ret;
     }
 
-    public function aliSMS($mobile, $TemplateCode = 'SMS_137315006', $body)
+    public function aliSMS($mobile, $TemplateCode = 'SMS_137315006', $body, $signName='iResearch')
     {
         $params = [];
 
@@ -279,7 +279,7 @@ class Sms
         $params["PhoneNumbers"] = $mobile;
 
         // fixme 必填: 短信签名，应严格按"签名名称"填写，请参考: https://dysms.console.aliyun.com/dysms.htm#/develop/sign
-        $params["SignName"] = "iResearch";
+        $params["SignName"] = $signName;
 
         // fixme 必填: 短信模板Code，应严格按"模板CODE"填写, 请参考: https://dysms.console.aliyun.com/dysms.htm#/develop/template
         $params["TemplateCode"] = $TemplateCode;
@@ -314,9 +314,9 @@ class Sms
             // ,true
             );
         } catch (Exception $exception) {
-            write_to_log(json_encode($exception, '_alisms'));
+            write_to_log(json_encode($exception, '__alisms'));
         }
-
+        write_to_log(json_encode($content),'__alisms');
         return $content;
     }
 
