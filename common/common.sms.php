@@ -265,7 +265,7 @@ class Sms
         return $ret;
     }
 
-    public function aliSMS($mobile, $TemplateCode = 'SMS_137315006', $body, $signName='iResearch')
+    public function aliSMS($mobile, $TemplateCode = 'SMS_137315006', $body, $signName = 'iResearch', $countryCode = null)
     {
         $params = [];
 
@@ -293,8 +293,16 @@ class Sms
         // fixme 可选: 上行短信扩展码, 扩展码字段控制在7位或以下，无特殊需求用户请忽略此字段
 //        $params['SmsUpExtendCode'] = "1234567";
 
+        if (!empty($countryCode) and $countryCode != 86 and $countryCode != 'CN') {
+            $activeName = 'SendInterSms';
+            $params['CountryCode'] = $countryCode;
+        }else{
+            $activeName = 'SendSms';
+        }
+
+
         // *** 需用户填写部分结束, 以下代码若无必要无需更改 ***
-        if(!empty($params["TemplateParam"]) && is_array($params["TemplateParam"])) {
+        if (!empty($params["TemplateParam"]) && is_array($params["TemplateParam"])) {
             $params["TemplateParam"] = json_encode($params["TemplateParam"], JSON_UNESCAPED_UNICODE);
         }
         $helper = new SignatureHelper();
@@ -307,7 +315,7 @@ class Sms
                 "dysmsapi.aliyuncs.com",
                 array_merge($params, array(
                     "RegionId" => "cn-hangzhou",
-                    "Action" => "SendSms",
+                    "Action" => $activeName,
                     "Version" => "2017-05-25",
                 ))
             // fixme 选填: 启用https
@@ -316,7 +324,7 @@ class Sms
         } catch (Exception $exception) {
             write_to_log(json_encode($exception, '__alisms'));
         }
-        write_to_log(json_encode($content),'__alisms');
+        write_to_log(json_encode($content), '__alisms');
         return $content;
     }
 
