@@ -1337,14 +1337,16 @@ class UserModel extends AgentModel
                     if (IS_TEST) {
                         $sms = '发送成功';
                     } else {
-                        if ($data['CountryCode'] == '86') {
+                        if ($data['CountryCode'] == '86' or $data['CountryCode'] == 'CN' or empty($data['CountryCode'])) {
 //                            $sms = Sms::instance()->sendSingleSMS($this->__textTemple($data['Code'], $phones,
 //                                SMS_TEMP_LOGIN), $phones, tr);
-                            $sms = Sms::instance()->aliSMS($phones, SMS_137315006, ['code' => $ret_codeSend['Code']]);
+                            $sms = Sms::instance()->aliSMS($phones, 'SMS_137315006', ['code' => $ret_codeSend['Code']]);
                         } else {
 //                            $sms = Sms::instance()->sendSingleSMS($this->__textTemple($data['Code'], $phones,
 //                                SMS_TEMP_NATION_LOGIN), $phones, tr);
-                            $sms = Sms::instance()->aliSMS($phones, SMS_137315006, ['code' => $ret_codeSend['Code']]);
+                            $sms = Sms::instance()->aliSMS($phones, 'SMS_138063591', [
+                                'code' => (string)$ret_codeSend['Code'],
+                                'time_val' => '30'], 'iResearch', $data['CountryCode']);
                         }
 
                     }
