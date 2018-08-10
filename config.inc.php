@@ -61,6 +61,11 @@ define('Android_APP_key', 'iDataApp');
 
 define('IP_API', 'http://ip-api.com/php/');
 define('IP_FIELDS', 262143);
+
+//************************** 阿里云短信 *****************
+define('ALI_ACCESS_KEY', 'LTAInR6x2qbAD7lR');
+define('ALI_ACCESS_KEY_SECRET', '5WgaBDi0nidcThqPQDqvj9ug5ALUle');
+
 //******************************************************************
 //站点配置
 //	define('WEBSITE','http://localhost');

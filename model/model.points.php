@@ -18,7 +18,6 @@ class PointsModel extends AgentModel
             3： 赠送分值
             4： 预留
             5： 预留
-
         ----------------------------
         减法：
             6： 定制报告
@@ -131,7 +130,7 @@ class PointsModel extends AgentModel
                 _ERROR('000004', '已经被处理过');
             }
 
-//            $data['balance'] = $this->__computingBalancePoint($data['licence_key']);
+            $data['balance'] = $this->__computingBalancePoint($data['licence_key']);
 
             //get point value
 
@@ -576,9 +575,9 @@ class PointsModel extends AgentModel
     private function __insertRow(array $data)
     {
         unset($data['token']);
-//        if (empty($data['licence_key'])) {
-//            _ERROR('000002', 'no licence key');
-//        }
+        if (empty($data['licence_key'])) {
+            _ERROR('000002', 'no licence key');
+        }
         if (empty($data['u_id'])) {
             _ERROR('000002', 'no user id');
         }
@@ -742,6 +741,24 @@ class PointsModel extends AgentModel
         $negativeNum = $this->mysqlQuery($negativeNumSQL, 'all');
         $ret = (int)$positiveNum[0]['positivenum'] - (int)$negativeNum[0]['negativenum'];
         return $ret;
+    }
+
+    /**
+     * get point value
+     *
+     * @param $pointID
+     * @return bool
+     */
+    private function __getPointValue($pointID)
+    {
+        $sql = "SELECT point_value FROM idt_points WHERE point_id='{$pointID}'";
+
+        $ret = $this->mysqlQuery($sql, 'all');
+        if ($ret) {
+            return $ret[0]['point_value'];
+        } else {
+            return false;
+        }
     }
 
     /**
