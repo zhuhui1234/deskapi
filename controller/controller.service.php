@@ -187,7 +187,7 @@ class ServiceController extends Controller
 
         $userModel = Model::instance('user');
 
-        $userModel->hasProductList($data['u_id']);
+        _SUCCESS('000000', 'ok', $userModel->hasProductList($data['u_id']));
 
     }
 

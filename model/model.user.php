@@ -2160,7 +2160,12 @@ class UserModel extends AgentModel
         }
     }
 
-
+    /**
+     * 产品权限
+     *
+     * @param $u_id
+     * @return array
+     */
     public function hasProductList($u_id)
     {
         $productList = $this->__getUserProductList($u_id);
