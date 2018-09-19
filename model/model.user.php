@@ -1564,7 +1564,7 @@ class UserModel extends AgentModel
     }
 
 
-    public function _getUserInfoByToken($data)
+    private function _getUserInfoByToken($data)
     {
         $sql = "SELECT dbb.cpy_cname,dbb.cpy_id,dba.u_mail,dba.u_head,
                 dba.u_mobile,dba.u_position,dba.u_permissions,dba.u_name,dba.u_id ,devdb.dev_name, dba.dev_id,dba.u_edate, dba.u_product_key, dba.u_wxname
