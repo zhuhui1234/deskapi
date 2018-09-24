@@ -34,8 +34,8 @@ class MysqlRoutRule implements IMysqlRoutRule{
 //                    'host'=>'180.169.19.208',
 //                    'user'=>'idata_admin',
 //                    'pass'=>'1qaz2wsx',
-//                    'db'=>'idatadb'
-                    'host' => '42.159.231.97',
+//                    'db'=>'idata2'
+                    'host' => '113.200.91.99:38652',
                     'user' => 'idata_admin',
                     'pass' => '1qaz2wsx',
                     'db' => 'idata2'
@@ -47,7 +47,7 @@ class MysqlRoutRule implements IMysqlRoutRule{
 //                    'user'=>'idata_admin',
 //                    'pass'=>'1qaz2wsx',
 //                    'db'=>'idatadb'
-                    'host'=>'42.159.231.97',
+                    'host'=>'113.200.91.99:38652',
                     'user'=>'idata_admin',
                     'pass'=>'1qaz2wsx',
                     'db'=>'idata2'

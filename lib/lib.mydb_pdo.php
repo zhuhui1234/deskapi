@@ -69,10 +69,10 @@ class MyDb{
     function connect(){
         if(count(explode(':',$this->host))>1){
             list($host,$port) = explode(':',$this->host);
-            !$port && $port = 3306;
+            !$port && $port = 38652;
         }else{
             $host = $this->host;
-            $port = 3306;
+            $port = 38652;
         }
         $start_time = microtime(true);
 //		$this->linkID=mssql_connect($host . ':' . $port, $this->user,$this->pass,$this->db) or die('DB Connect Error!');

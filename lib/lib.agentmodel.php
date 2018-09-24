@@ -106,6 +106,7 @@ class AgentModel extends Model
         if (DEBUG) {
             $showsql = true;
         }
+//        write_to_log($this->mydb($db, $this->opr)->update($tab, $where, $arr, true),'_sql');
         $res = $this->mydb($db, $this->opr)->update($tab, $where, $arr, $showsql);
 
         $this->data_unset();
@@ -145,8 +146,7 @@ class AgentModel extends Model
 
     protected function redis($opr = 'RS')
     {
-        $res = $this->redisDb($opr);
-        return $res;
+        return $this->redisDb($opr);
     }
 
     protected function redisHere($key, $del = false)

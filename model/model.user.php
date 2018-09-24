@@ -1311,6 +1311,13 @@ class UserModel extends AgentModel
             $phones = $data['Mobile'];
             $mail = $this->__checkHasEmail($data['Mobile']);
 
+            //海外账号登入
+            if (!empty($phones) and $getData['LoginType'] !== 'mail') {
+                if ((int)$phones > 40000000000) {
+                    $getData['LoginType'] = 'oversea';
+                }
+            }
+
             write_to_log('the mobile: ' . $data['Mobile'] . 'ready to send mail: ' . $mail, '_mail');
 
             switch ($getData['LoginType']) {
@@ -1373,6 +1380,9 @@ class UserModel extends AgentModel
                         _ERROR('000002', '此邮箱没有登记，请联系客服');
                     }
 
+                    break;
+                case 'oversea':
+                    _SUCCESS('000000', 'Please login with special password!');
                     break;
                 default:
                     _ERROR('000002', '发送失败,数据异常');
