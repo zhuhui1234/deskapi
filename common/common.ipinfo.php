@@ -43,13 +43,19 @@ class IpInfo
     private function __communicate($q)
     {
         if (is_callable('curl_init')) {
-            $c = curl_init();
-            curl_setopt($c, CURLOPT_URL, self::$api . $q . '?fields=' . self::$fields);
-            curl_setopt($c, CURLOPT_HEADER, false);
-            curl_setopt($c, CURLOPT_TIMEOUT, 30);
-            curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
-            $result_array = unserialize(curl_exec($c));
-            curl_close($c);
+
+            try {
+                $c = curl_init();
+                curl_setopt($c, CURLOPT_URL, self::$api . $q . '?fields=' . self::$fields);
+                curl_setopt($c, CURLOPT_HEADER, false);
+                curl_setopt($c, CURLOPT_TIMEOUT, 30);
+                curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
+                $result_array = unserialize(curl_exec($c));
+                curl_close($c);
+            } catch (Exception $e) {
+                return null;
+            }
+
         } else {
             $result_array = unserialize(file_get_contents(self::$api . $q . '?fields=' . self::$fields));
         }
