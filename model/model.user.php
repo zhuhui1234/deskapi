@@ -1856,11 +1856,11 @@ class UserModel extends AgentModel
      */
     public function userProductInfo($data)
     {
-        $sql = "select idt_product.pdt_id,pdt_ename,DATE_FORMAT(`start_date`,'%Y-%m-%d') start_date,DATE_FORMAT(`end_date`,'%Y-%m-%d') end_date,false as state from idt_permissions_number
+        $sql = "select idt_product.pdt_id,pdt_name as pdt_ename,DATE_FORMAT(`start_date`,'%Y-%m-%d') start_date,DATE_FORMAT(`end_date`,'%Y-%m-%d') end_date,false as state from idt_permissions_number
                 left join idt_product on idt_permissions_number.pdt_id = idt_product.pdt_id
                 where idt_product.pdt_vtype = 1 and pdt_sid<>0 and pdt_label is null and idt_product.pdt_state = 0 and cpy_id = {$data['cpy_id']} and meu_id = 0 order by pdt_ename asc";
         $ret = $this->mysqlQuery($sql, "all");
-        $lic_sql = "select idt_licence.pdt_id,pdt_ename,pc_start_time,pc_due_time,mobile_start_time,mobile_due_time,ott_start_time,ott_due_time,
+        $lic_sql = "select idt_licence.pdt_id,pdt_name as pdt_ename,pc_start_time,pc_due_time,mobile_start_time,mobile_due_time,ott_start_time,ott_due_time,
                     DATE_FORMAT(`start_date`,'%Y-%m-%d') start_date,DATE_FORMAT(`end_date`,'%Y-%m-%d') end_date,true as state from idt_licence
                     left join idt_product on idt_product.pdt_id = idt_licence.pdt_id
                     left join idt_subproduct on idt_subproduct.licence_key = idt_licence.licence_key
@@ -2082,7 +2082,7 @@ class UserModel extends AgentModel
                 FROM idt_licence WHERE 1=1 AND state=1 AND cpy_id={$data['cpy_id']} AND pdt_id={$ret[$key]['pdt_id']} AND u_id is not null";
                 $have_pnum = $this->mysqlQuery($sql, "all");
                 $rs['list'][$key]['productID'] = $ret[$key]['pdt_id'];
-                $rs['list'][$key]['productName'] = $ret[$key]['pdt_ename'];
+                $rs['list'][$key]['productName'] = $ret[$key]['pdt_name'];
                 $rs['list'][$key]['totalLicenseNumber'] = $ret[$key]['pnum_number'];
                 $rs['list'][$key]['usedLicenseNumber'] = $have_pnum[0]['have_pnum'];
                 $rs['list'][$key]['startDate'] = $ret[$key]['start_date'];

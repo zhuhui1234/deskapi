@@ -57,7 +57,7 @@ class LicenceModel extends AgentModel
                 break;
         }
         $data['keyword'] == null ? $keyword = '' : $keyword = " AND (idt_user.u_mobile LIKE '%" . $data['keyword'] . "%' or idt_user.u_name LIKE '%" . $data['keyword'] . "%')"; //查询条件
-        $sql = "select licence_id,idt_licence.licence_key,idt_licence.cpy_id,idt_licence.u_id,idt_licence.pdt_id,points,lic_cdate,lic_edate,lic_comment,u_mobile,u_name,pdt_ename,
+        $sql = "select licence_id,idt_licence.licence_key,idt_licence.cpy_id,idt_licence.u_id,idt_licence.pdt_id,points,lic_cdate,lic_edate,lic_comment,u_mobile,u_name,pdt_name,
                 pc_due_time,mobile_due_time,ott_due_time,pc_start_time,mobile_start_time,ott_start_time 
                 from idt_licence
                 left join idt_product on idt_product.pdt_id = idt_licence.pdt_id
@@ -76,7 +76,7 @@ class LicenceModel extends AgentModel
                     $own[$key]['userID'] = $ret[$key]['u_id'];
                     $own[$key]['userName'] = $ret[$key]['u_name'];
                     $own[$key]['productID'] = $ret[$key]['pdt_id'];
-                    $own[$key]['productName'] = $ret[$key]['pdt_ename'];
+                    $own[$key]['productName'] = $ret[$key]['pdt_name'];
                     $own[$key]['mobile'] = $ret[$key]['u_mobile'];
                     $own[$key]['initial_points'] = $ret[$key]['points'];
                     $own[$key]['terminal'] = null;
@@ -99,7 +99,7 @@ class LicenceModel extends AgentModel
                     $rs[$key]['userID'] = $ret[$key]['u_id'];
                     $rs[$key]['userName'] = $ret[$key]['u_name'];
                     $rs[$key]['productID'] = $ret[$key]['pdt_id'];
-                    $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
+                    $rs[$key]['productName'] = $ret[$key]['pdt_name'];
                     $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
                     $rs[$key]['initial_points'] = $ret[$key]['points'];
                     $rs[$key]['terminal'] = null;
@@ -152,7 +152,7 @@ class LicenceModel extends AgentModel
             _ERROR('000002', '用户ID不能为空');
         }
         $data['keyword'] == null ? $keyword = '' : $keyword = " AND (idt_product.pdt_ename LIKE '%" . $data['keyword'] . "%' or idt_product.pdt_id LIKE '%" . $data['keyword'] . "%')"; //查询条件
-        $sql = "select licence_id,licence_key,idt_licence.cpy_id,idt_licence.u_id,idt_licence.pdt_id,points,lic_cdate,lic_edate,lic_comment,u_mobile,u_name,pdt_ename 
+        $sql = "select licence_id,licence_key,idt_licence.cpy_id,idt_licence.u_id,idt_licence.pdt_id,points,lic_cdate,lic_edate,lic_comment,u_mobile,u_name,pdt_name 
                 from idt_licence
                 left join idt_product on idt_product.pdt_id = idt_licence.pdt_id
                 left join idt_user on idt_user.u_id = idt_licence.u_id
@@ -165,7 +165,7 @@ class LicenceModel extends AgentModel
             $rs[$key]['userID'] = $ret[$key]['u_id'];
             $rs[$key]['userName'] = $ret[$key]['u_name'];
             $rs[$key]['productID'] = $ret[$key]['pdt_id'];
-            $rs[$key]['productName'] = $ret[$key]['pdt_ename'];
+            $rs[$key]['productName'] = $ret[$key]['pdt_name'];
             $rs[$key]['mobile'] = $ret[$key]['u_mobile'];
             $rs[$key]['initial_points'] = $ret[$key]['points'];//初始积分
 //            $rs[$key]['remaining_points'] = $this->__computingBalancePoint($ret[$key]['licence_key']); //剩余积分
