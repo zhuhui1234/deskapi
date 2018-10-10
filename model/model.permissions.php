@@ -39,7 +39,7 @@ class PermissionsModel extends AgentModel
 
     public function getProduct($data)
     {
-        $sql = "SELECT pdt_name, pdt_ename FROM idatadb.idt_product WHERE pdt_id='{$data['pdt_id']}'";
+        $sql = "SELECT pdt_name, pdt_ename FROM idt_product WHERE pdt_id='{$data['pdt_id']}'";
         $ret = $this->mysqlQuery($sql, 'all');
         return $ret;
     }
@@ -413,7 +413,7 @@ class PermissionsModel extends AgentModel
      */
     public function getPermissionInfo($data)
     {
-        $userInfo = Model::instance('user')->_getUserInfoByToken($data);
+        $userInfo = Model::instance('user')->_getUserInfoByToken_no_dev($data);
 
         if ((OPEN_ME AND $userInfo['companyID'] == 1) and $data['pdt_id'] !== 38) {
 
@@ -1437,14 +1437,14 @@ class PermissionsModel extends AgentModel
 
     private function __getProduct($data)
     {
-        $sql = "SELECT COUNT(*) co FROM idatadb.idt_product WHERE pdt_id='{$data['pdt_id']}' AND pdt_state='0'";
+        $sql = "SELECT COUNT(*) co FROM idt_product WHERE pdt_id='{$data['pdt_id']}' AND pdt_state='0'";
         $ret = $this->mysqlQuery($sql, 'all');
         return $ret[0];
     }
 
     private function __getProductInfo($data)
     {
-        $sql = "SELECT pdt_name,pdt_ename FROM idatadb.idt_product WHERE pdt_id='{$data['pdt_id']}' AND pdt_state='0'";
+        $sql = "SELECT pdt_name,pdt_ename FROM idt_product WHERE pdt_id='{$data['pdt_id']}' AND pdt_state='0'";
         return $this->mysqlQuery($sql, 'all');
     }
 
@@ -1570,6 +1570,7 @@ class PermissionsModel extends AgentModel
     private function __checkPermission($userID, $pdt_id, $cpy_id, $get_terminal = null)
     {
         $now = date('Y-m-d H:i:s');
+        $t_now = date('Y-m-d');
         $sql_parent = "select pdt_label from idt_product where pdt_id = {$pdt_id}";
 
         $sql_p = md5($sql_parent);
@@ -1607,7 +1608,7 @@ class PermissionsModel extends AgentModel
                                             WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
                                             AND idt_licence.pdt_id='{$rq['parentID']}' AND state='1'
                                         ) AND idt_subproduct.pdt_id = {$rq['parentID']}
-                                        AND pc_due_time>='{$now}' AND pc_start_time<='{$now}'";
+                                        AND pc_due_time>='{$t_now}' AND pc_start_time<='{$t_now}'";
                         write_to_log($terminalSql, '_test');
                     } elseif ($rq['terminal'] == 'mobile') {
                         $terminalSql = "SELECT COUNT(*) co FROM idt_subproduct 
@@ -1616,7 +1617,7 @@ class PermissionsModel extends AgentModel
                                             WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
                                             AND idt_licence.pdt_id='{$rq['parentID']}' AND state='1'
                                         ) AND idt_subproduct.pdt_id = {$rq['parentID']}
-                                        AND mobile_due_time>='{$now}' AND mobile_start_time<='{$now}'";
+                                        AND mobile_due_time>='{$t_now}' AND mobile_start_time<='{$t_now}'";
                     } elseif ($rq['terminal'] == 'ott') {
                         $terminalSql = "SELECT COUNT(*) co FROM idt_subproduct 
                                         WHERE idt_subproduct.licence_key in (
@@ -1624,9 +1625,11 @@ class PermissionsModel extends AgentModel
                                             WHERE u_id='{$userID}' AND cpy_id = {$cpy_id}
                                             AND idt_licence.pdt_id='{$rq['parentID']}' AND state='1'
                                         ) AND idt_subproduct.pdt_id = {$rq['parentID']}
-                                        AND ott_due_time>='{$now}' AND ott_start_time<='{$now}'";
+                                        AND ott_due_time>='{$t_now}' AND ott_start_time<='{$t_now}'";
                     }
                     $terminal = $this->mysqlQuery($terminalSql, 'all');
+                    write_to_log(json_encode($terminal), '_test');
+                    write_to_log($terminalSql,'_test');
                     if ($terminal[0]['co'] > 0) {
                         return true;
                     } else {
@@ -1766,7 +1769,7 @@ class PermissionsModel extends AgentModel
     private function __checkNotGuest($userID)
     {
         if (!empty($userID)) {
-            $sql = "SELECT u_permissions FROM idatadb.idt_user WHERE u_id = '{$userID}'";
+            $sql = "SELECT u_permissions FROM idt_user WHERE u_id = '{$userID}'";
             $ret = $this->mysqlQuery($sql, 'all');
             if (count($ret) > 0) {
                 return $ret[0]['u_permissions'] > 0;

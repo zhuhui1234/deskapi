@@ -57,7 +57,11 @@ class IpInfo
             }
 
         } else {
-            $result_array = unserialize(file_get_contents(self::$api . $q . '?fields=' . self::$fields));
+            try {
+                $result_array = unserialize(file_get_contents(self::$api . $q . '?fields=' . self::$fields));
+            } catch (Exception $e) {
+                return null;
+            }
         }
 
         return $result_array;
