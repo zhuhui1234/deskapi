@@ -315,15 +315,6 @@ class PointsModel extends AgentModel
         $data['pageSize'] == null ? $pageSize = '10' : $pageSize = $data['pageSize']; //查询数据
         $data['pageNo'] == null ? $pageNo = '0' : $pageNo = $data['pageNo'] - 1; //查询页数
 
-        if (isset($data['type'])) {
-            if ($data['type'] == 1) {
-                $type = " and type in (1,21,22)";
-            } else {
-                $type = " and type in (2,6)";
-            }
-        } else {
-            $type = '';
-        }
         $sql = "SELECT
                     point_id,
                     idt_company.cpy_cname,
@@ -342,7 +333,7 @@ class PointsModel extends AgentModel
                     LEFT JOIN idt_company ON idt_company.cpy_id = idt_user.cpy_id
                     LEFT JOIN idt_product ON idt_product.pdt_id = idt_points.pdt_id 
                 WHERE
-                    idt_points.cpy_id = '{$data['cpy_id']}' and idt_points.state !=1{$type}
+                    idt_points.cpy_id = '{$data['cpy_id']}' and idt_points.state !=1
                     ORDER BY idt_points.cdate DESC ";
         $ret = $this->mysqlQuery($sql, 'all');
 
@@ -354,13 +345,32 @@ class PointsModel extends AgentModel
         } else {
             if (is_array($ret)) {
                 $rs = $this->__formatPointCompanyDataList($ret);
+                if (isset($data['type'])) {
+                    if ($data['type'] == 1) {
+                        $type = ['1','21','22'];
+                        foreach($rs as $key => $value){
+                            if(!in_array($rs[$key]['type'],$type)) {
+                                unset($rs[$key]);
+                            }
+                        }
+                    } else {
+                        $type = ['2','6'];
+                        foreach($rs as $key => $value){
+                            if(!in_array($rs[$key]['type'],$type)) {
+                                unset($rs[$key]);
+                            }
+                        }
+                    }
+                }
+                $total = count($rs);
                 $rs = $this->__makePaging($rs, $pageSize);
             } else {
                 $rs = null;
+                $total = 0;
             }
         }
 
-        _SUCCESS('000000', 'OK', ['list' => $rs[$pageNo], 'totalSize' => count($ret)]);
+        _SUCCESS('000000', 'OK', ['list' => $rs[$pageNo], 'totalSize' => $total]);
     }
 
     public function getPointListUser($data)
