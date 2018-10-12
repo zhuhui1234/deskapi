@@ -407,7 +407,7 @@ class PointsModel extends AgentModel
     ######################################################################################
 
 
-    private function __transTypeValue($type)
+    private function __transTypeValue($type,$userName='',$mobile='')
     {
         $type = (int)$type;
         switch ($type) {
@@ -421,16 +421,16 @@ class PointsModel extends AgentModel
                 return '赠送积分';
                 break;
             case 6:
-                return '定制报告';
+                return '定制报告'.' '.$userName.' '.$mobile;;
                 break;
             case 7:
                 return '撤销获得积分';
                 break;
             case 21:
-                return '积分转账给公司';
+                return $userName.' '.$mobile.' 积分转账给公司';
                 break;
             case 22:
-                return '积分转账给用户';
+                return '积分转账给用户'.' '.$userName.' '.$mobile;
                 break;
         }
     }
@@ -534,12 +534,12 @@ class PointsModel extends AgentModel
                     $rs[$key]['customReportTicketID'] = "{$arr['pdt_name']}-{$arr['ID']}";
                     $rs[$key]['customReportName'] = $arr['Name'];
                 } else {
-                    $rs[$key]['log'] = $ret[$key]['point_explain'];
+                    $rs[$key]['log'] = $ret[$key]['point_explain']. ' 用户'.$ret[$key]['u_name'];
                     $rs[$key]['customReportName'] = null;
                 }
 
             } else {
-                $rs[$key]['log'] = $this->__transTypeValue($ret[$key]['type']);
+                $rs[$key]['log'] = $this->__transTypeValue($ret[$key]['type'],$ret[$key]['u_name'],$ret[$key]['u_mobile']);
                 $rs[$key]['customReportTicketID'] = "{$arr['pdt_name']}-{$arr['ID']}";
                 $rs[$key]['customReportName'] = $arr['Name'];
             }
