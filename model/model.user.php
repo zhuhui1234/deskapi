@@ -518,21 +518,12 @@ class UserModel extends AgentModel
 
                         }
                     }
-//                    $log_db = $logsModel->pushLog([
-//                        'user' => $rs['userID'],
-//                        'companyID' => $rs['companyID'],
-//                        'type' => 'irv用户日志',
-//                        'action' => '睿见登入',
-//                        'resource' => 'irv登入',
-//                        'status' => '20000',
-//                        'level' => '2'
-//                    ]);
-
-//                    if (!$log_db) {
-//                        write_to_log('log error', '_log');
-//                    }
-
-                    _SUCCESS('000000', '登录成功', $rs);
+                    write_to_log(json_encode($data), '_data');
+                    if ($this->__checkBind($ret[0]['userid'], $data['userIP'])) {
+                        _SUCCESS('000000', '登录成功', $rs);
+                    } else {
+                        _ERROR('000006', '登录失败,您所在的区域不允许使用产品');
+                    }
 
                 } else {
                     _ERROR('000005', '登录失败,更新token失败');
@@ -653,6 +644,25 @@ class UserModel extends AgentModel
                     AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5";
 
                 break;
+
+            case 'sp_mail':
+                $mail_sql = "select u_mobile as mobile from idt_user where u_mail = '{$data['loginMail']}'";
+                $get_mobile = $this->mysqlQuery($mail_sql, 'all');
+                if (!empty($get_mobile) and !empty($get_mobile[0]['mobile'])) {
+                    $data['loginMobile'] = $get_mobile[0]['mobile'];
+                }
+
+                $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
+                    dba.u_head headimg,dba.u_product_key productkey,
+                    dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
+                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat
+                    FROM idt_user dba 
+                    LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
+                    LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
+                    WHERE dba.u_mail='{$data['loginMail']}' AND dbb.mik_key='{$data['LoginKey']}' 
+                    AND dbb.mik_state=0 AND ROUND((UNIX_TIMESTAMP('{$upTimes}')-UNIX_TIMESTAMP(mik_cdate))/60)<=5";
+                break;
+
             default:
                 _ERROR('000001', '未知登录类型');
                 break;
@@ -829,29 +839,29 @@ class UserModel extends AgentModel
 
                         }
                     }
-//                    $log_db = $logsModel->pushLog([
-//                        'user' => $rs['userID'],
-//                        'companyID' => $rs['companyID'],
-//                        'type' => 'irv用户日志',
-//                        'action' => '睿见登入',
-//                        'resource' => 'irv登入',
-//                        'status' => '20000',
-//                        'level' => '2'
-//                    ]);
 
-//                    if (!$log_db) {
-//                        write_to_log('log error', '_log');
-//                    }
+                    if ($this->__checkBind($ret[0]['userid'], $data['userIP'])) {
+                        _SUCCESS('000000', '登录成功', $rs);
+                    } else {
+                        _ERROR('000005', '登录失败,您所在的区域不允许使用产品');
+                    }
 
-                    _SUCCESS('000000', '登录成功', $rs);
+//                    _SUCCESS('000000', '登录成功', $rs);
 
                 } else {
                     _ERROR('000005', '登录失败,更新token失败');
                 }
             } else {
                 //for JAPANESE Values Inc.
-                $sqlb = "SELECT *
+
+                if ($data['LoginType'] !== 'sp_mail') {
+                    $sqlb = "SELECT *
                         FROM idt_user WHERE u_mobile='{$data['loginMobile']}' and u_auth_type='{$data['LoginKey']}'";
+                } else {
+                    $sqlb = "SELECT *
+                        FROM idt_user WHERE u_mail='{$data['loginMail']}' and u_auth_type='{$data['LoginKey']}'";
+                }
+
 
                 $sp_ret = $this->mysqlQuery($sqlb, 'all');
 
@@ -892,7 +902,12 @@ class UserModel extends AgentModel
                     }
                 }
 
-                _ERROR('000002', '登录失败,账号不存在或验证码失效');
+                if ($data['LoginType'] == 'sp_mail') {
+                    _ERROR('000002', '登录失败,账号不存在或密码错误');
+                } else {
+                    _ERROR('000002', '登录失败,账号不存在或验证码失效');
+                }
+
             }
         }
     }
@@ -3168,6 +3183,35 @@ class UserModel extends AgentModel
         }
         return array_values($ret);
     }
+
+    /**
+     * check bind ip
+     * @param $u_id
+     * @param $ip
+     * @return bool
+     */
+    private function __checkBind($u_id, $ip)
+    {
+        write_to_log('user id: ' . $u_id . ', ip: ' . $ip, 'login_ip');
+        $sql = "select bind_ip FROM idt_user where u_id = '{$u_id}'";
+        $ret = $this->mysqlQuery($sql, 'all');
+        write_to_log(json_encode($ret), '_data');
+        if (count($ret) <= 0) {
+            return false;
+        } else {
+            if (empty($ret[0]['bind_ip'])) {
+                return true;
+            } else {
+                $ip_list = explode(',', $ret[0]['bind_ip']);
+
+                return in_array($ip, $ip_list);
+            }
+
+        }
+
+
+    }
+
 
     /**
      * sms template
