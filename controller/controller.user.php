@@ -73,7 +73,13 @@ class UserController extends Controller
                 if (empty($data['loginMail']) ) {
                     _ERROR('000001', '邮箱不能为空');
                 }
+                break;
+
+            case 'sp_mail':
+                break;
+
             case 'weixin':
+
                 break;
             default:
                 _ERROR('000001', '登录类型出错');
