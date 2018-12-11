@@ -1521,14 +1521,13 @@ class UserModel extends AgentModel
     {
         //查询产品Key
         $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,
-                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department,dba.u_wxname, 
+                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department,dba.u_wxname, dba.checkAgree, 
                 dba.u_product_key, dbb.ird_ca_id as ird_ca_id
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                 WHERE dba.u_id='{$data['userID']}'";
 
         $ret = $this->mysqlQuery($sql, "all");
-
         //返回用户信息
         $rs['company'] = $ret[0]['cpy_cname']; //公司
         $rs['companyEmail'] = $ret[0]['u_mail']; //公司邮箱
@@ -1548,6 +1547,7 @@ class UserModel extends AgentModel
         $rs['permissions'] = $ret[0]['u_permissions']; //姓名
         $rs['wechat'] = $ret[0]['u_wxname'];
         $rs['ird_user_Id'] = $ret[0]['u_product_key'];
+        $rs['checkAgree'] = $ret[0]['checkagree'];
         $rs['ird_ca_id'] = $ret[0]['ird_ca_id'];
         $rs['productList'] = $this->__getUserProductList($data['userID']);
         _SUCCESS('000000', '获取成功', $rs);
@@ -1556,7 +1556,7 @@ class UserModel extends AgentModel
     public function getUserInfoClean($data)
     {
         $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,
-                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department,dba.u_wxname, 
+                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department,dba.u_wxname,dba.checkAgree, 
                 dba.u_product_key, dbb.ird_ca_id as ird_ca_id
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
@@ -1592,7 +1592,7 @@ class UserModel extends AgentModel
     public function _getUserInfoByToken($data)
     {
         $sql = "SELECT dbb.cpy_cname,dbb.cpy_id,dba.u_mail,dba.u_head,
-                dba.u_mobile,dba.u_position,dba.u_permissions,dba.u_name,dba.u_id ,devdb.dev_name, dba.dev_id,dba.u_edate, dba.u_product_key, dba.u_wxname
+                dba.u_mobile,dba.u_position,dba.u_permissions,dba.u_name,dba.u_id ,devdb.dev_name, dba.dev_id,dba.u_edate, dba.u_product_key, dba.u_wxname, dba.checkAgree 
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                 LEFT JOIN idt_devs devdb on (dba.dev_id = devdb.dev_id)
@@ -1640,6 +1640,7 @@ class UserModel extends AgentModel
             'permissions' => $ret[0]['u_permissions'],
             'wechat' => $ret[0]['u_wxname'],
             'ird_user_id' => $ret[0]['product_key'],
+            'checkAgree' => $ret[0]['checkAgree']
         ];
     }
 
@@ -1761,6 +1762,24 @@ class UserModel extends AgentModel
         if (isset($ret)) {
             if ($ret == '1') {
                 _SUCCESS('000000', '修改成功', $this->getUserInfo($data));
+            } else {
+                _ERROR('000002', '修改失败');
+            }
+        }
+    }
+
+    /**
+     * agree rule
+     * @param $userId
+     */
+    public function agreeRule($userId)
+    {
+        $ret = $this->mysqlEdit('idt_user', ['checkAgree' => 1], "u_id='{$userId}'");
+
+        //返回响应结果
+        if (isset($ret)) {
+            if ($ret == '1') {
+                _SUCCESS('000000', '修改成功');
             } else {
                 _ERROR('000002', '修改失败');
             }

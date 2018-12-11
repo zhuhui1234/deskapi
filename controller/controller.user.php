@@ -54,6 +54,15 @@ class UserController extends Controller
         $this->model->login($data);
     }
 
+    public function agreeRule()
+    {
+        $data = _POST();
+        if (empty($data['userID'])) {
+            _ERROR('000001', 'userID不能为空');
+        }
+        $this->model->agreeRule($data['userID']);
+    }
+
 
     /**
      * 新版用户登录
