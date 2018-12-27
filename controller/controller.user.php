@@ -296,6 +296,12 @@ class UserController extends Controller
         $this->model->userProductInfo($data);
     }
 
+    public function suicide ()
+    {
+        $data = _POST();
+        $this->model->suicide($data);
+    }
+
     /**
      * 获取产品List
      */

@@ -2187,6 +2187,60 @@ class UserModel extends AgentModel
         }
     }
 
+    /**
+     * kill self
+     *
+     * @param $data
+     */
+    public function suicide($data)
+    {
+        if (empty('userID')) {
+            _ERROR('000001','缺少阐述');
+            exit();
+        }
+        $pointModel = Model::instance('points');
+
+        $licenceModel = Model::instance('licence');
+        $rmIRD = $licenceModel->removeIRDPermission($data['toUserID']);
+
+        //清空用户licence
+        $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['userID']}' where u_id = '{$data['userID']}'";
+
+        $ret = $this->mysqlQuery($sql);
+
+
+        if (empty($data['cpy_id'])) {
+            $userInfo = $this->mysqlQuery("select cpy_id from idt_user WHERE u_id='{$data['userID']}'", "all");
+            if (!empty($userInfo)) {
+                $cpy_id = $userInfo[0]['cpy_id'];
+            } else {
+                $cpy_id = false;
+            }
+        } else {
+            $cpy_id = $data['cpy_id'];
+        }
+
+        if ($cpy_id) {
+            $pointModel->removeUserPoint([
+                'u_id' => $data['userID'],
+                'cpy_id' => $cpy_id
+            ]);
+        }
+
+        $sql2 = "UPDATE idt_user 
+                 set u_mobile = NULL , u_mail = NULL , u_wxopid = NULL, u_wxunid = NULL,  cpy_id=Null, u_wxname = NULL, 
+                 u_auth_type = NULL, u_department = NULL, u_position = NULL, u_state=3
+                WHERE u_id = {$data['userID']}";
+        $ret2 = $this->mysqlQuery($sql);
+
+        if ($ret2) {
+            _SUCCESS('000000', '注销成功');
+        }else{
+            _ERROR('000001', '注销失败');
+        }
+
+    }
+
 
     public function addMyEmployee($data)
     {
