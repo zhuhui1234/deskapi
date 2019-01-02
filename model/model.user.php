@@ -176,7 +176,6 @@ class UserModel extends AgentModel
             $data['wxOpenid'] = null;
         }
 
-
         if (empty($data['appName'])) {
             $data['appName'] = 'app_null';
         }
@@ -609,7 +608,7 @@ class UserModel extends AgentModel
                 $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,
                     dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat
+                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat, dba.checkAgree 
                     FROM idt_user dba 
                     LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
                     LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
@@ -620,7 +619,7 @@ class UserModel extends AgentModel
                 $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,
                     dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state, dba.u_department department , dba.u_wxname as wechat
+                    dba.u_state u_state, dba.u_department department , dba.u_wxname as wechat, dba.checkAgree 
                     FROM idt_user dba 
                     LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                     WHERE dba.u_wxopid='{$data['Account']}' AND dba.u_wxunid='{$data['LoginKey']}'";
@@ -636,7 +635,7 @@ class UserModel extends AgentModel
                 $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,
                     dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat
+                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat, dba.checkAgree 
                     FROM idt_user dba 
                     LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
                     LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
@@ -655,7 +654,7 @@ class UserModel extends AgentModel
                 $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,
                     dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat
+                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat dba.checkAgree 
                     FROM idt_user dba 
                     LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
                     LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
@@ -760,6 +759,7 @@ class UserModel extends AgentModel
                         'uname' => $ret[0]['uname'],
                         'userID' => $ret[0]['userid'],
                         'ird_user_id' => $ird_ua_id,
+                        'check_agree' => $ret[0]['checkAgree'],
                         'validity' => $ret[0]['validity'] //账号有效期
                     ];
 
@@ -2229,7 +2229,7 @@ class UserModel extends AgentModel
                  u_product_key = NULL , u_mail_status = NULL 
                 WHERE u_id = '{$data['userID']}'";
         write_to_log($sql2, '_rmuser');
-        $ret2 = $this->mysqlQuery($sql);
+        $ret2 = $this->mysqlQuery($sql2);
         write_to_log(json_encode($data) . ' ret:' . $ret2, '_rmuser');
         if (true) {
             _SUCCESS('000000', '注销成功');
