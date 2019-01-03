@@ -3109,7 +3109,7 @@ class UserModel extends AgentModel
     private function __addEmployee($data)
     {
         $hasUser = $this->__hasUser($data['mobile']);
-        $hasMail = $this->__hasMail($data['u_mail']);
+//        $hasMail = $this->__hasMail($data['u_mail']);
         //手机验证码
 //        $checkMobile = $this->__checkMobileKey($data['mobile'], $data['mobile_key'], 3);
 
