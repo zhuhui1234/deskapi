@@ -608,7 +608,7 @@ class UserModel extends AgentModel
                 $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,
                     dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat, dba.checkAgree 
+                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat, dba.checkAgree  
                     FROM idt_user dba 
                     LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
                     LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
@@ -625,7 +625,6 @@ class UserModel extends AgentModel
                     WHERE dba.u_wxopid='{$data['Account']}' AND dba.u_wxunid='{$data['LoginKey']}'";
                 break;
             case 'mail':
-
                 $mail_sql = "select u_mobile as mobile from idt_user where u_mail = '{$data['loginMail']}'";
                 $get_mobile = $this->mysqlQuery($mail_sql, 'all');
                 if (!empty($get_mobile) and !empty($get_mobile[0]['mobile'])) {
@@ -759,7 +758,7 @@ class UserModel extends AgentModel
                         'uname' => $ret[0]['uname'],
                         'userID' => $ret[0]['userid'],
                         'ird_user_id' => $ird_ua_id,
-                        'check_agree' => $ret[0]['checkAgree'],
+                        'checkAgree' => $ret[0]['checkagree'],
                         'validity' => $ret[0]['validity'] //账号有效期
                     ];
 
@@ -1640,7 +1639,7 @@ class UserModel extends AgentModel
             'permissions' => $ret[0]['u_permissions'],
             'wechat' => $ret[0]['u_wxname'],
             'ird_user_id' => $ret[0]['product_key'],
-            'checkAgree' => $ret[0]['checkAgree']
+            'checkAgree' => $ret[0]['checkagree']
         ];
     }
 
