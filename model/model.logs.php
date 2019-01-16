@@ -175,8 +175,15 @@ class LogsModel extends AgentModel
 
     private function __checkLogData(array $data)
     {
-        if (!isset($data['companyID'])) {
+        if (empty($data['companyID'])) {
             $data['companyID'] = null;
+            if (!empty($data['user'])) {
+                $sql = "select cpy_id from idt_user where u_id = '{$data['user']}'";
+                $ret = $this->mysqlQuery($sql, 'all');
+                if (!empty($ret)) {
+                    $data['companyID'] = $ret[0]['cpy_id'];
+                }
+            }
         }
 
         if (!isset($data['status'])) {
@@ -206,6 +213,7 @@ class LogsModel extends AgentModel
         if (!isset($data['fingerprint'])) {
             $data['fingerprint'] = time();
         }
+
         return $data;
     }
 

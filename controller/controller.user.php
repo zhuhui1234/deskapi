@@ -54,6 +54,15 @@ class UserController extends Controller
         $this->model->login($data);
     }
 
+    public function agreeRule()
+    {
+        $data = _POST();
+        if (empty($data['userID'])) {
+            _ERROR('000001', 'userID不能为空');
+        }
+        $this->model->agreeRule($data['userID']);
+    }
+
 
     /**
      * 新版用户登录
@@ -285,6 +294,12 @@ class UserController extends Controller
 
         //查询成功,并返回响应结果
         $this->model->userProductInfo($data);
+    }
+
+    public function suicide ()
+    {
+        $data = _POST();
+        $this->model->suicide($data);
     }
 
     /**

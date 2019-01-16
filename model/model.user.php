@@ -176,7 +176,6 @@ class UserModel extends AgentModel
             $data['wxOpenid'] = null;
         }
 
-
         if (empty($data['appName'])) {
             $data['appName'] = 'app_null';
         }
@@ -609,7 +608,7 @@ class UserModel extends AgentModel
                 $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,
                     dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat
+                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat, dba.checkAgree  
                     FROM idt_user dba 
                     LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
                     LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
@@ -620,13 +619,12 @@ class UserModel extends AgentModel
                 $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbb.cpy_id cpy_id,dbb.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,dbb.cpy_validity validity,dba.u_name uname,
                     dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state, dba.u_department department , dba.u_wxname as wechat
+                    dba.u_state u_state, dba.u_department department , dba.u_wxname as wechat, dba.checkAgree 
                     FROM idt_user dba 
                     LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                     WHERE dba.u_wxopid='{$data['Account']}' AND dba.u_wxunid='{$data['LoginKey']}'";
                 break;
             case 'mail':
-
                 $mail_sql = "select u_mobile as mobile from idt_user where u_mail = '{$data['loginMail']}'";
                 $get_mobile = $this->mysqlQuery($mail_sql, 'all');
                 if (!empty($get_mobile) and !empty($get_mobile[0]['mobile'])) {
@@ -636,7 +634,7 @@ class UserModel extends AgentModel
                 $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,
                     dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat
+                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat, dba.checkAgree 
                     FROM idt_user dba 
                     LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
                     LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
@@ -655,7 +653,7 @@ class UserModel extends AgentModel
                 $sql = "SELECT dba.u_id userid,dba.u_mobile mobile,dba.u_mail email,dbc.cpy_id cpy_id,dbc.cpy_cname cpy_cname,dba.dev_id,
                     dba.u_head headimg,dba.u_product_key productkey,
                     dbc.cpy_validity validity,dba.u_name uname,dba.u_permissions permissions,dba.u_token token,
-                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat
+                    dba.u_state u_state , dba.u_department department , dba.u_wxname as wechat dba.checkAgree 
                     FROM idt_user dba 
                     LEFT JOIN idt_mobilekey dbb ON(dba.u_mobile=dbb.mik_mobile) 
                     LEFT JOIN idt_company dbc ON (dba.cpy_id=dbc.cpy_id) 
@@ -760,6 +758,7 @@ class UserModel extends AgentModel
                         'uname' => $ret[0]['uname'],
                         'userID' => $ret[0]['userid'],
                         'ird_user_id' => $ird_ua_id,
+                        'checkAgree' => $ret[0]['checkagree'],
                         'validity' => $ret[0]['validity'] //账号有效期
                     ];
 
@@ -1521,14 +1520,13 @@ class UserModel extends AgentModel
     {
         //查询产品Key
         $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,
-                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department,dba.u_wxname, 
+                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department,dba.u_wxname, dba.checkAgree, 
                 dba.u_product_key, dbb.ird_ca_id as ird_ca_id
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                 WHERE dba.u_id='{$data['userID']}'";
 
         $ret = $this->mysqlQuery($sql, "all");
-
         //返回用户信息
         $rs['company'] = $ret[0]['cpy_cname']; //公司
         $rs['companyEmail'] = $ret[0]['u_mail']; //公司邮箱
@@ -1548,6 +1546,7 @@ class UserModel extends AgentModel
         $rs['permissions'] = $ret[0]['u_permissions']; //姓名
         $rs['wechat'] = $ret[0]['u_wxname'];
         $rs['ird_user_Id'] = $ret[0]['u_product_key'];
+        $rs['checkAgree'] = $ret[0]['checkagree'];
         $rs['ird_ca_id'] = $ret[0]['ird_ca_id'];
         $rs['productList'] = $this->__getUserProductList($data['userID']);
         _SUCCESS('000000', '获取成功', $rs);
@@ -1556,7 +1555,7 @@ class UserModel extends AgentModel
     public function getUserInfoClean($data)
     {
         $sql = "SELECT dbb.cpy_cname,dba.u_mail,dba.u_head,
-                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department,dba.u_wxname, 
+                dba.u_mobile,dba.u_position,dba.u_name,dba.u_permissions, dba.u_department,dba.u_wxname,dba.checkAgree, 
                 dba.u_product_key, dbb.ird_ca_id as ird_ca_id
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
@@ -1592,7 +1591,7 @@ class UserModel extends AgentModel
     public function _getUserInfoByToken($data)
     {
         $sql = "SELECT dbb.cpy_cname,dbb.cpy_id,dba.u_mail,dba.u_head,
-                dba.u_mobile,dba.u_position,dba.u_permissions,dba.u_name,dba.u_id ,devdb.dev_name, dba.dev_id,dba.u_edate, dba.u_product_key, dba.u_wxname
+                dba.u_mobile,dba.u_position,dba.u_permissions,dba.u_name,dba.u_id ,devdb.dev_name, dba.dev_id,dba.u_edate, dba.u_product_key, dba.u_wxname, dba.checkAgree 
                 FROM idt_user dba 
                 LEFT JOIN idt_company dbb ON (dba.cpy_id=dbb.cpy_id) 
                 LEFT JOIN idt_devs devdb on (dba.dev_id = devdb.dev_id)
@@ -1640,6 +1639,7 @@ class UserModel extends AgentModel
             'permissions' => $ret[0]['u_permissions'],
             'wechat' => $ret[0]['u_wxname'],
             'ird_user_id' => $ret[0]['product_key'],
+            'checkAgree' => $ret[0]['checkagree']
         ];
     }
 
@@ -1761,6 +1761,24 @@ class UserModel extends AgentModel
         if (isset($ret)) {
             if ($ret == '1') {
                 _SUCCESS('000000', '修改成功', $this->getUserInfo($data));
+            } else {
+                _ERROR('000002', '修改失败');
+            }
+        }
+    }
+
+    /**
+     * agree rule
+     * @param $userId
+     */
+    public function agreeRule($userId)
+    {
+        $ret = $this->mysqlEdit('idt_user', ['checkAgree' => 1], "u_id='{$userId}'");
+
+        //返回响应结果
+        if (isset($ret)) {
+            if ($ret == '1') {
+                _SUCCESS('000000', '修改成功');
             } else {
                 _ERROR('000002', '修改失败');
             }
@@ -2166,6 +2184,58 @@ class UserModel extends AgentModel
         } else {
             _ERROR('000001', '无法将自己移除');
         }
+    }
+
+    /**
+     * kill self
+     *
+     * @param $data
+     */
+    public function suicide($data)
+    {
+        if (empty($data['userID']) and $data['userID'] !== '*') {
+            _ERROR('000001', '缺少参数');
+            exit();
+        }
+        $pointModel = Model::instance('points');
+
+        $licenceModel = Model::instance('licence');
+        $rmIRD = $licenceModel->removeIRDPermission($data['userID']);
+        //清空用户licence
+        $sql = "update idt_licence set u_id = null,lic_author_uid='{$data['userID']}' where u_id = '{$data['userID']}'";
+        write_to_log($sql, '_rmuser');
+        $ret = $this->mysqlQuery($sql);
+        if (empty($data['cpy_id'])) {
+            $userInfo = $this->mysqlQuery("select cpy_id from idt_user WHERE u_id='{$data['userID']}'", "all");
+            if (!empty($userInfo)) {
+                $cpy_id = $userInfo[0]['cpy_id'];
+            } else {
+                $cpy_id = false;
+            }
+        } else {
+            $cpy_id = $data['cpy_id'];
+        }
+
+        if ($cpy_id) {
+            $pointModel->removeUserPoint([
+                'u_id' => $data['userID'],
+                'cpy_id' => $cpy_id
+            ]);
+        }
+        $sql2 = "UPDATE idt_user
+                 set u_mobile = NULL , u_mail = NULL , u_wxopid = NULL, u_wxunid = NULL,  cpy_id=Null, u_wxname = NULL,
+                 u_auth_type = NULL, u_department = NULL, u_position = NULL, u_state=3, u_permissions=3, 
+                 u_product_key = NULL , u_mail_status = NULL 
+                WHERE u_id = '{$data['userID']}'";
+        write_to_log($sql2, '_rmuser');
+        $ret2 = $this->mysqlQuery($sql2);
+        write_to_log(json_encode($data) . ' ret:' . $ret2, '_rmuser');
+        if (true) {
+            _SUCCESS('000000', '注销成功');
+        } else {
+            _ERROR('000001', '注销失败');
+        }
+
     }
 
 
@@ -3039,7 +3109,7 @@ class UserModel extends AgentModel
     private function __addEmployee($data)
     {
         $hasUser = $this->__hasUser($data['mobile']);
-        $hasMail = $this->__hasMail($data['u_mail']);
+//        $hasMail = $this->__hasMail($data['u_mail']);
         //手机验证码
 //        $checkMobile = $this->__checkMobileKey($data['mobile'], $data['mobile_key'], 3);
 
