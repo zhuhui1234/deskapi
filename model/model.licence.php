@@ -181,17 +181,24 @@ class LicenceModel extends AgentModel
         if(!empty($data['licence_type'])){
             $arr = explode('+',$data['licence_type']);
             $licence_type = '';
-            foreach ($arr as $key => $value){
-                if($value == 'pc'){
-                    $licence_type .= " and pc_due_time is not null";
-                }
-                if($value == 'mobile'){
-                    $licence_type .= " and mobile_due_time is not null";
-                }
-                if($value == 'ott'){
-                    $licence_type .= " and ott_due_time is not null";
-                }
+            if (in_array('pc',$arr)) {
+                $licence_type .= " and pc_due_time is not null";
+            } else {
+                $licence_type .= " and pc_due_time is null";
             }
+
+            if (in_array('mobile',$arr)) {
+                $licence_type .= " and mobile_due_time is not null";
+            } else {
+                $licence_type .= " and mobile_due_time is null";
+            }
+
+            if (in_array('ott',$arr)) {
+                $licence_type .= " and ott_due_time is not null";
+            } else {
+                $licence_type .= " and ott_due_time is null";
+            }
+
         }else{
             $licence_type = '';
         }
